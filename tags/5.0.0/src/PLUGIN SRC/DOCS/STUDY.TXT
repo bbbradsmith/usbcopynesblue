@@ -1,0 +1,42 @@
+              Study & Game 32 in 1.  UNIF: BMC-StudyGame32in1
+              -----------------------------------------------
+
+1.26.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-StudyGame32in1 
+for the UNIF format.  If you must use ines, use mapper #58.  (that's 
+58 decimal)
+
+
+What a weird cart.  It has a bunch of games on it for a keyboard adaptor/
+pirate Fami w/ keyboard built in.
+
+---
+
+
+The hardware:
+
+1 gloptopped Mapper/ROM chip, and 2 32K RAM chips.
+
+The RAM chips are 32K, but only 8K of each is used.  
+
+Total PRG ROM is 1Mbyte.
+
+-
+
+The cart has a single register.  Write anywhere in 8000h-FFFFh.  
+
+-
+
+Bank Select Register:
+
+It uses the value written, and there are no bus conflicts.  Writing here
+selects a 32K ROM page.  That's it.  On startup, the first 32K ROM bank
+is loaded.
+
+WRAM is mapped in at 6000-7FFFh.  CHR is 8K of VRAM.

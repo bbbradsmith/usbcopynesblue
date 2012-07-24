@@ -1,0 +1,61 @@
+                  Super 700 in 1, Mapper: BMC-Super700in1
+                  ---------------------------------------
+
+2.4.2001
+Version 2.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-Super700in1 for the UNIF 
+format.  If you must use ines, use mapper #62.  (that's 62 decimal)
+
+
+
+---
+
+
+The hardware:
+
+2 74LS273 latches, LS00, LS32, LS153, and 3 1Mbyte ROMs.
+
+
+-
+
+This is very similar to the other multicarts out there that use a plain old
+TTL setup.
+
+
+-
+
+Unlike other multicarts, the address written to, along with the data written
+selects the desired banks and other things.
+
+
+---
+
+
+15    Address     0 7  Data 0
+------------------- ---------
+1xPP PPPG MBVC CCCC xxxx xxCC
+
+
+x - not used
+
+1 - must be 1
+
+C - 8K CHR ROM banks
+
+P - 32K PRG ROM banks
+
+G - 0 = lower 16K; 1 = upper 16K (only used when in 16K PRG mode)
+
+V - PRG size.  0 = 32K, 1 = 16K
+
+M - mirroring.  1 = H, 0 = V
+
+B - 1024K PRG bank.  0 = lower 1024K, 1 = upper 1024K
+
+
+That's it.

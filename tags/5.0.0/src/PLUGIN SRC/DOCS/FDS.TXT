@@ -1,0 +1,272 @@
+4. Disk Error Codes
+-------------------
+ERR.01 No Disk Card
+ERR.02 Not enough power for Disk System
+ERR.03 Disk write protected
+ERR.04 Incorrect Maker ID
+ERR.05 Incorrect Game ID
+ERR.06 Incorrect Version Number
+ERR.07 Incorrect Disk Side (side A/B error)
+ERR.08 Wrong Disk Number 1 (used in shin-onigashima, etc)
+ERR.09 Wrong Disk Number 2
+ERR.10 Wrong Disk Number 3
+ERR.20 Copyright Screen Invalid
+ERR.21 Incorrect Disk Header (*NINTENDO-HVC*)
+ERR.22 Unable to read disk header block #$01
+ERR.23 Unable to read file info block #$02
+ERR.24 Unable to read file attribute block #$03
+ERR.25 Unable to read file data block #$04
+ERR.26 Cannot save properly to disk
+ERR.27 Cannot find end-of-block
+ERR.28 Cannot take the same period as the disk unit (read)
+ERR.29 Cannot take the same period as the disk unit (write)
+ERR.30 Disk full; can't save.
+ERR.31 Data number does not match actual values.
+
+5. Controlling the Disk System
+------------------------------
+[$4020] -W Timer IRQ Control Register 0
+[$4021] -W Timer IRQ Control Register 1
+[$4022] -W Timer IRQ Control Register 2
+  bit 1: 1=Interrupts valid  0=invalid
+[$4023] -W Timer IRQ Control Register 3
+  Interrupt settings (to be analyzed)
+[$4024] -W Port Output
+[$4025] -W Control Register Input
+  bit 4: Mirroring (VRAM A10) 0=LHLH 1=LLHH
+
+Timing
+------
+<For reads>
+A. Initialization
+B. Motor_on
+C. Read_start_mark
+D. IRQ_ENABLE
+E. Read_end_mark
+*1. Readdata, 4030's 6bit = 0
+*2. Readdata, 4030's 5bit = 0
+
+     | A |  B   | C | D ||    E    |
+8bit |___|______|___|---||------___|
+7bit |___|______|---|---||------___|
+6bit |---|------|---|---||---------|
+5bit |___|______|___|___||___---___|
+3bit |---|------|---|---||---------|
+2bit |---|---___|___|___||_________|
+1bit |___|------|---|---||------___|
+Note |   |      |   |   || 1  2    |
+
+<For writes>
+A. Initialization
+B. Motor_on
+C. Write_start_mark & start write
+D. IRQ_enable
+E. Write_end_mark
+*1. Delay, writedata #$00
+*2. Writedata #$80
+*3. Writedata, 4030's 6bit = 0
+*4. Delay
+
+     | A |  B   |  C   | D ||    E    |
+8bit |___|______|______|---||------___|
+7bit |___|______|___---|---||------___|
+6bit |---|------|------|---||---------|
+5bit |___|______|______|___||___---___|
+3bit |---|------|______|___||______---|
+2bit |---|---___|______|___||_________|
+1bit |___|------|------|---||------___|
+Note |   |      |  1   | 2 || 3  4    |
+
+[$4026] -W ExPort Output
+  Used to output to expansion terminal on the RAM card (where the shutter is)
+
+[$4030] R- Disk Status Register 0
+  -A-B---- (where's C??)
+
+  Can retrieve information about the disk's data, other disk controller
+information, and sources of interrupts.  If both A and B are 1 after
+reading a block, an error occurs.
+   A: Data Exist 0:Yes 1:No
+   B: Block Mark Exist 0:Yes 1:No
+   C: Timer IRQ Occur 0:Yes 1:No
+
+[$4031] R- Port Input
+   Data transferred from Disk
+
+   When the data read from the disk is definite, an interrupt occurs, so read
+this address within the interrupt routine.
+
+[$4032] R- Disk Status Register 1
+  Disk Unit Information
+  -----PSD
+  D:media flag
+    0=Disk inserted
+    1=Disk not inserted
+  S:ready flag
+    0=Disk Ready
+    1=Disk Not Ready
+  P:protect flag
+    0=Write UnProtected
+    1=Write Protected
+
+[$4033] ExPort Input
+  B-------
+  B:Disk Battely low
+    0=OK
+    1=LOW
+
+[$4040] to [$407F] Wave Data
+  --ffffff
+  Bit 8 of $4089 must be 1 to modify.
+  The disk system's sound is Pulse Modulation, so write the wave datas into these addresses.
+The frequency (?) is 1/0x40.
+
+[$4080] Volume Control register
+  TFffffff
+  T: Volume Control Type
+    if T=1, ignore F. (absolute)
+      ffffff=Volume   0=no sound...3f=max volume
+    if T=0,
+      F: Fading Sound
+        0=Fade Out
+        1=Fade In
+      ffffff=Fade Speed  0=fast...3f=slow
+
+Ideas:
+  Using bit 7 of $4080, sounds like piano/strings can be represented as
+increasing or decreasing volume.
+
+[$4082] Frequency Control register (LOW)
+  ffffffff: frequency low 8 bits
+
+[$4083] Frequency Control register (High)
+  E---ffff
+  E: Sound on/off
+    0=Enable sound output
+    1=Disable sound output
+  ffff: frequency high 4 bits
+
+The sound of O-4-A is 0x400, so its frequency is 0x400 / 440 = 2.3272727 Hz.
+
+The sound of O-3-C is 131 Hz, so 131 * 2.3272727 = 304.8727272, so specify
+f = 305 to get that sound.
+
+[$4084] LFO Control register
+  TFffffff
+  T: Effector Control Type
+    if T=1, ignore F (immediate)
+      ffffff=Speed of Effect
+    if T=0,
+      F: Smooth Effect
+        0=FadeOut
+        1=FadeIn
+      ffffff=Fade Speed  0=fast...3f=slow
+
+[$4085] Effect State Control register
+  Specifies the LFO offset when using $4084.
+  The units are (f/0x20) and the current LFO address becomes its address.
+
+  Positive offsets are within 0x00 and 0x5f
+  Negative offsets are within 0x60 and 0x7f
+
+  -vvvvvvv
+  0x00: +(f/0x20) * 0x00 = 0
+  0x10: +(f/0x20) * 0x10 = +f x 0.5
+  0x20: +(f/0x20) * 0x20 = +f x 1.0
+  0x30: +(f/0x20) * 0x30 = +f x 1.5
+  0x40: +(f/0x20) * 0x40 = +f x 2.0
+  0x50: +(f/0x20) * 0x50 = +f x 2.5
+----------------
+  0x60: -(f/0x20) * 0x20 = -f
+  0x61: -(f/0x20) * 0x1F
+  0x62: -(f/0x20) * 0x1E
+  0x64: -(f/0x20) * 0x1C
+  0x68: -(f/0x20) * 0x18 = -f x 0.75
+  0x70: -(f/0x20) * 0x10 = -f x 0.5
+
+[$4086] Effect Speed Control register(Low)
+[$4087] Effect Speed COntrol register(High)
+   RSssssss
+    R: Switch $4088's settings 0=write protect on, 1=modifyable
+    S: Maximum Speed
+    ssssss: Effect Speed
+
+[$4088] Settings for changing note by timer
+  ----ffff
+  write 32 times for 1 set.  unit is (f/0x10)
+  0=0 1=+1 2=+2 3=+3 4=0 5=-3 6=-2 7=-1
+
+  64 possible changes. (48 positive, 16 negative)
+
+if LFO is active in $4084, the final frequency is determined
+by "f" from $4082,$4083 and $4085,$4086.
+
+[$4089]
+  R-----vv
+    R: Switch settings for $4040-$407F
+      0=write protect on
+      1=modifyable (stops sound)
+    vv: effect
+
+[$408A] ???
+  To be analyzed
+
+6. Usage of cables
+------------------
+Disk Unit Cable
+
+  ____________
+ /            \
+/ 1 3 5 7 9 B  \
+| 2 4 6 8 A C  |
+|______________|
+
+1: VCC
+2: out MOTOR ON 	bit 3 of $4025
+3: GND
+4: out READ		bit 2 of $4025
+5: in Sense Boltage	bit 8 of $4033
+        Can retrieve the power state when motor is on.
+6: in Read Data[9]	$4031
+8: in Write Protect 	bit 3 of $4032
+9: in MediaSet		bit 1 of $4032
+A: out Write DATA	$4024
+B: out WRITE		bit 1 of $4025
+C: in Ready 		bit 2 of $4032
+
+Expansion cable
+  _________
+ /         \
+/ 1 3 5 8 9 \
+| 2 4 6 8 A |
+|___________|
+
+1: GND
+2: VCC
+3: in bit 1 of $4033    out bit 1 of $4026
+4: in bit 2 of $4033    out bit 2 of $4026
+5: in bit 3 of $4033    out bit 3 of $4026
+6: in bit 4 of $4033    out bit 4 of $4026
+7: in bit 5 of $4033    out bit 5 of $4026
+8: in bit 6 of $4033    out bit 6 of $4026
+9: in bit 7 of $4033    out bit 7 of $4026
+A: NC
+
+7. Notes for emulation
+----------------------
+- Map $6000-$DFFF to RAM
+- Create a pointer that shows position of current data on disk
+- Using the $4025 timing figures, request an IRQ regularly when bit 8 of $4025 is 1,
+and increment the disk pointer.
+- Output current data at the pointer to $4031
+- Using the $4025 timing figures, invalidate the last data for each block (easier to
+support FDS files)
+- Initialize (set to beginning) the disk pointer when bit 2 of $4025 becomes 1.
+- Never return an error value for a read from $4030
+- Always set bit 8 of $4033 to 0.
+
+8. Lastly
+---------
+This document is still in the process of writing.  There probably are parts that are
+hard to understand.  Mail me for descriptions.  At current standing, this file explains
+up to reading/writing the disk.  I plan to distribute the system to rewrite disks.

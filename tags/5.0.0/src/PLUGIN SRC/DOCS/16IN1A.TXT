@@ -1,0 +1,123 @@
+                    Supervision 16 in 1, BMC-16in1A Info
+                    ------------------------------------
+
+1.2.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-16in1A for the UNIF 
+format.  If you must use ines, use mapper #53.  (that's 53 decimal)
+
+Hmm, what an odd multicart.  It has 16 128K UNROM titles on it.  Stuff like
+Rygar and Ghosts & Goblins.  There are 4 512K ROMs, and a single 32K EPROM
+on it!
+
+
+---
+
+
+The hardware:
+
+It consists of 4 512K ROMs, 1 32K EPROM, 74174, 74161, 7432, PAL, and an
+8K VRAM.  Not much more to it.
+
+
+-
+
+The cart has two registers.  The Bank Select Register at 6000h-7FFFh and 
+the Mapper Control / Game Select Register at 8000h to FFFFh.  There are 
+no bus conflicts.
+
+
+-
+
+Bank Select Register:
+
+7  bit  0
+---------
+xxxx xBBB
+
+Writing to 8000h-FFFFh sets this register.  It is used to select a 16K
+ROM bank which will appear at 8000h-BFFFh.  The state of this register on
+powerup is unknown.
+
+
+-
+
+Mapper Control / Game Select Register
+
+7  bit  0
+---------
+xxML GGGG
+
+
+This is written to by writing anywhere at 6000h-7FFFh.
+
+M:
+0 - Horizontal Mirroring
+1 - Vertical Mirroring
+
+L:
+0 - Use the menu ROM, allow this register to be written to.
+    Note that ONLY the 32K "menu ROM" (UNIF ID: PRG4)
+    can be accessed at 8000h-FFFFh.  The 2Mbytes of "Game ROMs"
+    (UNIF ID's PRG0-PRG3) can be partially read at 6000h-7FFFh (see below).
+
+1 - Lock.  This will lock further changes to 6000h, and will disable the
+    menu ROM.  The "Game ROMs" are then enabled and can appear in 8000h-FFFFh.
+
+G:  These are the "Game Select" bits, and select which 128K page of the
+    game ROMs will be used.  Only 1 128K game ROM page can be accessed at a
+    time.  To access another, you must reset the console.
+
+
+-
+
+How to work it good.
+
+On startup, the Mapper Control / Game Select Register is cleared.  This
+switches the menu ROM in (UNIF ID: PRG4), sets horiz. mirroring, and disables
+the "lock".
+
+This mapper can be thought of as two cascaded mappers, like alot of the other
+multicarts use.  This time, the "base mapper" is UNROM (ines mapper #2).  
+Each game is 128K in size, so 16 128K games = 2Mbytes worth of "Game ROMs".  
+These are seperate from the "Menu ROM" which is 32K in size.
+
+The Menu ROM has UNIF ID PRG4, while the 4 512K game ROMs have the UNIF
+ID's PRG0 thru PRG3.  You can treat the 4 512K ROMs as a single 2Mbyte block.
+
+Since this thing has an underlying UNROM, it behaves as such on the 128K
+game banks.  The upper half of PRG space, C000-FFFFh, is fixed to the last
+16K of the 128K bank, while the first half is movable.  Writing to 8000h-
+FFFFh selects the desired bank.  D0-D2 are used.
+
+-
+
+On startup, the 2Mbyte PRG ROMs are swapped out and the 32K Menu ROM is
+switched into 8000h-FFFFh.  Reading 6000h-7FFFh will allow you to read the
+LAST 8K of the selected 128K bank.  This allows the menu code to tell which 
+games are on the cart.
+
+Writing to the LOCK bit swap out the menu code and allow the game data to
+appear at 8000h-FFFFh, and for the UNROM mapping to take over.  The game code
+writes this to RAM:
+
+0500: STX 06000h
+0503: JMP (0FFFCh)
+
+You can select any desired 128K bank with the lock bit 0, however you can
+only read the last 8K of it through 6000h-7FFFh.  Setting the lock bit to 1
+will prevent further writes to 6000h-7FFFh, and will swap in the selected
+bank to 8000h-FFFFh.  
+
+Mirroring is of course locked as well as the selected bank when the lock bit
+it set to 1.
+
+That's it.  Have fun!
+
+
+

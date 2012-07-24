@@ -1,0 +1,174 @@
+                                 USB CopyNES
+                                   -------
+
+---
+
+This is just going to be a quick doc on what everything is and how to use it.
+
+---
+
+1.  What is USB copyNES?
+
+USB CopyNES is a modified front-loading NES game console.  From the outside,
+it looks like an ordinary NES except for the USB socket on the back.
+This is connected with a USB cable to a computer.
+Inside the NES console, the RP2A03G processor is removed from the
+PC board.  The removed processor is then soldered onto a small daughter
+card which is then soldered in where the processor soldered on the NES'
+main board.  The USB CopyNES hardware then performs a sort of "pass-through"
+function.  This lets the BIOS worm its way in and start first before the
+cart has a chance to.  
+
+---
+
+2.  What can it do?
+
+
+ a)  It can dump the data from ANY game cartridge.  If it will fit into 
+     the cart connector on the NES, it can be dumped.  This includes NTSC 
+     or PAL games, and NES or famicom (with "Honeybee" style adaptor).  
+     I have gotten my FDS RAM pack to work through it, and it should be 
+     possible to dump FDS disks via USB CopyNES.
+
+ b)  Bankwatch.  This is a fairly powerful quasi-emulator for cartridge
+     mapper Reverse Engineering (RE'ing). It allows the user to modify
+     the registers on a cartridge's mapper hardware, then see the results
+     in real time.  By sending the cartridge strategically crafted data
+     words, its function can then be unravelled.  I have used it to RE about
+     10 cartridge mappers to date.  Using this to RE a mapper saved me
+     around 75% of the time normally required.  
+
+ c)  Automatic ROM and mirroring detection.  USB CopyNES' plugins autodetect
+     the ROM sizes, RAM (WRAM, VRAM), and what type of mirroring is
+     present (horiz, vert., 1-screen, mapper-controlled, etc).  This saves
+     the hassle of opening the carts, and provides a "turn-key" way to
+     dump carts without having to get too technical.
+
+ d)  NSF music playing.  With a special NSF cart, USB CopyNES can play NSF's on
+     the real hardware.  128K of RAM is supported on my NSF cart allowing
+     up to 128K of space for a single song.  Songs are loaded through a
+     simple UI.  The RAM cart (see below) will work for SOME NSF's.  If 
+     they are not bankswitched, they will work on the RAM cart.
+
+ e)  RAM cart.  This allows very fast cycle time development.  With a cart like
+     the PowerPak Lite, many mappers and up to 256KB PRG, 128KB CHR, and 8KB 
+     WRAM can be loaded quickly.
+
+ f)  It is a generic platform for all forms of NES experimentation and can
+     be used for many other NES related activities like possibly RE'ing of
+     the NES hardware itself, game development, and game disassembly.
+
+
+---
+
+3.  How does the tech work?
+
+The USB CopyNES hardware is basically an address relocator that "fibs" to the 
+cartridge in the NES console.  It can re-map the addresses in real time to 
+the cart, giving it false information.  This allows the USB CopyNES BIOS (8K) 
+to get mapped in and steal the reset vectors.  This cart address 
+obfuscation circuit is then turned off once the NES is booted and running 
+the USB CopyNES BIOS code.   
+
+Since address space is a tight commodity on the NES, some was stolen.
+The 8K USB CopyNES BIOS is broken into 2 4K pages. the lower 4K is mapped in
+at 1000h through 1FFFh.  The upper 4K is mapped in at 3000h through 3FFFh.
+
+USB CopyNES has 2 modes:  "Copy" and "Play".  When in Play mode, the USB CopyNES
+hardware is 100% mapped out.  1000h-1FFFh and 3000h-3FFFh are reverted back
+to mirrors of RAM and PPU (resp.) totally mapping the BIOS out.  This also
+disables the port chip for good and it cannot be turned back on.  The only
+way to turn it back on is to reset the console (or cycle power).  This 
+prevents any writes from turning it back on by accident.  
+
+In "Copy" mode, the BIOS sits and waits for commands from the PC.  These
+commands are how USB CopyNES interacts with the PC.  The BIOS contains the
+basic protocol.  In this configuration, USB CopyNES acts as a slave device
+to the PC.  There is NO error detection or correction.  The handshaking built
+into the USB interface ensure no data is lost and a slow PC is not a problem.
+
+
+---
+
+4.  How to use it.
+
+ a)  Connect USB CopyNES to an open USB port on the PC using the supplied cable.
+     Any USB male A -> male B cable should work so you can use a longer cable. 
+     The USB hardware will be powered whenever the cable is plugged in. 
+
+ b)  Use the usual 9V or other suitable supply on the NES like normal. 
+     (note: the NES can use from 8V up to 14V DC or 7V to 11V AC.  The
+     NES has an unusually good power setup so it can take AC or DC
+     adaptors, and either polarity on the DC ones at that!).
+
+ c)  Run the USB CopyNES host program.  Turn the USB CopyNES off.
+     Install the cart to be dumped into the console.
+     
+ d)  Turn the USB CopyNES back on.  I suggest you do "play cart" to test 
+     to make sure you have it plugged in good before continuing- this 
+     will prevent most corrupt ROM images.
+ 
+ e)  Run The desired function (dump, bankwatch, etc).
+
+
+Please see the included copyuse.txt file for info on how all the various
+things work in the code.
+
+---
+
+5.  Directories.
+
+
+The directories I use on default are:
+
+/CRC/ 
+
+This stores the CRC's for the games that are dumped.  They are stored in
+text files.  They can be deleted after the game is dumped.  Saving the CRC
+can be turned off in the Options.
+
+/NES/
+
+This stores the finished ROMs that are emulator-runnable.  NES and UNIF 
+are built, UNIF can be turned off in the Options.
+
+/PRG/
+/CHR/
+/WRAM/
+
+Individual ROM dumps are put here during the dumping process.  They can
+be deleted after dumping (since the files are duplicated in the /NES/
+dir).  The purpose of the directory is mainly to allow easier access to the
+raw ROM data for easier hackage.  Saving these parts can be turned off in
+the Options.
+
+/PLUGINS/
+
+The actual 1152 byte (usually) binary plugins go here.  
+
+/NSF/
+This stores the .nsf files for replaying.
+
+
+---
+
+6. Plugin structure.
+
+Plugins are very very simple in nature.  They consist of 2 or sometimes 3
+parts.
+
+
+Byte 1-128:    Header.  This is a 128 byte text header that can describe
+               what the plugin does. It is not used by the CopyNES host prog.
+
+
+Byte 129-1152: Plugin data.  This is the actual 1K of space devoted to the
+               dumper plugin data.  It get mapped in at 0400-07ffh in the
+               NES' memory map.  Once loaded, execution is started at 0400h.
+
+Byte 1153-EOF: If present, this data is a "ROMString(tm)".  These let you
+               define how the individual ROMs are packaged in UNIF files.
+               Only professionals should attempt to mess with this option.
+
+
+---
