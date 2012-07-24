@@ -205,7 +205,7 @@ void	InitPort (void)
   { 
     // success - status received
     //MessageBox(topHWnd, "GetModemStatus passed", "InitPort", MB_OK | MB_ICONERROR); 
-    if (modemWord && 0x80)
+    if (modemWord & 0x80)
     {
       MessageBox(topHWnd, "NES is OFF - turn on then hit OK", "InitPort", MB_OK | MB_ICONERROR);            
     }
@@ -366,6 +366,9 @@ BOOL	LoadPlugin (char *plugin)
 	int w;
 	char filename[MAX_PATH];
 	FILE *PLUGIN;
+	char *filedata;
+	BOOL status;
+	
 	strcpy(filename,Path_PLUG);
 	strcat(filename,plugin);
 	
@@ -380,11 +383,11 @@ BOOL	LoadPlugin (char *plugin)
 		return FALSE;
 	}
 	fseek(PLUGIN,128,SEEK_SET);
-	char *filedata = malloc(1024);
-	fread(filedata, 1024, 1, PLUGIN);
+	filedata = malloc(1024);
+	fread((void*)filedata, 1024, 1, PLUGIN);
 	
-  BOOL status = WriteBlock(filedata, 1024);
-  free(filedata);
+	status = WriteBlock(filedata, 1024);
+	free(filedata);
   
   if (!status)
   {

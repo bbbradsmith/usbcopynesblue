@@ -6,8 +6,10 @@ BOOL	CMD_WRITEWRAM (void)
 {
 	PPlugin plugin;
 	char filename[MAX_PATH];
-	int i, wramsize;
+	int wramsize;
 	FILE *WRAM;
+	char *filedata;
+	
 	plugin = PromptPlugin(PLUG_WRAM);
 	if (plugin == NULL)
 		return FALSE;
@@ -37,15 +39,15 @@ BOOL	CMD_WRITEWRAM (void)
 	}
 	fseek(WRAM,0,SEEK_SET);
 	
-	char *filedata = malloc (wramsize);
+	filedata = malloc (wramsize);
 	fread(filedata,wramsize,1,WRAM);
 	if (!WriteBlock(filedata, wramsize))
-  {
-    fclose(WRAM);
-    free(filedata);
+	{
+		fclose(WRAM);
+		free(filedata);
 		CloseStatus();
 		return FALSE;
-  }
+	}
 	free(filedata);
 	fclose(WRAM);
 	StatusText("Upload complete!");

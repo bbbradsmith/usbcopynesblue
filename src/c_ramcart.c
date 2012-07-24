@@ -10,6 +10,7 @@ BOOL	NRAMcart (char *plugin)
 	BYTE PRGamt;
 	BYTE header[16];
 	BYTE mapper;
+	char* filedata;
 
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
 		return FALSE;
@@ -81,7 +82,7 @@ BOOL	NRAMcart (char *plugin)
 		return FALSE;
 	}
 	
-	char *filedata = malloc(1024);
+	filedata = malloc(1024);
 	StatusText("Sending PRG data...");
 	if (!WriteByte(header[4]))
 	{
@@ -147,6 +148,7 @@ BOOL	CNRAMcart (char *plugin)
 	BYTE header[16];
 	BYTE mapper;
 	int maxchr = 4;
+	char *filedata;
 
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
 		return FALSE;
@@ -214,7 +216,7 @@ BOOL	CNRAMcart (char *plugin)
 
 	StatusText("Sending CHR data...");
 	fseek(NES,0x10 + header[4] * 16384,SEEK_SET);
-	char *filedata = malloc(1024);
+	filedata = malloc(1024);
 	
 	if (!WriteByte(header[5]))
 	{
@@ -291,6 +293,7 @@ BOOL	UFROMcart (char *plugin)
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
+	char *filedata;
 
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
 		return FALSE;
@@ -370,7 +373,7 @@ BOOL	UFROMcart (char *plugin)
 	StatusPercent(100);
 	StatusText("...done!");
 
-  char *filedata = malloc(1024);
+	filedata = malloc(1024);
 	for (banks = 0; banks < 16; )
 	{
 		fseek(NES,0x10,SEEK_SET);
@@ -427,6 +430,7 @@ BOOL	PowerPakLitecart (char *plugin)
 	int maxchr = 4;
 	int maxprg = 0;
 	BYTE config = 0;
+	char *filedata;
 
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
 		return FALSE;
@@ -449,63 +453,62 @@ BOOL	PowerPakLitecart (char *plugin)
 
 	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
 	if ((mapper != 0) && (mapper != 1) && (mapper != 2) && (mapper != 3) && 
-      (mapper != 7) && (mapper != 11) && (mapper != 34) && (mapper != 66) && 
-      (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+		(mapper != 7) && (mapper != 11) && (mapper != 34) && (mapper != 66) && 
+		(MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
 		CloseStatus();
 		return FALSE;
 	}
 
-
 	if (mapper == 0)
 	{
 		maxchr = 1;          //nrom  =   8KB chr
 		maxprg = 2;          //nrom  =  32KB prg
- 		StatusText("NROM (iNES 0)");
-  }
-	else if (mapper = 1)
+		StatusText("NROM (iNES 0)");
+	}
+	else if (mapper == 1)
 	{
-	  maxchr = 16;         //mmc1  = 128KB chr
-	  maxprg = 16;         //mmc1  = 256KB prg
+		maxchr = 16;         //mmc1  = 128KB chr
+		maxprg = 16;         //mmc1  = 256KB prg
 		StatusText("MMC1 (iNES 1)");
-  }
- 	else if (mapper = 2)
+	}
+ 	else if (mapper == 2)
  	{
-	  maxchr = 0;          //urom  =   0KB chr
-	  maxprg = 16;         //urom  = 256KB prg
+		maxchr = 0;          //urom  =   0KB chr
+		maxprg = 16;         //urom  = 256KB prg
 		StatusText("U*NROM (iNES 2)");
-  }
-  else if (mapper = 3)
-  {
-	  maxchr = 4;          //cnrom =  32KB chr
-	  maxprg = 2;          //cnrom =  32KB prg
+	}
+	else if (mapper == 3)
+	{
+		maxchr = 4;          //cnrom =  32KB chr
+		maxprg = 2;          //cnrom =  32KB prg
 		StatusText("CNROM (iNES 3)");
-  }
-  else if (mapper = 7)
-  {
-	  maxchr = 0;          //arom  =   0KB chr	  
-	  maxprg = 16;         //arom  = 256KB prg  
+	}
+	else if (mapper == 7)
+	{
+		maxchr = 0;          //arom  =   0KB chr	  
+		maxprg = 16;         //arom  = 256KB prg  
 		StatusText("A*ROM (iNES 7)");
-  }
-  else if (mapper = 11)
-  {
-	  maxchr = 16;         //color = 128KB chr	  
-	  maxprg = 8;          //color = 128KB prg  
+	}
+	else if (mapper == 11)
+	{
+		maxchr = 16;         //color = 128KB chr	  
+		maxprg = 8;          //color = 128KB prg  
 		StatusText("ColorDreams (iNES 11)");
-  }
-  else if (mapper = 34)
-  {
-	  maxchr = 0;          //bnrom =   0KB chr
-	  maxprg = 8;          //bnrom = 128KB prg
+	}
+	else if (mapper == 34)
+	{
+		maxchr = 0;          //bnrom =   0KB chr
+		maxprg = 8;          //bnrom = 128KB prg
 		StatusText("BNROM (iNES 34)");
-  }
-  else if (mapper = 66)
-  {
-	  maxchr = 4;          //gnrom =  32KB chr    
-	  maxprg = 8;          //gnrom = 128KB prg   
+	}
+	else if (mapper == 66)
+	{
+		maxchr = 4;          //gnrom =  32KB chr    
+		maxprg = 8;          //gnrom = 128KB prg   
 		StatusText("GNROM (iNES 66)");
-  }
-    
+	}
+
 	if (header[4] > maxprg)
 	{
 		fclose(NES);
@@ -513,18 +516,13 @@ BOOL	PowerPakLitecart (char *plugin)
 		StatusOK();
 		return FALSE;
 	}
-	else	
-    StatusText("%iKB PRG ROM data located...", header[4] * 16);
-    
-    
-        	  
+	else
+		StatusText("%iKB PRG ROM data located...", header[4] * 16);
+	
 	if (header[5] > maxchr)
 		StatusText("More than %iKB of CHR ROM data was detected, sending first %iKB only...", maxchr * 8, maxchr * 8);
-	else	
-    StatusText("%iKB CHR ROM data located...", header[5] * 8);
-
-
-
+	else
+		StatusText("%iKB CHR ROM data located...", header[5] * 8);
 
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
@@ -549,27 +547,26 @@ BOOL	PowerPakLitecart (char *plugin)
 		return FALSE;
 	}
 	fseek(NES,0x10,SEEK_SET);
-	char *filedata = malloc(1024);
+	filedata = malloc(1024);
 	
 	for (i=0; i<header[4]; i++)
 	{
-    for (j=0; j<16; j++)
-    {
-	    fread(filedata, 1024, 1, NES);
-      if (!WriteBlock(filedata, 1024))
-      {
-        free(filedata);
-        CloseStatus();
-	    	fclose(NES);
-	    	return FALSE;
-      }
-		  StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));     
-    }
-  }
+		for (j=0; j<16; j++)
+		{
+			fread(filedata, 1024, 1, NES);
+			if (!WriteBlock(filedata, 1024))
+			{
+				free(filedata);
+				CloseStatus();
+				fclose(NES);
+				return FALSE;
+			}
+			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));     
+		}
+	}
 	
 	StatusPercent(100);
 	StatusText("...done!");	
-	
 
 	StatusText("Sending CHR data...");
 	fseek(NES,0x10 + header[4] * 16384,SEEK_SET);
@@ -664,6 +661,7 @@ BOOL	PowerPakcart (char *plugin)
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
+	char *filedata;
 
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
 		return FALSE;
@@ -742,32 +740,29 @@ BOOL	PowerPakcart (char *plugin)
 
 	StatusText("Sending PRG data...");
 	
-	char *filedata = malloc(1024);
+	filedata = malloc(1024);
 
-  	
 	for (i=0; i<4; i++)
 	{
-	  fseek(NES,0x10,SEEK_SET);  //go to start of prg
-    for (j=0; j<64; j++)
-    {
-      fread(filedata, 1024, 1, NES);  //write 64KB
-  
-      if (!WriteBlock(filedata, 1024))
-      {
-        free(filedata);
-        CloseStatus();
-   	    fclose(NES);
-	      return FALSE;
-      }
-		  StatusPercent(((i*64 + j) * 100) / 256);   
-    } 
-  }
+		fseek(NES,0x10,SEEK_SET);  //go to start of prg
+		for (j=0; j<64; j++)
+		{
+			fread(filedata, 1024, 1, NES);  //write 64KB
+			if (!WriteBlock(filedata, 1024))
+			{
+				free(filedata);
+				CloseStatus();
+				fclose(NES);
+				return FALSE;
+			}
+			StatusPercent(((i*64 + j) * 100) / 256);   
+		}
+	}
 	
 	StatusPercent(100);
 	StatusText("...done!");	
 	fclose(NES);
 	free(filedata);
-
 
 	if (!ReadByte(&banks))
 	{
@@ -799,6 +794,7 @@ BOOL	Glidercart (char *plugin)
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
+	char *filedata;
 
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
 		return FALSE;
@@ -862,26 +858,25 @@ BOOL	Glidercart (char *plugin)
 
 	StatusText("Sending PRG data...");
 	
-	char *filedata = malloc(1024);
+	filedata = malloc(1024);
 
-  	
 	for (i=0; i<4; i++)
 	{
-	  fseek(NES,0x10,SEEK_SET);  //go to start of prg
-    for (j=0; j<64; j++)
-    {
-      fread(filedata, 1024, 1, NES);  //write 64KB
+		fseek(NES,0x10,SEEK_SET);  //go to start of prg
+		for (j=0; j<64; j++)
+		{
+			fread(filedata, 1024, 1, NES);  //write 64KB
   
-      if (!WriteBlock(filedata, 1024))
-      {
-        free(filedata);
-        CloseStatus();
-   	    fclose(NES);
-	      return FALSE;
-      }
-		  StatusPercent(((i*64 + j) * 100) / 256);   
-    } 
-  }
+			if (!WriteBlock(filedata, 1024))
+			{
+				free(filedata);
+				CloseStatus();
+				fclose(NES);
+				return FALSE;
+			}
+			StatusPercent(((i*64 + j) * 100) / 256);   
+		} 
+	}
 	
 	StatusPercent(100);
 	StatusText("...done!");	

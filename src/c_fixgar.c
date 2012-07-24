@@ -5,7 +5,8 @@ BOOL	UploadGAR (void)
 {
 	FILE *GAR;
 	char filename[MAX_PATH];
-	int i, j;
+	int j;
+	char *filedata;
 	
 	if (!PromptFile(topHWnd,"Game Action Replay RAM file (gar.bin)\0gar.bin\0\0",filename,NULL,Path_PLUG,"Please select a valid Game Action Replay data file...","gar.bin",FALSE))
 		return FALSE;
@@ -39,7 +40,7 @@ BOOL	UploadGAR (void)
 	RunCode();
 	StatusText("Uploading from data file...");
 
-  char *filedata = malloc(1024);
+	filedata = malloc(1024);
 	for (j = 0; j < 2; j++)
 	{
     fread(filedata, 1024, 1, GAR);
