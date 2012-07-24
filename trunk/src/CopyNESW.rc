@@ -833,7 +833,7 @@ IDR_DRIVER              BIN                     "hwinterface.sys"
 
 STRINGTABLE 
 BEGIN
-    IDS_APP_TITLE           "USB CopyNES Win32 Client v4.0.0"
+    IDS_APP_TITLE           "USB CopyNES Blue Win32 Client v5.0.0"
 END
 
 #endif    // English (U.S.) resources
