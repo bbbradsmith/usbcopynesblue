@@ -1,0 +1,1862 @@
+       ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+       ³  Nintendo Entertainment System Documentation v0.53   ³
+       ³            by Y0SHi (yoshi@parodius.com)             ³
+       ³                                                      ³
+       ³             http://nesdev.parodius.com/              ³
+       ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 0 ³   Introduction   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³ READ ME   READ ME   READ ME ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  I'd like to dedicate this document to Alex Krasivsky (Landy on IRC) for
+all of his help and moral support throughout the past year regarding the
+NES, and issues outside of the console realm. During the good times, and
+the bad times, Alex was there. Spasibo, Alex; umnyj russki...
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³ READ ME   READ ME   READ ME ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  There are bound to be contradictory statements in this document. There
+are errors, and many problems regarding terminology (VROM vs. CHR-RAM,
+etc.). It is *FAR* from perfect. I have not incorporated all the terminology
+I would like to incorporate. Give it time and support: it'll get there.
+
+  You will notice severe similarities between Marat Fayzullin's NES Docu-
+mentation and mine; I originally based my work on his. Without Marat's
+document, I would have never had the desire to create this one.
+
+  Do not Email me about 6502 specifics, or such issues as "I can't figure
+out how to do {xxx}." I'm not interested in Emails like this; I know that
+sounds negative and rude, but I'm really sick and tired of getting Email
+about 6502 issues. Read a book. Libraries are *FULL* of 6502 books. There
+are tons of web pages about the 6502. I will not teach you 6502, nor any
+assembly language (nor do I teach UNIX). It's up to you to learn it.
+
+  Do not Email me things like "I am writing an emulator, and I need help.
+Please send me documents or code on how to write an emulator." I will not
+respond (your Email will be deleted). You're the author: if you're going
+to tackle such a task, you should know enough about CPUs and systems to
+know just how to go about emulating such. I will answer questions or
+comments regarding actual system architecture issues, and errors in my
+own documentation.
+
+  Finally, please, give credit where credit is due. All of the people in
+Section #15 helped contribute to this document. Be sure to thank them,
+as without their help, this document wouldn't be much more than a waste
+of bandwidth.
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 1 ³   Description   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The NES consists of a custom 6502 CPU, and a PPU (Picture Processing
+Unit) used for graphics. Programs can communicate with the NES via
+registers (I/O ports, so-to-speak), which allow different things to
+happen internally to the NES.
+
+  There are multiple areas of memory on the NES, and they should not be
+confused. Terms marked with an asterisk ('*') will be the terms used
+from here on.
+
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Term.    ³ Description                                                 ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³* PRG-ROM ³ Nintendo of Japan's term for the actual program code area.  ³
+³          ³                                                             ³
+³          ³ It stands for PRoGram ROM.                                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³* CHR-RAM ³ Nintendo of Japan's term for the Pattern Table of the PPU's ³
+³          ³ internal RAM.                                               ³
+³          ³                                                             ³
+³          ³ It stands for CHaRacter RAM.                                ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³* VRAM    ³ The RAM internal to the PPU (Picture Processing Unit).      ³
+³          ³ There is 16K of internal VRAM.                              ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³* WRAM    ³ This is the memory which is most commonly used for games    ³
+³          ³ which support saving (usually RPGs), such as Zelda 1 & 2,   ³
+³          ³ Crystalis, the Final Fantasy series, and other games.       ³
+³          ³                                                             ³
+³          ³ It stands for Writeable RAM.                                ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³* MMC     ³ The microcontrollers used in carts to address memory past   ³
+³          ³ the standard 6502 64K boundary. They can also be used to    ³
+³          ³ address extra VRAM, and may also be used for "special       ³
+³          ³ effects."                                                   ³
+³          ³                                                             ³
+³          ³ MMC stands for Multi-Memory Controller.                     ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³* EXRAM   ³ This is the memory which is used in MMC5, to support the    ³
+³          ³ extended colour (Attributes) mode. See Section #10 for more ³
+³          ³ information on this subject.                                ³
+³          ³                                                             ³
+³          ³ It stands for EXternal RAM.                                 ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ VROM     ³ The Pattern Table data kept external to the PPU itself;     ³
+³          ³ standard CHR-RAM data, which is swapped in and out of the   ³
+³          ³ PPU via an MMC.                                             ³
+³          ³                                                             ³
+³          ³ VROM stands for Video ROM.                                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ CHR      ³ Synonymous with CHR-RAM.                                    ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ PRG      ³ Synonymous with PRG-ROM.                                    ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ SRAM     ³ Synonymous with WRAM.                                       ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 2 ³   CPU Memory Map   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Size  ³ Description                               ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $0000   ³ $800  ³ RAM                                       ³
+³ $0800   ³ $800  ³ RAM (mirrored from $0000)                 ³
+³ $1000   ³ $800  ³ RAM (mirrored from $0000)                 ³
+³ $1800   ³ $800  ³ RAM (mirrored from $0000)                 ³
+³ $2000   ³ $3000 ³ Registers                                 ³
+³ $5000   ³ $1000 ³ Expansion Modules                         ³
+³ $6000   ³ $1000 ³ WRAM                                      ³
+³ $7000   ³ $1000 ³ WRAM  or  Trainer (RAM)                   ³
+³ $8000   ³ $4000 ³ PRG-ROM (Lower)                           ³
+³ $C000   ³ $4000 ³ PRG-ROM (Upper)                           ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Note the two seperate PRG-ROM sections; they are congruent, but they
+also play seperate roles, depending upon the size of the cartridge itself.
+Some games only hold one (1) 16K bank of PRG-ROM, which should be loaded
+into $C000 (Upper), not $8000 (Lower). Some games which do this are:
+Battle City, Mario Brothers, Millipede, Nuts & Milk, and Tennis. There
+are others as well.
+
+  Most games load themselves into $8000 (Lower PRG-ROM), using 32K of
+PRG-ROM space. The first game (to my knowledge) to use the entire PRG-ROM
+space is Super Mario Brothers. However, all games with more than one (1)
+16K bank of PRG-ROM load themselves into $8000 as well. These games use
+MMCs (see Section #10) to address PRG-ROM past the 32K boundary, and
+to access more than 8K of CHR-RAM simultaneously.
+
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 3 ³   PPU & Sprite Memory Map   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+ PPU Memory Map
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Size  ³ Description                               ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $0000   ³ $1000 ³ Pattern Table #0     (possibly CHR-RAM)   ³
+³ $1000   ³ $1000 ³ Pattern Table #1     (possibly CHR-RAM)   ³
+³ $2000   ³ $3C0  ³ Name Table #0                             ³
+³ $23C0   ³ $40   ³ Attribute Table #0                        ³
+³ $2400   ³ $3C0  ³ Name Table #1                             ³
+³ $27C0   ³ $40   ³ Attribute Table #1                        ³
+³ $2800   ³ $3C0  ³ Name Table #2        (based on mirroring) ³
+³ $2BC0   ³ $40   ³ Attribute Table #2   (based on mirroring) ³
+³ $2C00   ³ $3C0  ³ Name Table #3        (based on mirroring) ³
+³ $2FC0   ³ $40   ³ Attribute Table #3   (based on mirroring) ³
+³ $3000   ³ $F00  ³ [---EMPTY---]                             ³
+³ $3F00   ³ $10   ³ Image Palette                             ³
+³ $3F10   ³ $10   ³ Sprite Palette                            ³
+³ $3F20   ³ $E0   ³ [---EMPTY---]                             ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+ Sprite RAM
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Size  ³ Description                               ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $0000   ³ $100  ³ Sprite RAM                                ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  For more information about Sprite RAM, see Sections #6 and #9.
+
+  VRAM is quite unorganized, as shown above. To my knowledge, VRAM is
+addressed via 14-bit address, and therefore should wrap back around to
+$0000 if the memory boundary passes the end of memory ($3FFF).
+
+  There is only enough VRAM memory to support two (2) Name Tables and
+two (2) Attribute Tables. Therefore, Name/Attribute Tables #2 and #3
+are mirrors of Name/Attribute Tables #0 and #1. Which Tables are mirrored
+depends upon the mirroring bit set inside of the cartridge header (see
+Section #12 for more information).
+
+  In a real NES, reading/writing VRAM should only be attempted during
+VBlank. Many smaller ROMs have CHR-RAM for the Pattern Tables. In this
+case, you won't be able to write into this memory.
+
+  Writing to VRAM
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+  1) Write upper address byte into $2006
+  2) Write lower address byte into $2006
+  3) Write data into $2007. After each write, the address will auto-
+     increment by 1, or 32 (if Bit #2 of $2000 is 1).
+
+  Reading from VRAM
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+  1) Write upper address byte into $2006
+  2) Write lower address byte into $2006
+  3) Read data from $2007. The first read from $2007 is invalid, and
+     therefore should be taken care of before actual data is read.
+  4) Read data from $2007. From here on, after each read, the address will
+     auto-increment by 1, or 32 (if Bit #2 of $2000 is 1).
+
+  The Name Table holds "tile index values." Tiles themselves are 8x8
+pixels. The entire Name Table itself is 32x30 tiles (256x240 pixels).
+However, due to NTSC and PAL frequencies, the actual displayed resolution
+is different.
+
+  For NTSC, the upper and lower 16 pixels are not displayed, therefore the
+resolution is 256x224. The Name Table itself keeps a static size of 32x30
+tiles (256x240 pixels).
+
+  For more information about NES PAL/NTSC issues, feel free to check out
+Mark Knibbs' NES PAL/NTSC document at:
+
+        http://nesdev.parodius.com/nesfreq.txt
+
+  Continuing on...
+
+  These values (re: "tile index values") are usually put into the Name
+Table via writes to the $2006 register (see Section #6). These values are
+used to reference the information stored in the Pattern Table. For you
+emulator authors out there, the formulae is quite simple:
+
+        (VALUE * 16) + ScreenPatternTableAddress
+
+  Where VALUE is the value which is written to register $2006, and
+ScreenPatternTableAddress is the Screen Pattern Table Address defined in
+Bit #2 in register $2000 (see Section #6).
+
+  The NES can only display 16 colours on the screen simultaneously.
+
+  The Pattern Table contains tiles in the following format:
+
+    Contents of                       Colour 
+   Pattern Table                      Result
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ                    ÄÄÄÄÄÄÄÄ
+  %00010000 = $10 ÄÄ¿                ...1....  Periods are used to rep-
+  %00000000 = $00   ³                ..2.2...  resent colour 0. Numbers
+  %01000100 = $44   ³                .3...3..  shown represent colour #.
+  %00000000 = $00   ÃÄÄ Bit 0        2.....2.
+  %11111110 = $FE   ³                1111111.
+  %00000000 = $00   ³                2.....2.
+  %10000010 = $82   ³                3.....3.
+  %00000000 = $00 ÄÄÙ                ........
+
+  %00000000 = $00 ÄÄ¿
+  %00101000 = $28   ³
+  %01000100 = $44   ³
+  %10000010 = $82   ÃÄÄ Bit 1
+  %00000000 = $00   ³
+  %10000010 = $82   ³
+  %10000010 = $82   ³
+  %00000000 = $00 ÄÄÙ
+
+  The result of the above Pattern Table is the character 'A', as shown
+in the "Colour Result" section in the upper right.
+
+  Only two (2) bits for each pixel of a tile are stored in the Pattern
+Table. The other two (2) bits are taken from the Attribute Table. Four (4)
+bits make up the entire possible colours on the NES, which therefore shows
+that the NES can display 16 colours on the screen simultaneously.
+
+  Each byte in an Attribute Table represents a 4x4 group of tiles on the
+screen. There's multiple ways to describe what the function of one (1)
+byte in the Attribute Table does:
+
+  * Holds the upper two (2) bits of a 32x32 pixel grid, per 16x16 pixels.
+  * Holds the upper two (2) bits of sixteen (16) 8x8 tiles.
+  * Holds the upper two (2) bits of four (4) 4x4 tile grids.
+
+  It's confusing as hell, to be honest. A few graphical diagrams may help
+those who are confused:
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³  Square 0  ³  Square 1  ³  #0-F represents an 8x8 tile
+ ³   #0  #1   ³   #4  #5   ³
+ ³   #2  #3   ³   #6  #7   ³  Square [x] represents four (4) 8x8 tiles
+ ÃÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄ´   (i.e. a 16x16 pixel grid)
+ ³  Square 2  ³  Square 3  ³
+ ³   #8  #9   ³   #C  #D   ³
+ ³   #A  #B   ³   #E  #F   ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+   Attribute Byte
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+     %00000000
+      À´À´À´ÀÁÄ Upper two (2) colour bits for Square 0 (Tiles #0/1/2/3)
+       ³ ³ ÀÄÄÄ Upper two (2) colour bits for Square 1 (Tiles #4/5/6/7)
+       ³ ÀÄÄÄÄÄ Upper two (2) colour bits for Square 2 (Tiles #8/9/A/B)
+       ÀÄÄÄÄÄÄÄ Upper two (2) colour bits for Square 3 (Tiles #C/D/E/F)
+
+  Putting all of this information together is a cinch, assuming you can
+overlay bit patterns in your head. A similar method is used in the tweaked
+graphics modes known as "MODE-X" modes on the PC. Most DOS-oriented emu-
+lators use what's known as "MODE-Q", since it's resolution is 256x256x256.
+For more information, research "chained graphics modes."
+
+  Two (2) palettes exist; the Image Palette and the Sprite Palette. These
+palettes are more of a "lookup table" than an actual palette, since they
+do not hold physical RGB values.
+
+  The NES itself uses an NTSC composite video signal, but can be "emulated"
+by corrisponding RGB values with the colours on a standard TV set. The
+actual 256 RGB palette (though 64 are used) can be obtained from the
+following URL:
+
+        http://nesdev.parodius.com/loopypal.txt
+
+  Mirroring also occurs between the Image Palette and the Sprite Palette.
+Any data which is written to $3F00 is mirrored to $3F04, $3F08, and $3F0C.
+Any data which is written to $3F10 is mirrored to $3F14, $3F18, and $3F1C.
+Colour #0 in both Palettes defines transparency.
+
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 4 ³   Background Scrolling   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  It seems there's quite a few questions regarding just how to go about
+using Register $2005 (see Section #6) to pan the background. I myself am
+still having problems understanding just exactly how this register works.
+But, thanks to Pat Mccomack, there is a small explanation which I'll
+post here so that those who're having problems can hopefully make use of
+this information:
+
+  Horizontal Scrolling             Vertical Scrolling
+     0          512
+     ÚÄÄÄÄÄÂÄÄÄÄÄ¿                      ÚÄÄÄÄÄ¿0
+     ³     ³     ³                      ³     ³
+     ³  A  ³  B  ³                      ³  A  ³
+     ³     ³     ³                      ³     ³
+     ÀÄÄÄÄÄÁÄÄÄÄÄÙ                      ÃÄÄÄÄÄ´
+                                        ³     ³
+                                        ³  B  ³
+                                        ³     ³
+                                        ÀÄÄÄÄÄÙ480
+
+  Name Table "A" is specified via Bits #0-1 in $2000 (see Section #6),
+and "B" is the next to "A", since it's based on mirroring. This doesn't
+work for game which use Horizontal & Vertical scrolling at the same time.
+Possibly the four-screen VRAM layout fixes this.
+
+  "This stuff is used in smb1 (horizontal scrolling) but it's probably the
+same way with other games. Scrolling seems to be scanline based, ie during
+refresh the game can write different values to the scroll register (usually
+they do this when they detect the sprite 0 hit via reg $2002).  The scroll-
+ing screen layout also can change.  With horizontal scrolling, the name
+table at the first screen (0-255) is the one specified in reg $2000, and
+the name table for the second screen (256-512) is the opposite of the first
+one, based on mirroring I guess."
+
+  Thanks for providing this information, Pat. :-)
+
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 5 ³   Interrupts   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The 6502 has three interrupts: IRQ/BRK, NMI, and RESET.
+
+  Each interrupt has it's own vector, usually pointing to some code
+to be executed. A vector is a 16-bit address which specifies a location
+to "jump to" when the interrupt is triggered.
+
+  IRQ/BRK is triggered when the 6502 executes the BRK instruction. BRK
+can be used for many things, but is *RARELY* used, since it generally
+puts the machine into a state of unhappiness. However, for you emulator
+authors out there, be sure to emulate BRK correctly, as some games do
+use BRK to force the jump at the IRQ/BRK vector. Super Nintendo (SNES)
+games do this as well, but that's a different issue alltogether.
+
+  NMI stands for Non-Maskable Interrupt, and is generated by each
+refresh (VBlank/VBL), which occurs at different intervals depending upon
+the system used.
+
+  RESET is triggered on power-up. The ROM is loaded into memory, and
+the 6502 jumps to the address specified in the RESET vector. No registers
+are modified, and no memory is cleared; these only occur during power-up.
+
+  Back to the issue of NMI. NMI is only executed 50 times/sec. when
+Bit #7 in $2000 (see Section #6) is set to 1. This tells the NES to
+generate interrupts (or more specifically, execute NMI) everytime a
+refresh occurs. Interrupt latency on the 6502 is seven (7) cycles; this
+means it takes seven (7) cycles to move in and out of an interrupt.
+
+  Most interrupts should return using the RTI instruction. Some NES carts
+do not use this method, such as Final Fantasy 1. These carts return from
+interrupts in a very odd fashion: by manipulating the stack by hand, and
+then doing an RTS. This is technically valid, but morally is "bad." If
+you're an emulator author, just be sure you implement all your opcodes
+right and you should be fine. The game code will take care of the rest.
+
+  The following interrupts have the following vector-points in ROM:
+
+     ÚÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄ¿
+     ³ Vector ³ Interrupt ³
+     ÃÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄ´
+     ³ $FFFA  ³ NMI       ³
+     ³ $FFFC  ³ RESET     ³
+     ³ $FFFE  ³ IRQ/BRK   ³
+     ÀÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Here are the correct interrupt priority orders for the 6502:
+
+     ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄ¿
+     ³ Priority ³ Interrupt ³
+     ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄ´
+     ³ Highest  ³ RESET     ³
+     ³          ³ NMI       ³
+     ³ Lowest   ³ IRQ/BRK   ³
+     ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 6 ³   Registers   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Address: The 16-bit address of the register (in ROM)
+    Stats: Each register has different statistics and "aspects" to it.
+           These stats are defined as follows:
+               R = Register is readable.
+               W = Register is writeable.
+               2 = A "double-write" register.
+               ? = Statistics are unknown, or are possibly wrong.
+     Bits: Most registers have bits you can toggle on/off which do
+           different things to the NES itself.
+           Bits labelled with '-' (hyphen) are not used.
+           Bits labelled with '?' are unknown.
+     [Label]: Labels I have assigned to each register (for programmers).
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                       [Label]   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2000   ³  W    ³ vhzcpwNN ³ PPU Control Register #1           [PPUCNT0] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  v = Execute NMI on VBlank                  ³
+³         ³       ³          ³         0 = Disabled                        ³
+³         ³       ³          ³         1 = Enabled                         ³
+³         ³       ³          ³  h = Execute NMI on Sprite Hit              ³
+³         ³       ³          ³         0 = Disabled                        ³
+³         ³       ³          ³         1 = Enabled                         ³
+³         ³       ³          ³  z = Sprite Size                            ³
+³         ³       ³          ³         0 = 8x8                             ³
+³         ³       ³          ³         1 = 8x16                            ³
+³         ³       ³          ³  c = Screen Pattern Table Address           ³
+³         ³       ³          ³         0 = $0000 (VRAM)                    ³
+³         ³       ³          ³         1 = $1000 (VRAM)                    ³
+³         ³       ³          ³  p = Sprite Pattern Table Address           ³
+³         ³       ³          ³         0 = $0000 (VRAM)                    ³
+³         ³       ³          ³         1 = $1000 (VRAM)                    ³
+³         ³       ³          ³  w = PPU Address Read/Write Increment       ³
+³         ³       ³          ³         0 = Increment by 1                  ³
+³         ³       ³          ³         1 = Increment by 32                 ³
+³         ³       ³          ³  N = Name Table Select                      ³
+³         ³       ³          ³        00 = $2000 (VRAM)                    ³
+³         ³       ³          ³        01 = $2400 (VRAM)                    ³
+³         ³       ³          ³        10 = $2800 (VRAM)                    ³
+³         ³       ³          ³        11 = $2C00 (VRAM)                    ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2001   ³  W    ³ fffpcSIt ³ PPU Control Register #2           [PPUCNT1] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  f = Full Background Colour                 ³
+³         ³       ³          ³       000 = None   \                        ³
+³         ³       ³          ³       001 = Red     \ Select one only       ³
+³         ³       ³          ³       010 = Green   /                       ³
+³         ³       ³          ³       100 = Blue   /                        ³
+³         ³       ³          ³  p = Sprite Display                         ³
+³         ³       ³          ³         0 = Hide sprites                    ³
+³         ³       ³          ³         1 = Show sprites                    ³
+³         ³       ³          ³  c = Screen Display                         ³
+³         ³       ³          ³         0 = Off (screen off)                ³
+³         ³       ³          ³         1 = On  (screen on)                 ³
+³         ³       ³          ³  S = Sprite Clip                            ³
+³         ³       ³          ³         0 = Don't show sprites in the left  ³
+³         ³       ³          ³             8-pixel column                  ³
+³         ³       ³          ³         1 = Show sprites everywhere         ³
+³         ³       ³          ³  I = Image Clip                             ³
+³         ³       ³          ³         0 = Don't show the left 8 pixels of ³
+³         ³       ³          ³             the screen                      ³
+³         ³       ³          ³         1 = Show the left 8 pixels          ³
+³         ³       ³          ³  t = Colour Display                         ³
+³         ³       ³          ³         0 = Mono-tone display               ³
+³         ³       ³          ³         1 = Colour display                  ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2002   ³ R     ³ vhsW---- ³ PPU Status Register               [PPUSTAT] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  v = VBlank Occurance Flag                  ³
+³         ³       ³          ³         0 = No VBlank                       ³
+³         ³       ³          ³         1 = VBlank                          ³
+³         ³       ³          ³  h = Hit Occurance Flag                     ³
+³         ³       ³          ³         0 = No hit                          ³
+³         ³       ³          ³         1 = Refresh has hit Sprite #0       ³
+³         ³       ³          ³  s = Sprite Count Max                       ³
+³         ³       ³          ³         0 = Less than 8 sprites on the      ³
+³         ³       ³          ³             current scanline                ³
+³         ³       ³          ³         1 = More than 8 sprites on the      ³
+³         ³       ³          ³             current scanline                ³
+³         ³       ³          ³  W = PPU Write Status Flag                  ³
+³         ³       ³          ³         0 = Writes to VRAM are respected    ³
+³         ³       ³          ³         1 = Writes to VRAM are ignored      ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: Bit #6 is reset to 0 at the beginning ³
+³         ³       ³          ³       of the next refresh.                  ³
+³         ³       ³          ³ NOTE: Bit #6 is not set until the first     ³
+³         ³       ³          ³       actual pixel (i.e. non-transparent)   ³
+³         ³       ³          ³       is drawn. Therefore, if you have a    ³
+³         ³       ³          ³       sprite (8x8) which has it's first 4   ³
+³         ³       ³          ³       pixels as transparent, and it's 5th   ³
+³         ³       ³          ³       as a non-transparent value, Bit 6     ³
+³         ³       ³          ³       will be set after the 5th pixel is    ³
+³         ³       ³          ³       found & drawn.                        ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2003   ³  W    ³ aaaaaaaa ³ Sprite Memory Address             [SPRADDR] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Specifies the address in Sprite RAM to     ³
+³         ³       ³          ³  access via $2004 (see Section #9).         ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2004   ³  W    ³ dddddddd ³ Sprite I/O Register                 [SPRIO] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Used to read/write to the address spec-    ³
+³         ³       ³          ³  ified via $2003 in Sprite RAM.             ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2005   ³  W2   ³ dddddddd ³ Background Scroll Register        [BGSCROL] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Used to scroll the screen vertically and   ³
+³         ³       ³          ³  horizontally. This is a double-write       ³
+³         ³       ³          ³  register.                                  ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  BYTE 1: Horizontal Scroll                  ³
+³         ³       ³          ³  BYTE 2: Vertical Scroll                    ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  The scrolled data will span across multip- ³
+³         ³       ³          ³  le Name Tables. The layout is as follows:  ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³      ÚÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄ¿            ³
+³         ³       ³          ³      ³ #2 ($2800) ³ #3 ($2C00) ³            ³
+³         ³       ³          ³      ÃÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄ´            ³
+³         ³       ³          ³      ³ #0 ($2000) ³ #1 ($2400) ³            ³
+³         ³       ³          ³      ÀÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÙ            ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: If the Vertical Scroll value is >239, ³
+³         ³       ³          ³       it will be ignored. Some emulators    ³
+³         ³       ³          ³       write 0 to the Vertical Scroll if     ³
+³         ³       ³          ³       the value is >239.                    ³
+³         ³       ³          ³ NOTE: Remember, there is only enough VRAM   ³
+³         ³       ³          ³       for two (2) Name Tables.              ³
+³         ³       ³          ³ NOTE: After a VBL occurs, the next write    ³
+³         ³       ³          ³       will control the Horizontal Scroll.   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2006   ³  W2   ³ aaaaaaaa ³ PPU Memory Address                [PPUADDR] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Specifies the address in VRAM in which     ³
+³         ³       ³          ³  data should be read from or written to.    ³
+³         ³       ³          ³  This is a double-write register. The high- ³
+³         ³       ³          ³  byte of the 16-bit address is written      ³
+³         ³       ³          ³  first, then the low-byte.                  ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $2007   ³ RW    ³ dddddddd ³ PPU I/O Register                    [PPUIO] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Used to read/write to the address spec-    ³
+³         ³       ³          ³  ified via $2006 in VRAM.                   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4000   ³ RW    ³ CChessss ³ Square Wave Control Register #1             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   C = Duty Cycle (Positive vs. Negative)    ³
+³         ³       ³          ³        00 = 87.5%                           ³
+³         ³       ³          ³        01 = 75.0%                           ³
+³         ³       ³          ³        10 = 58.0%                           ³
+³         ³       ³          ³        11 = 25.0%                           ³
+³         ³       ³          ³   h = Hold Note                             ³
+³         ³       ³          ³         0 = Don't hold note                 ³
+³         ³       ³          ³         1 = Hold note                       ³
+³         ³       ³          ³   e = Envelope Select                       ³
+³         ³       ³          ³         0 = Envelope Vary                   ³
+³         ³       ³          ³         1 = Envelope Fixed                  ³
+³         ³       ³          ³   s = Playback Rate                         ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4001   ³ RW    ³ fsssHrrr ³ Square Wave Control Register #2             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   f = Frequency Fixed/Variable Select       ³
+³         ³       ³          ³         0 = Fixed  (bits 0-6 disabled)      ³
+³         ³       ³          ³         1 = Variable (bits 0-6 enabled)     ³
+³         ³       ³          ³   s = Frequency Change Speed                ³
+³         ³       ³          ³   H = Low/High Frequency Select             ³
+³         ³       ³          ³         0 = Low -> High                     ³
+³         ³       ³          ³         1 = High -> Low                     ³
+³         ³       ³          ³   r = Frequency Range (0=Min, 7=Max)        ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4002   ³ RW    ³ dddddddd ³ Square Wave Frequency Value Register #1     ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (lower 8-bits)   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4003   ³ RW    ³ tttttddd ³ Square Wave Frequency Value Register #2     ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (upper 3-bits)   ³
+³         ³       ³          ³   t = Active Time Length                    ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: The Frequency Value is a full 11-bits ³
+³         ³       ³          ³       in size; be aware you will need to    ³
+³         ³       ³          ³       write the upper 3-bits to $4003.      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4004   ³ RW    ³ CChessss ³ Square Wave Control Register #1             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   C = Duty Cycle (Positive vs. Negative)    ³
+³         ³       ³          ³        00 = 87.5%                           ³
+³         ³       ³          ³        01 = 75.0%                           ³
+³         ³       ³          ³        10 = 58.0%                           ³
+³         ³       ³          ³        11 = 25.0%                           ³
+³         ³       ³          ³   h = Hold Note                             ³
+³         ³       ³          ³         0 = Don't hold note                 ³
+³         ³       ³          ³         1 = Hold note                       ³
+³         ³       ³          ³   e = Envelope Select                       ³
+³         ³       ³          ³         0 = Envelope Vary                   ³
+³         ³       ³          ³         1 = Envelope Fixed                  ³
+³         ³       ³          ³   s = Playback Rate                         ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4005   ³ RW    ³ fsssHrrr ³ Square Wave Control Register #2             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   f = Frequency Fixed/Variable Select       ³
+³         ³       ³          ³         0 = Fixed  (bits 0-6 disabled)      ³
+³         ³       ³          ³         1 = Variable (bits 0-6 enabled)     ³
+³         ³       ³          ³   s = Frequency Change Speed                ³
+³         ³       ³          ³   H = Low/High Frequency Select             ³
+³         ³       ³          ³         0 = Low -> High                     ³
+³         ³       ³          ³         1 = High -> Low                     ³
+³         ³       ³          ³   r = Frequency Range (0=Min, 7=Max)        ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4006   ³ RW    ³ dddddddd ³ Square Wave Frequency Value Register #1     ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (lower 8-bits)   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4007   ³ RW    ³ tttttddd ³ Square Wave Frequency Value Register #2     ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (upper 3-bits)   ³
+³         ³       ³          ³   t = Active Time Length                    ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: The Frequency Value is a full 11-bits ³
+³         ³       ³          ³       in size; be aware you will need to    ³
+³         ³       ³          ³       write the upper 3-bits to $4007.      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4008   ³ RW    ³ CChessss ³ Triangle Wave Control Register #1           ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   C = Duty Cycle (Positive vs. Negative)    ³
+³         ³       ³          ³        00 = 87.5%                           ³
+³         ³       ³          ³        01 = 75.0%                           ³
+³         ³       ³          ³        10 = 58.0%                           ³
+³         ³       ³          ³        11 = 25.0%                           ³
+³         ³       ³          ³   h = Hold Note                             ³
+³         ³       ³          ³         0 = Don't hold note                 ³
+³         ³       ³          ³         1 = Hold note                       ³
+³         ³       ³          ³   e = Envelope Select                       ³
+³         ³       ³          ³         0 = Envelope Vary                   ³
+³         ³       ³          ³         1 = Envelope Fixed                  ³
+³         ³       ³          ³   s = Playback Rate                         ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4009   ³ RW    ³ fsssHrrr ³ Triangle Wave Control Register #2           ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   f = Frequency Fixed/Variable Select       ³
+³         ³       ³          ³         0 = Fixed  (bits 0-6 disabled)      ³
+³         ³       ³          ³         1 = Variable (bits 0-6 enabled)     ³
+³         ³       ³          ³   s = Frequency Change Speed                ³
+³         ³       ³          ³   H = Low/High Frequency Select             ³
+³         ³       ³          ³         0 = Low -> High                     ³
+³         ³       ³          ³         1 = High -> Low                     ³
+³         ³       ³          ³   r = Frequency Range (0=Min, 7=Max)        ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $400A   ³ RW    ³ dddddddd ³ Triangle Wave Frequency Value Register #1   ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (lower 8-bits)   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $400B   ³ RW    ³ tttttddd ³ Triangle Wave Frequency Value Register #2   ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (upper 3-bits)   ³
+³         ³       ³          ³   t = Active Time Length                    ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: The Frequency Value is a full 11-bits ³
+³         ³       ³          ³       in size; be aware you will need to    ³
+³         ³       ³          ³       write the upper 3-bits to $400B.      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $400C   ³ RW    ³ CChessss ³ Noise Control Register #1                   ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   C = Duty Cycle (Positive vs. Negative)    ³
+³         ³       ³          ³        00 = 87.5%                           ³
+³         ³       ³          ³        01 = 75.0%                           ³
+³         ³       ³          ³        10 = 58.0%                           ³
+³         ³       ³          ³        11 = 25.0%                           ³
+³         ³       ³          ³   h = Hold Note                             ³
+³         ³       ³          ³         0 = Don't hold note                 ³
+³         ³       ³          ³         1 = Hold note                       ³
+³         ³       ³          ³   e = Envelope Select                       ³
+³         ³       ³          ³         0 = Envelope Vary                   ³
+³         ³       ³          ³         1 = Envelope Fixed                  ³
+³         ³       ³          ³   s = Playback Rate                         ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $400D   ³ RW    ³ fsssHrrr ³ Noise Control Register #2                   ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   f = Frequency Fixed/Variable Select       ³
+³         ³       ³          ³         0 = Fixed  (bits 0-6 disabled)      ³
+³         ³       ³          ³         1 = Variable (bits 0-6 enabled)     ³
+³         ³       ³          ³   s = Frequency Change Speed                ³
+³         ³       ³          ³   H = Low/High Frequency Select             ³
+³         ³       ³          ³         0 = Low -> High                     ³
+³         ³       ³          ³         1 = High -> Low                     ³
+³         ³       ³          ³   r = Frequency Range (0=Min, 7=Max)        ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $400E   ³ RW    ³ dddddddd ³ Frequency Value Register #1                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (lower 8-bits)   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $400F   ³ RW    ³ tttttddd ³ Frequency Value Register #2                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   d = Frequency Value Data (upper 3-bits)   ³
+³         ³       ³          ³   t = Active Time Length                    ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: The Frequency Value is a full 11-bits ³
+³         ³       ³          ³       in size; be aware you will need to    ³
+³         ³       ³          ³       write the upper 3-bits to $400F.      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4010   ³ RW    ³ CChessss ³ PCM Control Register #1                     ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   C = Duty Cycle (Positive vs. Negative)    ³
+³         ³       ³          ³        00 = 87.5%                           ³
+³         ³       ³          ³        01 = 75.0%                           ³
+³         ³       ³          ³        10 = 58.0%                           ³
+³         ³       ³          ³        11 = 25.0%                           ³
+³         ³       ³          ³   h = Hold Note                             ³
+³         ³       ³          ³         0 = Don't hold note                 ³
+³         ³       ³          ³         1 = Hold note                       ³
+³         ³       ³          ³   e = Envelope Select                       ³
+³         ³       ³          ³         0 = Envelope Vary                   ³
+³         ³       ³          ³         1 = Envelope Fixed                  ³
+³         ³       ³          ³   s = Playback Rate                         ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4011   ³ RW    ³ vvvvvvvv ³ PCM Volume Control Register                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   v = Volume                                ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4012   ³ RW    ³ aaaaaaaa ³ PCM Address Register                        ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   a = Address                               ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4013   ³ RW    ³ LLLLLLLL ³ PCM Data Length Register                    ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   L = Data Size/Length                      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4014   ³  W    ³          ³ Sprite DMA                         [SPRDMA] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Transfers 256 bytes of memory at address   ³
+³         ³       ³          ³  $100*N, where N is the value written to    ³
+³         ³       ³          ³  this register, into Sprite RAM.            ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4015   ³ RW    ³ ---abcde ³ Sound Control Register             [SNDCNT] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   e = Channel 1  (0=Disable, 1=Enable)      ³
+³         ³       ³          ³   d = Channel 2  (0=Disable, 1=Enable)      ³
+³         ³       ³          ³   c = Channel 3  (0=Disable, 1=Enable)      ³
+³         ³       ³          ³   b = Channel 4  (0=Disable, 1=Enable)      ³
+³         ³       ³          ³   a = Channel 5  (0=Disable, 1=Enable)      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4016   ³ RW    ³ ???STeed ³ Joypad #1                         [SPECIO1] ³
+³         ³       ³          ³ [READING]                                   ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   S = Zapper sprite detection               ³
+³         ³       ³          ³         0 = Sprite not detected             ³
+³         ³       ³          ³         1 = Sprite detected in front of     ³
+³         ³       ³          ³             crosshair                       ³
+³         ³       ³          ³   T = Zapper trigger                        ³
+³         ³       ³          ³         0 = Pressed                         ³
+³         ³       ³          ³         1 = Not pressed                     ³
+³         ³       ³          ³   e = Expansion Port Data                   ³
+³         ³       ³          ³   d = Joypad Data (see Section #8)          ³
+³         ³       ³          ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³         ³       ³ ?????eej ³ [WRITING]                                   ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   j = Joypad Strobe                         ³
+³         ³       ³          ³         0 = Clear joypad strobe             ³
+³         ³       ³          ³         1 = Reset joypad strobe             ³
+³         ³       ³          ³   e = Expansion Port Data                   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $4017   ³ R     ³ ???STeed ³ Joypad #2                         [SPECIO2] ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³   S = Zapper sprite detection               ³
+³         ³       ³          ³         0 = Sprite not detected             ³
+³         ³       ³          ³         1 = Sprite detected in front of     ³
+³         ³       ³          ³             crosshair                       ³
+³         ³       ³          ³   T = Zapper trigger                        ³
+³         ³       ³          ³         0 = Pressed                         ³
+³         ³       ³          ³         1 = Not pressed                     ³
+³         ³       ³          ³   e = Expansion Port Data                   ³
+³         ³       ³          ³   d = Joypad Data (see Section #8)          ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 7 ³   VBL/Hit Bits   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+   The VBlank flag is contained in the 7th bit of read-only location $2002.
+It indicates whether PPU is scanning the screen, or generating a vertical
+blanking impulse. It is set in the end of each frame (scanline 232), and
+stays on until the next screen refresh starts from scanline 8. The pro-
+gram can reset this bit prematurely by reading $2002.
+
+   The Hit Flag is contained in the 6th bit of read-only location $2002. 
+It goes to 1 when PPU starts refreshing the first scanline where sprite#0
+is located. For example, if sprite#0's Y coordinate is 34, the Hit flag
+will be set in scanline 34. The Hit flag is reset when vertical blanking
+impulse starts. The program can reset this bit prematurely by reading from
+$2002.
+
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 8 ³   Joypad/Zapper   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  There are two joysticks which are accessed via locations $4016 and
+$4017. To reset joysticks, write first 1, then 0 into $4016. This way, you
+will generate a strobe in the joysticks' circuitry. Then, read either from
+$4016 (for joystick 0) or from $4017 (for joystick 1).  Each read will
+give you the status of a single button in the 0th bit (1 if pressed, 0
+otherwise): 
+
+  ÚÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄ¿
+  ³ Read # ³  1  ³  2  ³   3    ³   4   ³ 5  ³  6   ³  7   ³   8   ³
+  ÀÄÄÄÄÄÄÄÄÅÄÄÄÄÄÅÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÅÄÄÄÄÄÄÅÄÄÄÄÄÄÅÄÄÄÄÄÄÄ´
+           ³  A  ³  B  ³ SELECT ³ START ³ UP ³ DOWN ³ LEFT ³ RIGHT ³
+           ÀÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÙ
+
+  See Section #6 for details regarding each bit in $4016/$4017.
+
+
+
+ÚÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 9 ³   Sprites   ³
+ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  There are 64 sprites, which can be either 8x8 or 8x16 pixels. Sprites
+patterns are stored in on of the Pattern Tables in the PPU Memory. Sprite
+attributes are stored in the Sprite RAM of 256 bytes, which is not a
+part of neither CPU nor PPU address space. The entire contents of Sprite
+Memory can be written via DMA (see Section #6). Sprite RAM can also be
+accessed byte-by-byte by putting the starting address into $2003 and then
+writing/reading $2004 (the address will auto-increment). The format of
+Sprite RAM is as follows:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sprite #0 ³ Sprite #1 ³ ... ³ Sprite #62 ³ Sprite #63 ³
+ÀÄÄÄÄÄÂÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÙ
+      ³    ÚÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+      ÀÄÄÄÄ´ Byte # ³ Bits     ³ Description                             ³
+           ÃÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+           ³   0    ³ YYYYYYYY ³ Sprite Y coordinate - 1. Consider the   ³
+           ³        ³          ³ coordinate the upper-left corner of     ³
+           ³        ³          ³ the sprite itself.                      ³
+           ³   1    ³ IIIIIIII ³ Sprite Tile Index #                     ³
+           ³   2    ³ vhp000cc ³ Colour/Attributes                       ³
+           ³        ³          ³  v = Vertical Flip   (1=Flip)           ³
+           ³        ³          ³  h = Horizontal Flip (1=Flip)           ³
+           ³        ³          ³  p = Sprite Priority Bit                ³
+           ³        ³          ³         0 = Sprite on top of background ³
+           ³        ³          ³         1 = Sprite behind background    ³
+           ³        ³          ³  c = Upper two (2) bits of colour       ³
+           ³   3    ³ XXXXXXXX ³ Sprite X coordinate (upper-left corner) ³
+           ÀÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The Sprite Tile Index # is obtained the same way as Tile Index #s are
+in regards to the Name Table (background) picture.
+
+  For 8x16 sprites, the Pattern Table is at $0000 in VRAM, containing 256
+8x16 tiles. Bit #3 of $2000 (see Section #6) has no effect on 8x16 sprites.
+The Sprite Tile Index # in the Sprite Attribute RAM is rotated right
+one (1) bit by the PPU, when drawing. Therefore, a Tile Index # $01 will
+draw tile #128, $02 would draw tile #1, $03 would draw tile #129, etc..
+
+  The Sprite Priority bit works as follows: If a sprite has this bit set,
+and has a higher priority than a sprite at the same location, then the
+background will be in front of both sprites).
+
+  Only eight (8) sprites can be displayed per scan-line. Each Sprite entry
+in Sprite RAM is checked to see if it's in a horizontal range with the
+other sprites. Remember, this is done on a per scan-line basis, not on a
+per sprite basis (e.g. this is done 256 times, not 256/8 or 256/16 times).
+
+
+
+ÚÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
+³ 10 ³   MMCs   ³
+ÀÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
+
+  Each reference number below (e.g. "3)" or "1)") is the iNES Mapper
+number. The actual MMC title is printed after, if one is available. Do not
+get these confused.
+
+
+1) Nintendo MMC1
+
+  MMC1 is commonly used in 256K and 512K carts. It may be used to switch
+PRG-ROM and CHR-RAM. This MMC also supports WRAM.
+
+  MMC1 has four (4) 8-bit registers, which are accessed via following
+addresses:
+
+ÚÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Reg # ³ Range ³ Bits     ³ Description                                ³
+ÃÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   0   ³ $8000 ³ ????BKpm ³ MMC Control Register #1                    ³
+³       ³  ...  ³          ³                                            ³
+³       ³ $9FFF ³          ³  B = Base Bootup Select                    ³
+³       ³       ³          ³         0 = $8000 (NOTE: This is probably  ³
+³       ³       ³          ³         1 = $C000        incorrect!)       ³
+³       ³       ³          ³  K = Bank Size                             ³
+³       ³       ³          ³         0 = 16K                            ³
+³       ³       ³          ³         1 = 32K                            ³
+³       ³       ³          ³  p = Panning/Scrolling Enable/Disable      ³
+³       ³       ³          ³         0 = Enabled                        ³
+³       ³       ³          ³         1 = Disabled                       ³
+³       ³       ³          ³  m = Mirror Select                         ³
+³       ³       ³          ³         0 = Horizontal Mirroring           ³
+³       ³       ³          ³         1 = Vertical Mirroring             ³
+³       ³       ³          ³                                            ³
+³       ³       ³          ³ NOTE: Bit #1, when set to 1, actually just ³
+³       ³       ³          ³       mirrors Name Table #0 throughout all ³
+³       ³       ³          ³       the other Name Tables.               ³
+ÃÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   1   ³ $A000 ³ ???mCCCC ³ MMC Control Register #2                    ³
+³       ³  ...  ³          ³                                            ³
+³       ³ $BFFF ³          ³  m = Multi Function                        ³
+³       ³       ³          ³      [Cart w/ VROM]                        ³
+³       ³       ³          ³       Size Select                          ³                                    ³
+³       ³       ³          ³         0 = Select 8K CHR-RAM at $0000     ³
+³       ³       ³          ³         1 = Swap 4K at $0000 and $1000     ³
+³       ³       ³          ³      [Cart w/out VROM]                     ³
+³       ³       ³          ³       PRG-ROM 256K Select                  ³                                    ³
+³       ³       ³          ³         0 = Select lower 256K of PRG-ROM   ³
+³       ³       ³          ³         1 = Select upper 256K of PRG-ROM   ³
+³       ³       ³          ³  C = CHR-RAM Page Select at $0000 (VRAM)   ³
+ÃÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   2   ³ $C000 ³ ssssssss ³ CHR-RAM 4K Page Selection Register         ³
+³       ³  ...  ³          ³                                            ³
+³       ³ $DFFF ³          ³  Sets the 4K CHR-RAM page at $1000, but    ³
+³       ³       ³          ³  only if 4K CHR-RAM pages are selected via ³
+³       ³       ³          ³  Register #0 (otherwise ignored).          ³
+ÃÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   3   ³ $E000 ³ ssssssss ³ PRG-ROM 16K Page Selection Register        ³
+³       ³  ...  ³          ³                                            ³
+³       ³ $FFFF ³          ³  Sets the 16K ROM page at $8000. The page  ³
+³       ³       ³          ³  at $C000 is hardwired to the last ROM     ³
+³       ³       ³          ³  page in the cart. Page 0 starts at $8000. ³
+ÀÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+   Before writing to a mapper register for the first time, you need to reset
+it by setting bit #7 in each address range base ($8000, $A000, $C000, and
+$E000) before writing data to each address range itself. Once you've
+done this, you may write the value bit by bit to the appropriate address
+range. For example, the following code will write $0C into register 3:
+
+     lda  #%10000000
+     sta  $8000      ; Resetting range #0
+     sta  $A000      ; Resetting range #1
+     sta  $C000      ; Resetting range #2
+     sta  $E000      ; Resetting range #3
+     lda  #$0C       ; This is our value
+     sta  $EFD9      ; Writing bit 0
+     lsr  a          ; Shifting
+     sta  $EFD9      ; Writing bit 1
+     lsr  a          ; Shifting
+     sta  $EFD9      ; Writing bit 2
+     lsr  a          ; Shifting
+     sta  $EFD9      ; Writing bit 3
+     lsr  a          ; Shifting
+     sta  $EFD9      ; Writing bit 4
+
+  For "512K" carts (such as Dragon Warrior 3), pay attention to Bit #4 of
+Register #0. As these carts don't have anything but PRG-ROM, Bit #4 func-
+tions as a 256K selection register.
+
+  Finally, for "512K" carts, $C000-$FFFF is hardwired to the last 16K of
+the lower 256K PRG-ROM area.
+
+
+2) 74HC161/74HC32 Mapper
+
+  This mapper only switches PRG-ROM banks, 16K in size. All carts with this
+mapper contain 8K of CHR-RAM at $0000.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8000   ³  W    ³ PPPPPPPP ³ PRG-ROM Control Register                    ³
+³  ...    ³       ³          ³                                             ³
+³ $FFFF   ³       ³          ³    P = 16K PRG-ROM Bank                     ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  NOTE: The last 16K PRG-ROM page is hardwired to $C000.
+  NOTE: The cart starts with PRG-ROM Bank #0 at $8000.
+
+
+3) VROM Switch
+
+  This mapper only switches CHR-RAM banks, 8K in size. PRG-ROM is 16K
+or 32K, and cannot be switched.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8000   ³  W    ³ CCCCCCCC ³ CHR-RAM Control Register                    ³
+³  ...    ³       ³          ³                                             ³
+³ $FFFF   ³       ³          ³    C = 8K CHR-RAM Bank at $0000 (VRAM)      ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+4) Nintendo MMC3
+
+  This MMC is used in many recent cartridges, such as: Batman Returns,
+Super Contra, Vindicators, Silver Surfer, Crystalis, Legacy of the Wizard,
+and others. This MMC is able to generate it's own interrupts via the IRQ
+line, and has a set of commands to switch PRG-ROM and CHR-RAM. CHR-RAM
+pages are 1K, PRG-ROM are 8K.
+
+  NOTE: The last two (2) 8K pages of PRG-ROM are hardwired to $C000 and
+$E000, when Bit #6 of the Functional Select Register (see below) is 0.
+When it is set to 1, the hardwiring affects $8000 and $E000.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8000   ³  W ?  ³ as???ddd ³ Function Select Register                    ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    a = CHR-RAM Base Address Select          ³
+³         ³       ³          ³         0 = $0000                           ³
+³         ³       ³          ³         1 = $1000                           ³
+³         ³       ³          ³    s = PRG-ROM Page Base Select             ³
+³         ³       ³          ³         0 = Select $8000 and $A000          ³
+³         ³       ³          ³         1 = Select $A000 and $C000          ³
+³         ³       ³          ³  ddd = CMD # (0-7)                          ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: Bit #6 only affects CMDs 6 & 7.       ³
+³         ³       ³          ³ NOTE: Writing to this register resets       ³
+³         ³       ³          ³       changes made to the $E000 register.   ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8001   ³  W    ³ dddddddd ³ Page Number Select Register                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  This register selects the page # to be     ³
+³         ³       ³          ³  read from (or written to).                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: When using CMD 0, Bit #0 of this reg- ³
+³         ³       ³          ³       ister is ignored. Therefore, a value  ³
+³         ³       ³          ³       of 5 will select pages 4 & 5).        ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $A000   ³  W    ³ ???????m ³ Shadow Select Register                      ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  m = Shadowing                              ³
+³         ³       ³          ³         0 = Vertical                        ³
+³         ³       ³          ³         1 = Horizontal                      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $A001   ³  W ?  ³ p??????? ³ Pattern Table Control Register              ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  p = Pattern Table Enable/Disable           ³
+³         ³       ³          ³         0 = Disable use of $0000-$1FFF in   ³
+³         ³       ³          ³             VRAM                            ³
+³         ³       ³          ³         1 = Enable use of $0000-$1FFF in    ³
+³         ³       ³          ³             VRAM                            ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: Information here could possibly be    ³
+³         ³       ³          ³       incorrect.                            ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $C000   ³       ³ dddddddd ³ IRQ Decrement Register                      ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  A value (1-255) is written here. The chip  ³
+³         ³       ³          ³  auto-decrements this value at every scan-  ³
+³         ³       ³          ³  line. Once 0 is hit, IRQ/BRK is executed.  ³
+³         ³       ³          ³  If 0 is stored, then this feature is dis-  ³
+³         ³       ³          ³  abled.                                     ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $C001   ³  W    ³          ³ Temporary Latch Register                    ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $E000   ³  W    ³          ³ IRQ Control Register #1                     ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Any writes which occur to this register    ³
+³         ³       ³          ³  will cause the value written to $C001 to   ³
+³         ³       ³          ³  be copied into $C000. IRQs are also dis-   ³
+³         ³       ³          ³  abled as well.                             ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $E001   ³  W    ³          ³ IRQ Control Register #2                     ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³  Any writes to this register enable IRQs.   ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  In order to make the MMC function, you must first write a Command Number
+(CMD #) into $8000, and then a value (Page Number) into $8001. The follow-
+ing CMDs exist:
+
+ÚÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ CMD # ³ Address ³ Description                                            ³
+ÃÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   0   ³ $0000   ³ Selects two (2) 1K CHR-RAM pages at the Address.       ³
+³   1   ³ $0800   ³ Selects two (2) 1K CHR-RAM pages at the Address.       ³
+³   2   ³ $1000   ³ Selects one (1) 1K CHR-RAM pages at the Address.       ³
+³   3   ³ $1400   ³ Selects one (1) 1K CHR-RAM pages at the Address.       ³
+³   4   ³ $1800   ³ Selects one (1) 1K CHR-RAM pages at the Address.       ³
+³   5   ³ $1C00   ³ Selects one (1) 1K CHR-RAM pages at the Address.       ³
+ÃÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   6   ³ N/A     ³ Selects one (1) 8K PRG-ROM Page at the CHR-RAM Page    ³
+³       ³         ³ Base Select. Initial value is 0.                       ³
+ÃÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   7   ³ N/A     ³ Selects one (1) 8K PRG-ROM Page at the CHR-RAM Page    ³
+³       ³         ³ Base Select. Initial value is 1.                       ³
+ÀÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  NOTE: For CMDs 0-5, see the Page Number Select Register ($8001). For
+CMDs 6-7, see the Function Select Register ($8000) above.
+
+  NOTE: Address is really "CHR-RAM Base Address XOR (Address)". Therefore,
+if the CHR-RAM Base Address is set to $1000, then using CMD #4 would
+result in a transfer to $2800 in VRAM.
+
+
+5) Nintendo MMC5
+
+  This mapper is used in Castlevania III. It supports a four-screen Name
+Table layout, allowing four (4) physical Name Tables to be used.
+
+  This mapper supports a 1K section of external RAM (EXRAM), which is
+mapped to $5C00-$5FFF. EXRAM holds one (1) byte corrisponding to each of
+the 960 8x8 tiles. The format of an EXRAM byte is:
+
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Bits     ³ Description                                     ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ ccIIIIII ³ c = Colour Expansion                            ³
+³          ³                                                 ³
+³          ³       Used to remove the annoying 4x4 tile      ³
+³          ³       Attribute Bit limitation. Using these     ³
+³          ³       bits is optional.                         ³
+³          ³                                                 ³
+³          ³ I = Index Expansion                             ³
+³          ³                                                 ³
+³          ³       Extends the maximum Index Tile #s from    ³
+³          ³       256 to 16384 (8-bits to 14-bits), by      ³
+³          ³       using these six (6) in the Name Table,    ³
+³          ³       e.g.:                                     ³
+³          ³                                                 ³
+³          ³        IIIIIInnnnnnnn                           ³
+³          ³        ÀÄÄÂÄÙÀÄÄÄÂÄÄÙ                           ³
+³          ³           ³      ÀÄÄÄ Name Table                ³
+³          ³           ÀÄÄÄÄÄÄÄÄÄÄ Index Expansion           ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  A register at $5104 can control whether the CPU can write to EXRAM or
+not, and also controls if the Colour Expansion bits in the EXRAM are used
+or not
+
+  It also seems MMC5 has a register which can flip between Vertical and
+Horizontal mirroring. This register is definitely used in Castlevania III.
+
+
+6) FFE F4xxx Mapper
+
+  This mapper allows swapping of PRG-ROM, and supports four (4) Pattern
+Tables. This mapper was invented by FFE (Front Far East) for their NES
+backup unit/development system, and seems to only be used on F4xxx-style
+games, such as the famous Wai Wai World ("Konami World"), Getsufuu Maden,
+and others. It also supports IRQ and counter registers, resembling that of
+Nintendo's MMC3.
+
+  Two styles of data can be written here, but most of the time, the format
+of the more commonly used data (used in "Wai Wai World") is:
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $42FC   ³  W    ³ pppppppp ³ PRG-ROM Write Enable                        ³
+³ $42FD   ³  W    ³ mmmmmmmm ³ Mirroring Write Enable                      ³
+³ $42FE   ³  W    ³ ???p???? ³ PRG-ROM Swap                                ³
+³ $42FF   ³  W    ³ ???m???? ³ Mirroring Select                            ³
+³         ³       ³          ³    m = Mirroring Select                     ³
+³         ³       ³          ³        0 = Vertical                         ³
+³         ³       ³          ³        1 = Horizontal                       ³
+³ $43FE   ³  W    ³ CCCCCCpp ³ 4mb PRG-ROM/CHR-RAM Select                  ³
+³ $4500   ³ RW    ³ eXssWPPP ³ Configuration Register                      ³
+³         ³       ³          ³    e = Disk/Cart Mode                       ³
+³         ³       ³          ³          0 = Famicom Disk game              ³
+³         ³       ³          ³          1 = Famicom cart                   ³
+³         ³       ³          ³    X = Execute Mode                         ³
+³         ³       ³          ³          0 = Do nothing                     ³
+³         ³       ³          ³          1 = Execute game                   ³
+³         ³       ³          ³    s = SRAM Availability                    ³
+³         ³       ³          ³          0 = Not used                       ³
+³         ³       ³          ³          1 = SRAM used                      ³
+³         ³       ³          ³    W = SW Pin                               ³
+³         ³       ³          ³  PPP = PPU Mode                             ³
+³         ³       ³          ³        010 = 256K                           ³
+³         ³       ³          ³        101 = 2M + Extended VRAM             ³
+³         ³       ³          ³        111 = 2M                             ³
+³ $4501   ³  W    ³ iiiiiiii ³ IRQ Disable                                 ³
+³ $4502   ³  W    ³ iiiiiiii ³ IRQ Increment Register (low byte)           ³
+³ $4503   ³  W    ³ iiiiiiii ³ IRQ Enable & Increment Register (high byte) ³
+³ $8000   ³ RW    ³ --ppppCC ³ PRG-ROM/CHR-RAM Control Register            ³
+³ $A000   ³       ³          ³                                             ³
+³ $C000   ³       ³          ³    p = 16K PRG-ROM Select                   ³
+³ $E000   ³       ³          ³         Selects 16K PRG-ROM bank at $8000   ³
+³         ³       ³          ³   CC = Pattern Table Select                 ³
+³         ³       ³          ³         Selects Pattern Table #0-3          ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The support of an IRQ counter is very similar to that of MMC3, except
+that it is incremented and not decremented. When the value reaches $FFFF,
+it will be reset to $0000. To enable the use of the IRQ counter, store
+the value $0000 into $4503.
+
+  This mapper also supports the use of a trainer. The trainer is loaded at
+$7000-71FF. Each described item below is actual 6502 code, and not a
+vector (e.g. JMP $xxxx). The address itself *IS* the vector.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $7000   ³ NMI                                         ³
+³ $7003   ³ Game Setup code                             ³
+³ $7006   ³ Mirroring Switch                            ³
+³ $7009   ³ Other trainer routines                      ³
+³  ...    ³                                             ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  NOTE: It seems most these images are purely PRG-ROM; i.e. no CHR-RAM. All
+the CHR-RAM is kept inside the PRG-ROM, which is swapped in and out during
+runtime via the MMC.
+
+  The documentation here is still not complete; for a more accurate and
+detailed documentation, please check out FanWen's document regarding
+Mapper #6 via this URL:
+
+  http://nesdev.parodius.com/mapper6.txt
+
+
+7) ROM Switch
+
+  This mapper only switches PRG-ROM banks, 32K in size. It can also spec-
+ify which Name Table and Attribute Table to use.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8000   ³  W    ³ ???nPPPP ³ PRG-ROM Control Register                    ³
+³  ...    ³       ³          ³                                             ³
+³ $FFFF   ³       ³          ³    P = 32K PRG-ROM Bank at $8000            ³
+³         ³       ³          ³    n = Name/Attribute Table Select          ³
+³         ³       ³          ³          0 = $2000 (VRAM)                   ³
+³         ³       ³          ³          1 = $2400 (VRAM)                   ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  NOTE: The remaining Name Tables and Attribute Tables just mirror that of
+the one selected via Bit #4.
+
+
+8) FFE F3xxx Mapper
+
+   No information is currently available.
+
+
+9) Nintendo MMC2
+
+  This MMC is used in the American version of the "Mike Tyson's Punch-Out!"
+cart. It supports switching of PRG-ROM and CHR-RAM.
+
+  PRG-ROM banks are 8K in size, with a base ROM address of $8000. CHR-RAM
+banks are 4K in size,
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $A000   ³  W    ³ dddddddd ³ PRG-ROM 8K Page Select Register             ³
+³  ...    ³       ³          ³                                             ³
+³ $AFFF   ³       ³          ³    d = 8K PRG-ROM Select                    ³
+³         ³       ³          ³         Selects 8K PRG-ROM bank at $8000.   ³
+³         ³       ³          ³                                             ³
+³ $B000   ³  W    ³ dddddddd ³ CHR-RAM 4K Page Select Register #1          ³
+³ $C000   ³       ³          ³                                             ³
+³         ³       ³          ³    d = 4K CHR-RAM Select                    ³
+³         ³       ³          ³         Selects 4K CHR-RAM bank at VRAM     ³
+³         ³       ³          ³         address $0000.                      ³
+³         ³       ³          ³                                             ³
+³ $D000   ³  W    ³ dddddddd ³ CHR-RAM 4K Page Select Register #2          ³
+³ $E000   ³       ³          ³                                             ³
+³         ³       ³          ³    d = 4K CHR-RAM Select                    ³
+³         ³       ³          ³         Selects 4K CHR-RAM bank at VRAM     ³
+³         ³       ³          ³         address $1000.                      ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The last three (3) PRG-ROM banks in the cart itself are hardwired to the
+last three (3) 8K sections of ROM. For instance, in the case of "Mike
+Tyson's Punch-Out!" which has sixteen (16) 8K PRG-ROM banks, PRG-ROM
+bank #13, #14, and #15 would be mapped to $A000, $C000, and $E000, respec-
+tively.
+
+  NOTE: The CHR-RAM 4K Page Select Register seem to work in congruency;
+i.e. when data is written to $B000, $D000 will function, but $E000 will
+not (and therefore, the same rules apply to $C000/$E000 where $D000 will
+not work).
+
+
+10) Nintendo MMC4
+
+  This MMC is used in the Japanese version of the "Mike Tyson's Punch-Out!"
+cart. It supports switching of PRG-ROM and CHR-RAM.
+
+  PRG-ROM banks are 16K in size, and CHR-RAM banks are 4K.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $A000   ³  W    ³ pppppppp ³ PRG-ROM Page Select Register                ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    p = 32K PRG-ROM Select                   ³
+³         ³       ³          ³         Selects 16K PRG-ROM bank at $8000.  ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $B000   ³  W    ³ CCCCCCCC ³ CHR-RAM Page Select Register #1             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    C = 4K CHR-RAM Select                    ³
+³         ³       ³          ³         Selects 4K CHR-RAM bank at VRAM     ³
+³         ³       ³          ³         address $0000.                      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $C000   ³  W    ³ CCCCCCCC ³ CHR-RAM Page Select Register #2             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    C = 4K CHR-RAM Select                    ³
+³         ³       ³          ³         Selects 4K CHR-RAM bank at VRAM     ³
+³         ³       ³          ³         address $1000.                      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $D000   ³  W    ³ CCCCCCCC ³ CHR-RAM Page Select Register #3             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    C = 4K CHR-RAM Select                    ³
+³         ³       ³          ³         Selects 4K CHR-RAM bank at VRAM     ³
+³         ³       ³          ³         address $0000.                      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $E000   ³  W    ³ CCCCCCCC ³ CHR-RAM Page Select Register #4             ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    C = 4K CHR-RAM Select                    ³
+³         ³       ³          ³         Selects 4K CHR-RAM bank at VRAM     ³
+³         ³       ³          ³         address $1000.                      ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $F000   ³  W    ³ dddddddd ³ Mirroring Select Register                   ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    d = Mirroring Select                     ³
+³         ³       ³          ³         0 = Horizontal                      ³
+³         ³       ³          ³         1 = Vertical                        ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  This mapper has some very peculiar aspects, especially when it comes to
+accessing VRAM. The CHR-RAM Page Select Registers listed above are auto-
+matically "enabled" and "disabled" depending upon which address(es) in
+VRAM you access.
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ VRAM Address Range ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $0FD8-0FDF         ³ Switches VRAM $0000-0FFF swapping to $C000  ³
+³ $0FE8-0FEF         ³ Switches VRAM $0000-0FFF swapping to $B000  ³
+³ $1FD8-1FDF         ³ Switches VRAM $1000-1FFF swapping to $E000  ³
+³ $1FE8-1FEF         ³ Switches VRAM $1000-1FFF swapping to $D000  ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+11) Color Dreams Mapper
+
+  This mapper is commonly used in Color Dreams games, but not all of
+them will function correctly when using this mapper.
+
+  PRG-ROM banks are 32K in size, and CHR-RAM banks are 8K.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8000   ³  W    ³ CCCCpppp ³ PRG-ROM/CHR-RAM Page Select Register        ³
+³  ...    ³       ³          ³                                             ³
+³ $FFFF   ³       ³          ³    C = 8K CHR-RAM Select                    ³
+³         ³       ³          ³         Selects 8K CHR-RAM bank at VRAM     ³
+³         ³       ³          ³         address $0000.                      ³
+³         ³       ³          ³    p = 32K PRG-ROM Select                   ³
+³         ³       ³          ³         Selects 32K PRG-ROM bank at $8000.  ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+12) FFE F6xx Mapper
+
+   No information is currently available.
+
+13) [Unused]
+
+14) [Unused]
+
+15) 100-in-1 Mapper
+
+   NOTE: Assume ROM16k[] is an array of 16K PRG-ROM Banks.
+   NOTE: Unlike other MMCs, the 16K of PRG-ROM loaded into $C000 on startup
+         is the second 16K PRG-ROM page, not the last 16K PRG-ROM page.
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8000   ³  W ?  ³ smNNNNNN ³ PRG-ROM Control Register #1                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    s = Swap 8K Pages                        ³
+³         ³       ³          ³         Swaps 8K at $8000 and $A000         ³
+³         ³       ³          ³         Swaps 8K at $C000 and $E000         ³
+³         ³       ³          ³    m = Mirroring Control                    ³
+³         ³       ³          ³         0 = Vertical                        ³
+³         ³       ³          ³         1 = Horizontal                      ³
+³         ³       ³          ³    N = PRG-ROM Page Select                  ³
+³         ³       ³          ³         $8000 now holds ROM16k[N]           ³
+³         ³       ³          ³         $C000 now holds ROM16k[N+1]         ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8001   ³  W    ³ s?NNNNNN ³ PRG-ROM Control Register #2                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    s = Swap 8K Pages                        ³
+³         ³       ³          ³         Swaps 8K at $C000 and $E000         ³
+³         ³       ³          ³    N = PRG-ROM Page Select                  ³
+³         ³       ³          ³         $C000 now holds ROM16k[N]           ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8002   ³  W    ³ S?NNNNNN ³ PRG-ROM Control Register #3                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    S = Upper/Lower 8K Select                ³
+³         ³       ³          ³         0 = Select Lower 8K of 16K segment  ³
+³         ³       ³          ³         1 = Select Upper 8K of 16K segment  ³
+³         ³       ³          ³    N = 8K PRG-ROM Page Select               ³
+³         ³       ³          ³         $8000 now holds ROM16k[N]           ³
+³         ³       ³          ³         $A000 now holds ROM16k[N]           ³
+³         ³       ³          ³         $C000 now holds ROM16k[N]           ³
+³         ³       ³          ³         $E000 now holds ROM16k[N]           ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: Bit 7 handles only Bits 0-5 of this   ³
+³         ³       ³          ³       register, and does not affect any     ³
+³         ³       ³          ³       other registers.                      ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³ NOTE: Bits 0-5 base their 8K Selection on   ³
+³         ³       ³          ³       Bit 7. Keep this in mind.             ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8003   ³  W    ³ smNNNNNN ³ PRG-ROM Control Register #4                 ³
+³         ³       ³          ³                                             ³
+³         ³       ³          ³    s = Swap 8K Pages                        ³
+³         ³       ³          ³         Swaps 8K at $C000 and $E000         ³
+³         ³       ³          ³    m = Mirroring Control                    ³
+³         ³       ³          ³         0 = Vertical                        ³
+³         ³       ³          ³         1 = Horizontal                      ³
+³         ³       ³          ³    N = ROM Page Select                      ³
+³         ³       ³          ³         $C000 now holds ROM16k[N]           ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+16) Bandai Mapper
+
+  This mapper uses only 32K of PRG-ROM and 8K of CHR-RAM, both which can be
+swapped. The actual bank-switching is similar to that of Mapper #2:
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $8000   ³  W ?  ³ ??PP??CC ³ PRG-ROM & CHR-RAM Control Register          ³
+³  ...    ³       ³          ³                                             ³
+³ $FFFF   ³       ³          ³    P = 32K PRG-ROM Page                     ³
+³         ³       ³          ³    C =  8K CHR-RAM Page                     ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+17) FFE F8xxx Mapper
+
+   No information is currently available.
+
+18) Jaleco SS8806 Mapper
+
+   No information is currently available.
+
+19) Namcot 106 Mapper
+
+   No information is currently available.
+
+20) Famicom Disk System Mapper
+
+   See Section #13 for more information.
+
+21) Konami VRC4 Mapper
+
+   No information is currently available.
+
+22) Konami VRC2 Mapper #1
+
+   No information is currently available.
+
+23) Konami VRC2 Mapper #2
+
+   No information is currently available.
+
+24) Konami VRC6 Mapper
+
+   No information is currently available.
+
+25) [Unused]
+
+26) [Unused]
+
+27) [Unused]
+
+28) [Unused]
+
+29) [Unused]
+
+30) [Unused]
+
+31) [Unused]
+
+32) Irem G-101 Mapper
+
+   No information is currently available.
+
+33) Taito TC0190/TC0350 Mapper
+
+   No information is currently available.
+
+34) iNES Mapper #34
+
+  This mapper is used by Mission Impossible 2, Deadly Towers, and 3D
+Worldrunner. It can be used to swap 32K of PRG-ROM and 8K of CHR-RAM (in
+4K sections):
+
+  The actual bank-switching is similar to that of the ROM Switch (#7):
+
+ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Address ³ Stats ³ Bits     ³ Description                                 ³
+ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ $7FFD   ³  W ?  ³ PPPPPPPP ³ PRG-ROM Page                                ³
+³ $7FFE   ³  W ?  ³ CCCCCCCC ³ CHR-RAM Page (lower 4K)                     ³
+³ $7FFF   ³  W ?  ³ cccccccc ³ CHR-RAM Page (upper 4K)                     ³
+³ $8000   ³  W ?  ³ PPPPPPPP ³ PRG-ROM Page                                ³
+³  ...    ³       ³          ³                                             ³
+³ $FFFF   ³       ³          ³   NOTE: $7FFE and $7FFF within this range   ³
+³         ³       ³          ³         are described above, and do not     ³
+³         ³       ³          ³         control PRG-ROM.                    ³
+ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+??) American Video Entertainment (MB-91J)
+
+  This mapper has yet to be given an actual number, but most likely will
+be as future version of Marat Fayzullin's iNES emulator are updated.
+
+  This mapper supports 32K PRG-ROM and 8K CHR-RAM bank-switching. The
+actual addresses for switching are strange, and are not linear. From the
+information i've been given, it seems the valid addresses for switching
+are:
+
+    $xy00-$xyFF    'x' can be: $1,4,5
+    $xy00-$xyFF    'y' can be: $1,3,5,7,9,B,D,E,F
+    $xy00-$xyFF
+
+  The format of the data written is:
+
+    ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+    ³ Bits     ³ Description                                     ³
+    ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+    ³ ----PCCC ³ P = PRG-ROM Page                                ³
+    ³          ³ C = CHR-RAM Page                                ³
+    ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  This mapper pretty insane, and I'm probably wrong about the addresses.
+Rumour has it, the 'x' nybble in the address can be $0 as well, but this
+seems to kill off zero-page: therefore I'm considering it invalid.
+
+  Let's wait and see what Mr. Fayzullin has to say about it.
+
+
+
+ÚÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 11 ³   Sound   ³
+ÀÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  One of the most interesting aspects of the NES is it's sound support,
+which is very analogue, excluding the PCM register.
+
+  The perfect sound constant seems to be:
+
+    111860.78 (e.g. 3579545/32)
+
+  This was taken from the sound constant used in the TI 76486 PSG sound
+processor within the Sega Genesis (interesting, eh).
+
+  For the Square Wave and Triangle Wave channels, a formulae can be used
+to provide accurate playback of the NES's sound:
+
+    P = 111860.78 / (CHx + 1)
+
+  Where "P" is the actual played data, and CHx is the channel played.
+The channel formulaes are the following:
+
+    CH1 = $4002 + ($4003 & 7) * 256   (Square Wave #1)
+    CH2 = $4006 + ($4007 & 7) * 256   (Square Wave #2)
+    CH3 = $400A + ($400B & 7) * 256   (Triangle Wave)
+
+  Where the $400x values are actual values written to that register.
+
+  For the PCM channel, there are two methods of implementation: via DMA,
+and via the PCM Volume Port ($4011).
+
+  Samples are sent byte-by-byte into $4011, the result being quite
+audible. However, only a few games seem to use this method, while most
+use the DMA transfer approach.
+
+  Any information is appreciated.
+
+
+
+ÚÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 12 ³   .NES File Format   ³
+ÀÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  This is the .NES File Format, created by Marat Fayzullin (author of
+iNES). This is the newer format, supporting >16 iNES Mappers.
+
+ÚÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Offset ³ Size ³ Content(s)                                           ³
+ÃÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   0    ³  3   ³ 'NES'                                                ³
+³   3    ³  1   ³ $1A (Control-Z)                                      ³
+³   4    ³  1   ³ Number of 16K PRG-ROM banks                          ³
+³   5    ³  1   ³ Number of 8K CHR-RAM banks                           ³
+³   6    ³  1   ³ ROM Control Byte #1                                  ³
+³        ³      ³   %00000000                                          ³
+³        ³      ³    ÀÄÂÙ³³³ÀÄ 0=Horizontal Mirroring                  ³
+³        ³      ³      ³ ³³³   1=Vertical Mirroring                    ³
+³        ³      ³      ³ ³³ÀÄÄ 1=WRAM located at $6000-7FFF            ³
+³        ³      ³      ³ ³ÀÄÄÄ 1=512-byte trainer present              ³
+³        ³      ³      ³ ÀÄÄÄÄ 1=Four-screen VRAM layout               ³
+³        ³      ³      ³                                               ³
+³        ³      ³      ÀÄÄÄÄÄÄ iNES Mapper # (lower 4-bits)            ³
+³   7    ³  1   ³ ROM Control Byte #2                                  ³
+³        ³      ³   %00000000                                          ³
+³        ³      ³    ÀÄÂÙ                                              ³
+³        ³      ³      ÀÄÄÄÄÄÄ iNES Mapper # (upper 4-bits)            ³
+³        ³      ³                                                      ³
+³  8-15  ³  9   ³ [Reserved for expansion, should be 0]                ³
+³ 16-..  ³      ³ PRG-ROM banks (in ascending order). A trainer pre-   ³
+³        ³      ³ cedes the first bank, if a trainer exists.           ³
+³ ..-EOF ³      ³ CHR-RAM banks (in ascending order).                  ³
+ÀÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The previously mentioned 512-byte trainer is interesting, since it has
+different implementations depending upon which iNES Mapper is used in the
+cart. See Section #10 for more information about MMC-dependant trainers.
+
+
+
+ÚÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 13 ³   Famicom Disk System Format (.DKA/.DKB/.500)   ³
+ÀÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  This is the file format for Famicom Disk System images; the only
+emulator at this time to support them is Pasowing, which is the
+emulator which these images are based off of.
+
+   The format for the .DKA/.DKB (DisK side-A and DisK side-B) files
+is somewhat undocumented (as shown). .DKA and .DKB files are 64K in
+size (65536 bytes). The format for the file is as follows:
+
+ÚÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Offset ³ Size ³ Content(s)                                           ³
+ÃÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ [IMAGE HEADER]                                                       ³
+³                                                                      ³
+³   0    ³  1   ³ [Unknown]                                            ³
+³   1    ³  3   ³ Disk ID                                              ³
+³   6    ³  1   ³ Disk #                                               ³
+³   38   ³  1   ³ Disk # (???)                                         ³
+³   63   ³  1   ³ Amount of data blocks                                ³
+³                                                                      ³
+³ [DATA BLOCK HEADER]                                                  ³
+³                                                                      ³
+³   64   ³  1   ³ $03                                                  ³
+³   65   ³  1   ³ Block #                                              ³
+³   66   ³  1   ³ ???                                                  ³
+³   67   ³  8   ³ Name                                                 ³
+³   75   ³  2   ³ Destination                                          ³
+³   77   ³  2   ³ Size of data                                         ³
+³   79   ³  1   ³ Data Type                                            ³
+³        ³      ³ ÀÄÄÄÂÄÄÄÙ                                            ³
+³        ³      ³     ³                                                ³
+³        ³      ³     ÀÄÄÄÄÄÄ $00 = PRG-RAM                            ³
+³        ³      ³             $01 = CHR-RAM                            ³
+³        ³      ³             $02 = Name Table Data                    ³
+³ 79-..  ³      ³ Data                                                 ³
+³        ³      ³                                                      ³
+³ ..-EOF ³      ³ Repeat loading DATA BLOCKS HEADERS as shown above;   ³
+³        ³      ³ continue loading until EOF is reached.               ³
+ÀÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+
+ÚÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 14 ³   Notes to emulator authors   ³
+ÀÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The NES is a 6502 (NMOS) CPU. It is not a 65C02 (CMOS) CPU as rumoured.
+  
+  Ignore opcodes which are "bad" (not in the 6502 instruction set); a lot
+of ROMs available are flawed, due to bad backup units or readers. I've
+noticed this in the "Twinbee" and "Adventure of Lolo" ROMs floating around.
+
+  The Four-screen VRAM layout is used within other mappers, not just iNES
+Mapper #5 (MMC5). I have seen it used in iNES Mapper #15 and others.
+
+  A reminder: MMC != iNES Mapper.
+
+  When the NES screen is turned off, programmers do not have to wait for
+the VBL to occur. While the screen is off, code may safely edit VRAM and
+manipulate graphics without having to sync to the VBL (if you don't,
+while the screen is on, the result is quite disgusting). This applies to
+most consoles, like the Super Nintendo.
+
+  For more information about NES PAL/NTSC issues, feel free to check out
+Mark Knibb's NES PAL/NTSC document at:
+
+        http://nesdev.parodius.com/nesfreq.txt
+
+  I was wrong; Konami World 2 *DOES* exist, and was made in 1991 by Konami
+of Japan. The cart uses the Konami VRC2 Mapper. I am still unsure about
+Marat Fayzullin's "Punch Out 2," however.
+
+  A quick comment about the Famicom Disk System (for those who care):
+Apparently PRG-RAM (that's right, RAM; not ROM) is located in the range
+$6000-$DFFF. A bootstrap image is loaded into $E000-$FFFF (this can be
+considered "a trainer," but technically, it's different). FDS registers
+seem to be in the $E000-$FFFF range. The IRQ/RESET and NMI vectors are
+taken from the end of the first PRG-RAM Data Block. Please don't Email
+me with questions about the FDS: I don't know much about it (despite
+owning one).
+
+
+
+ÚÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 15 ³   Thanks   ³
+ÀÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Thanks to the following people for helping make this document what it
+has become today. In alphabetical order:
+
+  ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+  ³ Name/Pseudo        ³ Email                       ³
+  ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+  ³ Acey               ³ d0p@sofi.ah.dk              ³
+  ³ Alex Krasivsky     ³ bcat@lapkin.rosprint.ru     ³
+  ³ Avatar Z           ³ swahlen@nfinity.com         ³
+  ³ Bloodlust Software ³ bldlust@parodius.com        ³
+  ³ Bluefoot           ³ danmcc@injersey.com         ³
+  ³ CiXeL              ³                             ³
+  ³ Chris Hickman      ³ typhoonz@parodius.com       ³
+  ³ D                  ³ d@animal.blarg.net          ³
+  ³ Dan Boris          ³ dan.boris@coat.com          ³
+  ³ Donald Moore       ³ mindrape@goodnet.com        ³
+  ³ FanWen Yang        ³ yangfanw@ms4.hinet.net      ³
+  ³ Johansson Morgan   ³ MOJ@nerikes.se              ³
+  ³ Jon Merkel         ³ jpm5974@omega.uta.edu       ³
+  ³ Kevin Horton       ³ khorton@iquest.net          ³
+  ³ Loopy              ³ loopy@itsnet.com            ³
+  ³ Marat Fayzullin    ³ fms@freeflight.com          ³
+  ³ Mark Knibbs        ³ markk@netcomuk.co.uk        ³
+  ³ Matthew Richey     ³ mr6v@andrew.cmu.edu         ³
+  ³ Mike Perry         ³ mj-perry@uiuc.edu           ³
+  ³ Neill Corlett      ³ corlett@elwha.nrrc.ncsu.edu ³
+  ³ Pat Mccomack       ³ splat@primenet.com          ³
+  ³ Paul Robson        ³ AutismUK@aol.com            ³
+  ³ Stumble            ³ stumble@alpha.pulsar.net    ³
+  ³ Tony Young         ³ KBAAA@aol.com               ³
+  ³ Vince Indriolo     ³ indriolo@nm.picker.com      ³
+  ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+
+ÚÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ 16 ³   About the Author   ³
+ÀÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  One of the most common questions I get (usually from newbies) is "Who
+are you, and where the HELL did you come from? I hear of your name on a
+regular basis, but just who are you?"
+
+  My name is Jeremy Chadwick, more commonly known as Y0SHi or Yoshi. I'm
+5'10" (175cm), 150-160 pounds, blue-grey eyes, and professionally cut
+blonde-brown hair. A picture of me is available on my WWW page.
+
+  I'm a UNIX System/Network/Security Administrator located in Corvallis,
+Oregon USA (but will be relocating to Mountain View, California during
+early 1998). I currently work for Electronic Arts (UK) doing PSX R&D, and
+a local engraving shop where I do graphics design and vinyl layout. I'm
+also the primary System Administrator for parodius.com, which over the past
+year has slowly become the most well-known site on the InterNET for
+console-oriented material.
+
+  I've been on the 'net since late 1989, and on BBSes around the world
+since latee 1988. I've been programming computers since 1987, and consoles
+since 1994: all in assembly language. I became interested in console pro-
+gramming around July of '94, and released my famous SNES Documentation a
+few days after Christmas in 1994.
+
+  Since then, I've worked on multiple projects/games, such as:
+
+    * qNES                    * TRaCER (Pascal and ASM)
+    * SNES Documentation      * Hexad (coming soon)
+
+  And also helped out on other projects (in one way or another) such as:
+
+    * VSMC                    * ESNES
+    * SNES96/97               * NESticle
+    * Genecyst                * SNES9x
+    * A/NES                   * X-Char & X-Late
+
+  One of the greatest rewards in life is when you can help someone else
+achieve a goal by giving them information or just by giving them moral
+support. It doesn't take money to help someone; sometimes it just takes
+a pat on the back and positive feedback. I found that by giving someone
+such support, and by being honest with people, you can really feel good
+about yourself, while still enjoying what you do.
+
+  I get a lot of comments such as "You're god damn smart," "I wish I could
+know what you know," and "Hey, can I borrow your resume for a few days?"
+
+  What I know isn't important. The fact that I have the desire to learn
+as much as I can, is important. Someone who wants to learn and has the
+capability to is much more valuable (business-wise) than someone who claims
+they know everything, and has a BS (a BS in BS, most likely).
+
+  You can contact me via one of the following methods:
+
+    Email: yoshi@parodius.com
+           yoshi@dynamik.com
+           yoshi@usa.net
+      WWW: http://yoshi.parodius.com/
+      IRC: Y0SHi (EFNet)
+     Mail: Parodius Networking
+           c/o Jeremy Chadwick
+           2470 NW Rolling Green Dr. #29
+           Corvallis, OR 97330
+           USA
+
+  My comments here regarding the emulation "scene" have been removed:
+because in my eyes, there is no scene.
+
+*****
+_EOF_

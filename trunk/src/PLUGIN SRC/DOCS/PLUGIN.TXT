@@ -1,0 +1,508 @@
+                    CopyNES Standard Plugin Protocol
+                    --------------------------------
+
+
+By: Kevin Horton
+
+V 1.00 
+10/23/2000
+
+
+---------
+
+This document will describe how to write a plugin for CopyNES, including
+all available system calls.
+
+---------
+
+The protocol is very simple, and data is sent a byte at a time.  Once the 
+plugin starts, it can spray the data back to the PC the moment it starts.  
+The  plugin simply runs and transmits its data back to the PC, then exits 
+back to the CopyNES OS.
+
+The first thing the plugin must return is the mirroring byte.  
+
+Mirroring:
+
+Bit 0 : mirroring.  0 = horizontal, 1 = vertical
+Bit 1 : 4-screen.  0 = no 4 screen, 1 = 4 screen enabled
+Bit 2 : Under mapper control. 0 = hardwired, 1 = under mapper control 
+
+
+Following this, the PRG ROM, CHR ROM, or WRAM can be sent back in any order.
+
+Each "packet" of data has a 3 byte header as so:
+
+<SIZE LOW>
+<SIZE HIGH>
+<TYPE>
+
+size low/high: a 16 bit value, pretaining to the number of 256 byte blocks
+of data that are to be sent. i.e. 0080h = 32Kbytes, 0010h = 4Kbytes, etc.
+
+type:
+
+01h : PRG ROM
+02h : CHR ROM
+03h : WRAM
+00h : END OF DATA
+
+
+---------
+
+A valid transmission would look like this:
+
+<000h> - mirroring vertical
+
+<080h>
+<000h> - 0080h blocks of data (32Kbytes)
+<001h> - this is PRG ROM
+<32Kbytes of data follows>
+
+<020h>
+<000h> - 0020h blocks of data (8Kbytes) 
+<002h> - this is CHR ROM
+<8Kbytes of data follows>
+
+<000h>
+<000h> - 0 bytes of data
+<000h> - this is the last packet. nothing else follows
+
+---------
+
+
+I have used the CNROM plugin's ASM file as an example of how a plugin is
+written, and how it works.  I used "Table Assembler" on these plugins using
+the 6502 table.
+
+
+             ;vectors for standard system calls
+
+send_byte:   .equ 0200h
+baton:       .equ 0203h
+chk_vram:    .equ 0206h
+chk_wram:    .equ 0209h
+wr_ppu:      .equ 020ch
+read_byte:   .equ 020fh
+init_crc:    .equ 0212h
+do_crc:      .equ 0215h
+finish_crc:  .equ 0218h
+
+---------
+
+All the system calls are right here.  "send_byte" sends a byte back to the
+PC.  The byte to send is in the Acc.
+
+"baton" causes a little baton thingy to "spin" on the LCD display.  each call
+updates the "baton" once.
+
+"chk_vram" checks to see if VRAM is present in the PPU's address space.
+
+"chk_wram" checks to see if WRAM is present on the cart.
+
+"wr_ppu" writes an address to the PPU.  The Acc specifies the upper byte of
+the address.  The lower byte of the address is always 00h. 
+
+"read_byte" gets a byte back from the PC.
+
+"init_crc" initializes the CRC engine.
+
+"do_crc" will add the byte in the Acc to the current CRC value.
+
+"finish_crc" will finish calculations on the CRC and get the final result.
+
+---------
+
+
+crc0:        .equ 0080h
+crc1:        .equ 0081h
+crc2:        .equ 0082h
+crc3:        .equ 0083h
+
+---------
+
+These locations are the 4 bytes of the CRC-32 value.
+
+---------
+
+
+temp1:       .equ 00e0h
+temp1_lo:    .equ 00e0h
+temp1_hi:    .equ 00e1h
+temp2:       .equ 00e2h
+temp2_lo:    .equ 00e2h
+temp2_hi:    .equ 00e3h
+
+temp3:       .equ 00e4h
+temp3_lo:    .equ 00e4h
+temp3_hi:    .equ 00e5h
+
+temp4:       .equ 00e6h   ;for wr_bank
+temp4_lo:    .equ 00e6h
+temp4_hi:    .equ 00e7h
+temp5:       .equ 00e8h
+temp5_lo:    .equ 00e8h
+temp5_hi:    .equ 00e9h
+x_temp:      .equ 00eah
+y_temp:      .equ 00ebh
+
+temp_crc:    .equ 00ech
+
+---------
+
+temp variables I always use in my plugins
+
+---------
+
+
+             ;plugin header that describes what it does
+             
+             .org 0380h
+             
+             .db "CROM -- 16K and 32K PRG" 
+             .db " 16K and 32K CHR"
+             .db " carts",0
+
+             .fill 0400h-*,00h    ;all plugins must reside at 400h
+
+             
+---------
+
+The first thing I like to put in is a description of what the plugin is for.
+it does not get loaded.  it is always 128 bytes.
+
+;check mirroring             
+
+             
+             
+             ldx #00h
+             
+             lda #020h
+             jsr wr_ppu
+             lda #055h
+             sta 2007h
+             lda #0aah
+             sta 2007h
+             lda #024h
+             jsr wr_ppu
+             lda 2007h
+             lda 2007h
+             cmp #055h
+             bne horz_mir
+             lda 2007h
+             cmp #0aah
+             bne horz_mir
+             lda #020h
+             jsr wr_ppu
+             lda #0aah
+             sta 2007h
+             lda #024h
+             jsr wr_ppu
+             lda 2007h
+             lda 2007h
+             cmp #0aah
+             bne horz_mir
+             inx
+
+horz_mir:    txa
+             jsr send_byte   ;send byte
+             
+---------
+
+that mess of code exercises the PPU to determine the type of mirroring
+in use, then sends a byte back to the PC to inform it of the mirroring
+it found.
+
+---------
+
+             lda #000h       ;determine if this is a 16K or 32K game
+             sta temp1_lo
+             sta temp2_lo
+             lda #080h
+             sta temp1_hi
+             lda #0c0h
+             sta temp2_hi
+             
+             ldx #040h
+             ldy #0
+
+chk_loop:    lda (temp1),y
+             cmp (temp2),y
+             bne not_16k
+             iny
+             bne chk_loop
+             inc temp1_hi
+             inc temp2_hi
+             dex
+             bne chk_loop
+
+;this is a 16K game
+
+             lda #040h
+             tax
+             bne next_part
+
+not_16k:     lda #080h
+             tax
+
+---------
+
+here, the size of the PRG ROM is being determined by comparing its images
+at 8000h-BFFFh and C000-FFFFh.  if they match, it's a 16K ROM.
+
+---------
+
+next_part:   jsr send_byte
+             lda #000h       ;send size
+             jsr send_byte
+             lda #001h
+             jsr send_byte   ;send PRG 
+             
+---------
+             
+A PRG packet is going to be sent.  first, the size is sent, then the type
+of data it is.  001h = PRG ROM
+
+---------
+
+             
+             ldy #0
+             sty temp1_lo
+             lda #080h
+             sta temp1_hi
+
+dump_it:     lda (temp1),y
+             jsr send_byte
+             iny
+             bne dump_it
+             jsr baton
+             inc temp1_hi
+             dex
+             bne dump_it
+             
+---------
+
+This sends the correct quantity of data back to the PC.  Once the PC receives
+the correct # of bytes, then it will automatically wait for the next data
+packet.
+
+In the next section, the CRC engine will be used to determine the CRC of the
+CHR ROM data to determine how much CHR ROM there is.
+
+---------
+
+
+;determine CHR ROM size (16K or 32K)             
+
+             lda #0
+             jsr wr_bank   ;first bank of gfx
+             lda #0
+             jsr wr_ppu
+             jsr init_crc  ;init crc
+             lda 2007h
+
+             lda #020h     ;8K worth of data
+             sta temp1_lo
+             ldy #0
+
+ck_loop:     lda 2007h
+             jsr do_crc
+             iny
+             bne ck_loop
+             dec temp1_lo
+             bne ck_loop   ;do all 8K
+             
+             jsr finish_crc
+             ldx #3
+
+---------
+
+CRC the entire 8K block of the first bank of CHR ROM 
+
+---------
+
+ld_crc:      lda crc0,x
+             sta temp_crc,x
+             dex
+             bpl ld_crc     ;store CRC
+             jsr init_crc   ;crc for next block
+             
+---------
+             
+Store the CRC we just got for later use
+
+We know the ROM can only be 16K or 32K, and checking the 3rd bank will
+tell us which it is.  If we get a match, it's 16K.  No match = 32K
+---------
+
+             lda #002h       ;get CRC of 3rd bank
+             jsr wr_bank
+             lda #0
+             jsr wr_ppu
+             jsr init_crc  ;init crc
+             lda 2007h
+
+             lda #020h     ;8K worth of data
+             sta temp1_lo
+             ldy #0
+
+ck_loop2:    lda 2007h
+             jsr do_crc
+             iny
+             bne ck_loop2
+             dec temp1_lo
+             bne ck_loop2   ;do all 8K
+             jsr finish_crc
+             
+             ldy #080h
+             ldx #3
+
+---------
+
+Get the CRC for the 3rd bank.  Y = 80h, which is 32K
+
+Now, check it against the stored result of the first CRC.
+
+---------
+
+
+chk_crc:     lda crc0,x             
+             cmp temp_crc,x
+             bne crc_fail
+             dex
+             bpl chk_crc
+             ldy #040h
+             bne crc_dne
+
+crc_fail:    ldx #03        ;if it thinks it's 32K check for signature of
+             
+crc_fl:      lda crc0,x    ;open PPU bus
+             cmp magic,x
+             bne crc_dne
+             dex
+             bpl crc_fl
+             ldy #040h
+
+---------
+
+See the value of "magic"?  this is the CRC32 of open PPU bus :-)
+Y holds the # of 256 byte banks to send. (80h = 32K, 40h = 16K)
+
+---------
+
+crc_dne:     tya
+             jsr send_byte
+             lda #0
+             jsr send_byte
+             lda #02h
+             jsr send_byte   ;send our header
+
+---------
+
+send size of data,  02h = this is CHR ROM
+
+
+---------
+
+             ; 80,40 -> 4,2
+
+             tya
+             lsr a
+             lsr a
+             lsr a
+             lsr a
+             lsr a
+             tax
+             lda #0
+             sta temp2_lo
+
+send_bank:   lda temp2_lo
+             jsr wr_bank      ;set bank
+             inc temp2_lo
+             lda #0
+             jsr wr_ppu
+             lda 2007h
+             lda #020h
+             sta temp1_hi
+             ldy #0
+
+send_blk:    lda 2007h
+             jsr send_byte
+             iny
+             bne send_blk
+             jsr baton
+             dec temp1_hi
+             bne send_blk   ;send 32K
+             dex
+             bne send_bank
+
+---------
+
+Sends the correct amount of data, doing bankswitching when required
+
+---------
+             
+             lda #000h
+             jsr send_byte
+             lda #000h
+             jsr send_byte
+             lda #000h
+             jsr send_byte  ;send end block
+             rts
+
+---------
+
+0,0,0 is the end signature, telling the PC that this is all there is.
+the RTS returns us to the CopyNES operating system.
+
+
+This code will take some explaining to do.  Since the ROM is not disabled
+when you write to the cart's address space, bus conflicts can occur.  To
+prevent this, the code below searches through memory for a non-conflicting
+bit combination, then uses it.
+
+---------
+
+
+wr_bank:     stx x_temp
+             sty y_temp
+             sta temp4_lo   ;store desired bank
+             lda #0
+             sta temp5_lo
+             lda #080h
+             sta temp5_hi   ;start addr
+             ldx #080h      ;# iterations
+             ldy #0
+
+wrb_loop:    lda (temp5),y
+             and #07h
+             cmp temp4_lo   ;check current byte
+             beq gotit
+             iny
+             bne wrb_loop
+             inc temp5_hi
+             bne wrb_loop   ;keep checking
+             lda temp4_lo
+             sta 08000h     ;can't be found? try anyways
+             ldx x_temp
+             ldy y_temp
+             rts            ;if it wasn't found, bag it
+             
+gotit:       lda (temp5),y             
+             sta (temp5),y  ;if we found it, do the switch
+             ldx x_temp
+             ldy y_temp
+             rts
+
+
+magic:       .db 007h,053h,067h,0b6h
+
+             .fill 0800h-*,0ffh   ;fill rest to get 1K of data
+
+             .end
+
+---------
+
+All plugins must be the same size: 1024 bytes exactly with a 128 byte header.
+
+---------

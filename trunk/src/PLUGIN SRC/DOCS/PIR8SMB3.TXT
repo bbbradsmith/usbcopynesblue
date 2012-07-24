@@ -1,0 +1,198 @@
+                       Pirate SMB3 cartridge.  BTL-SMB3
+                       --------------------------------
+
+1.26.2001
+Version 2.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BTL-SMB3 for the UNIF format.  
+If you must use ines, use mapper #56.  (that's 56 decimal)
+
+
+Wow, what a fuckjob.
+
+---
+
+
+The hardware:
+
+This has to be THE worst Fami cart that's been passed through my hands.  It
+uses the most obtuse hack to be "sorta MMC3 compatible, kind of".
+
+It has 2 128K ROMs for the 256K PRG ROM total, an 8K WRAM, 1 128K ROM 
+for the CHR, a 2K RAM chip which is set up as an 8 byte RAM (holds the 
+CHR banks), a custom "KS 202" chip which controls the lower 4 bits of 
+the PRG, a PAL, and some TTL chips (74LS670, 74LS240, 74LS08, 74LS157).
+
+There's also some lame "copy protection" on the board.  It's a capacitor in
+line with one of CHR enables.  When I attempted to dump the cart, I got
+trash for the CHR stuff until I shorted the cap out with a wire.  This short
+does not affect normal running of the cart either.
+
+---
+
+The PRG address space is broken up into 4 8K banks.
+
+The last bank is hardwired to the last ROM page.  The other 3 banks are
+selectable.  On powerup, the first two banks of the ROM are loaded into 
+08000h and 0A000h, and the last two banks of the ROM are loaded in at
+0C000h and 0E000h.
+
+CHR address space is broken up into 8 1K banks.  
+
+---
+
+The PAL and KS 202 chips are both for the most part independant of each 
+other. 
+
+       
+-
+
+PAL:
+
+The PAL decodes 3 address ranges.
+
+Range #  15  Address bits  0   Example
+--------------------------------------------
+Range 0: 1111 00xx xxxx xxPP - F000h-F003h : P= program bank select bits
+Range 1: 1111 10xx xxxx xxxx - F800h
+Range 2: 1111 11xx xxxx xCCC - FC00h-FC07h : C= CHR bank select bits
+
+--
+
+Range 0:
+
+This controls BIT 4 of the PRG banks.
+
+Bit 4 of the byte written below is used:
+
+F000h: 8000-9FFFh bit 4 of PRG bank
+F001h: A000-BFFFh bit 4 of PRG bank
+F002h: C000-DFFFh bit 4 of PRG bank
+
+Note: bits 0-3 of the banks are NOT AFFECTED by these writes.
+
+--
+
+Range 1:
+
+This controls the mirroring.  Bit 0 of the byte written is used.
+
+0 is H mirroring, 1 is V mirroring (needs to be checked).
+
+--
+
+Range 2:
+
+Controls the CHR ROM banks.  PPU space is broken up into 8 1K banks.  
+
+The byte written sets the desired 1K bank.
+
+FC00h controls 0000-03FF of PPU space
+FC01h controls 0400-07FF of PPU space
+etc.
+
+-----------------
+
+The KS 202 chip is sorta weird. It is a 20 pin custom chip, and contains
+the lower 4 bits of PRG decoding along with the IRQ timer.  Note that only
+D0-D3 are connected to this chip, along with A12-A15.  AND all writes to
+this chip with 0Fh or suffer the consequences. 
+
+It decodes 8 address ranges:
+
+Range #  15  Address bits  0   Example
+--------------------------------------------
+Range 0: 1000 xxxx xxxx xxxx - 8000h-8FFFh ; IRQ counter
+Range 1: 1001 xxxx xxxx xxxx - 9000h-9FFFh ; IRQ counter
+Range 2: 1010 xxxx xxxx xxxx - A000h-AFFFh ; IRQ counter
+Range 3: 1011 xxxx xxxx xxxx - B000h-BFFFh ; IRQ counter
+Range 4: 1100 xxxx xxxx xxxx - C000h-CFFFh ; IRQ counter control register
+Range 5: 1101 xxxx xxxx xxxx - D000h-DFFFh ; Not used
+Range 6: 1110 xxxx xxxx xxxx - E000h-EFFFh ; PRG bank select
+Range 7: 1111 xxxx xxxx xxxx - F000h-FFFFh ; PRG bank register
+
+--
+
+Ranges 0 through 3 load the IRQ counter.
+
+Range 0 is the "A" bits
+Range 1 is the "B" bits
+Range 2 is the "C" bits
+Range 3 is the "D" bits
+
+15      bits      0
+-------------------
+DDDD CCCC BBBB AAAA
+
+
+These form a 16 bit IRQ UP counter.  This counter is incremented on every
+processor clock cycle.
+
+--
+
+Range 4:
+
+This controls the IRQ timer.  Writing here starts the IRQ counter.  When
+the IRQ counter overflows (reaches 0FFFFh), the counter is stopped, and
+an IRQ is sent.
+
+..
+
+Range 6:
+
+This is the PRG bank control register.  To select a PRG bank, one writes
+a control word here, then writes the desired bank # to Range 7.
+
+Writing:
+
+01h - selects ROM page at 8000-9FFFh (I think)
+02h - selects ROM page at A000-BFFFh
+03h - selects ROM page at C000-DFFFh
+
+05h - dunno, maybe ROM at E000-FFFFh, though it would not be used here
+
+--
+
+Range 7:
+
+This is the PRG bank select register.  Since only the lower 4 bits of
+the data bus are connected to this chip, you can only select a 4 bit
+PRG bank.  
+
+Notes:
+Due to this odd construction, you can write to both the KS 202's 4 bit
+PRG register AND the 1 bit one controlled by the PAL at the same time.
+
+To set both banks properly, and at the same time, one has to write like this:
+
+F000h = PRG 8000-9FFFh
+F001h = PRG A000-BFFFh
+F002h = PRG C000-DFFFh
+
+Doing this will store the lower 4 bits in the KS 202, and due to the 
+connection with the PAL, will ALSO set the upper bit in the proper bank
+register, so you get all 5 bits set at one time.
+
+Emulator authours can cheat and just reguard F000h-F3FFh as a single bank
+reg with 5 bits. :-)
+
+-----------------
+
+
+Have fun!
+
+
+
+
+
+
+
+
+
+
+
+

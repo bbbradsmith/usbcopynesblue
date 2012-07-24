@@ -1,0 +1,89 @@
+               20 in 1 Multicart, Mapper: BMC-Generic20in1
+               -------------------------------------------
+
+2.3.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-Generic20in1 for the UNIF 
+format.  If you must use ines, use mapper #231.  (that's 231 decimal)
+
+
+Another multicart.  
+
+---
+
+
+The hardware:
+
+
+2 74161's, a 7400, 8K SRAM for VRAM, and a 512K PRG ROM.
+
+-
+
+Like alot of other multicarts, this one uses the address written to to select
+the desired banks and other things.
+
+-
+
+Bank Select Register:
+
+
+It uses A1 through A7.  This means the address written to matters, while
+the actual data written does not.  
+
+15      addr      0
+-------------------
+1xxx xxxx MMSP PPPx
+
+P: Select a 32K PRG ROM bank
+
+S: PRG ROM bank size.  
+
+When set to 1, A14 from the NES is passed through to the ROM. 
+When set to 0 however, A14 to the ROM is held LOW so that the lower
+16K appears at both 8000-BFFFh and C000-FFFFh.  This allows the lower 16K
+of a 32K bank to hold a 16K game.  The upper half of the same bank can
+then hold another 16K game.  
+
+M: Mirroring.  This is sorta odd due to the way it is controlled.
+
+addr:
+----- 
+ 76
+ --
+ 00 - 1-screen mirroring
+ 01 - V mirroring
+ 10 - H mirroring
+ 11 - "3-screen" mirroring
+
+
+In the following examples, A is the first nametable, and B is the second.
+
+1-screen:
+
+AA
+AA
+
+V mirroring:
+
+AB
+AB
+
+H mirroring:
+
+AA
+BB
+
+"3-screen" (not really separate pages, but I have no better term):
+
+AB
+BB
+
+
+
+That's it.
+
