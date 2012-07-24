@@ -30,8 +30,8 @@ static	void	PromptForDirectory (HWND hDlg, const char *pathvar, int dlgitem)
 }
 static	LRESULT CALLBACK DLG_Options(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	char tmpstr[16];
-	int newPort, newAddr;
+	//char tmpstr[16];
+	//int newPort, newAddr;
 	switch (message)
 	{
 	case WM_INITDIALOG:
