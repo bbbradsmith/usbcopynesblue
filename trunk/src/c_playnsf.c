@@ -118,7 +118,7 @@ BOOL	LoadNSF (char *filename)
 
 	for (i = 0; i < 8; i++)
 	{
-		if (!WriteByte(NSF_banks[i] = header[0x70 | i]));
+		if (!WriteByte(NSF_banks[i] = header[0x70 | i]))
 		{
 			CloseStatus();
 			return FALSE;

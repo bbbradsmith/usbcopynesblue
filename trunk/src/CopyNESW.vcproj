@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="CopyNESW"
 	ProjectGUID="{1A3E9F4E-FEC2-440A-AF27-4F4CEFBD1C4A}"
+	RootNamespace="CopyNESW"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -56,6 +58,7 @@
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -71,13 +74,15 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib ftd2xx.lib"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\../CopyNESW.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -96,9 +101,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -146,6 +148,7 @@
 				ProgramDataBaseFileName=".\tmp/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -161,11 +164,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib gdi32.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib gdi32.lib ftd2xx.lib"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\../CopyNESW.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -186,9 +191,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="copy /y $(OutDir)\$(ProjectName).exe .."
 			/>
@@ -202,112 +204,320 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath=".\src\c_bankwatch.c"
+				RelativePath=".\c_bankwatch.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_breakbank.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_disasm.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_dumpcart.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_fixgar.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_makenes.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_makeunif.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_microbug.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_nesinfo.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_options.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_playcart.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_playnsf.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_ramcart.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\c_reconnect.c"
 				>
 			</File>
 			<File
-				RelativePath=".\src\c_breakbank.c"
+				RelativePath=".\c_regplay.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_disasm.c"
+				RelativePath=".\c_runplug.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_dumpcart.c"
+				RelativePath=".\c_splitnes.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_fixgar.c"
+				RelativePath=".\c_splitunif.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_makenes.c"
+				RelativePath=".\c_vrc7regs.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_makeunif.c"
+				RelativePath=".\c_writewram.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_microbug.c"
+				RelativePath=".\config.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_nesinfo.c"
+				RelativePath=".\CopyNESW.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_options.c"
+				RelativePath=".\crc32.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_playcart.c"
+				RelativePath=".\io.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_playnsf.c"
+				RelativePath=".\misc.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_ramcart.c"
+				RelativePath=".\miscdialogs.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\c_regplay.c"
+				RelativePath=".\StdAfx.c"
 				>
-			</File>
-			<File
-				RelativePath=".\src\c_runplug.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\c_splitnes.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\c_splitunif.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\c_vrc7regs.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\c_writewram.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\config.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\CopyNESW.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\crc32.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\inpout32drv.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\io.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\misc.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\miscdialogs.c"
-				>
-			</File>
-			<File
-				RelativePath=".\src\StdAfx.c"
-				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -315,15 +525,15 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath=".\src\CopyNESW.h"
+				RelativePath=".\CopyNESW.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\resource.h"
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\StdAfx.h"
+				RelativePath=".\StdAfx.h"
 				>
 			</File>
 		</Filter>
@@ -332,11 +542,11 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath=".\src\CopyNESW.ico"
+				RelativePath=".\CopyNESW.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\src\CopyNESW.rc"
+				RelativePath=".\CopyNESW.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -357,7 +567,7 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\src\hwinterface.sys"
+			RelativePath=".\hwinterface.sys"
 			>
 		</File>
 	</Files>
