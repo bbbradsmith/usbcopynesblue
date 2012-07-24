@@ -1,0 +1,440 @@
+                            CopyNES - How to Use
+                            --------------------
+
+
+10/08/05
+KH
+--
+
+
+1.  Dump Cart
+-------------
+
+Select the cartridge to dump.  Use pgup/pgdn to select a category as
+indicated at the top of the screen.  Use up/down to select an entry.
+Left/right will move 1 page inside the category.
+
+All the most-often used mappers are in the first category to make
+selection that much easier.  For dumping .NES files, these will probably
+cover 90% of the cases you will encounter.  If you wish to have a proper
+UNIF name (or you have a less common mapper, etc) poke through the
+categories to find it.
+
+Hitting escape will get back to the main menu.
+
+Pressing enter will start the dumping process.
+
+Enter a filename for the ROM, with a max. of 8 letters.  This proggy
+does not support long file names.
+
+If all goes well, the following will be seen:
+
+        Resetting
+      Loading plugin
+      Running plugin
+   Downloading ROMz0rz
+
+<progress box for PRG ROM>
+<progress box for CHR ROM>
+ <progress box for WRAM>
+
+Note: Not all of these may show up; it depends on if the cart has CHR ROM
+or WRAM.
+
+Once a progress bar fills up, the program will perform a CRC before
+doing the next stage.  This may take a little while depending on the
+size of the ROM.
+
+Once the cart is all dumped, the program will ask for a cartridge name.
+If you are not using UNIF, you can hit <enter>.  Otherwise, you can enter
+the name of the cartridge (no limit on size).
+
+Then a controller type will be asked for.  Again, if UNIF is not used,
+you don't need to enter anything.  Otherwise enter the number indicated.
+
+After this, you can enter some description text of the game, if desired.
+Again, this is for UNIF only so if you're not worrying about UNIF, just
+hit enter.
+
+Occasionally, it might ask the question "really battery?" meaning, if this
+game supports battery-backup of saved games or not.  If it does, enter 1,
+else enter 0.  This is needed for regular .NES and .UNF both.
+
+Finally, the ROMs will be created and put in the /finished/ directory.
+Both .NES and .UNF files are generated.
+
+
+
+2.  Play Cart
+-------------
+
+As the name implies, lets you play a cartridge.  Make sure your game is
+in the slot, and the NES is connected to a TV or similar, and select this
+option.  The game will then start and run normally without the CopyNES
+hardware interfering with the game in any way.  
+
+NOTE: If you unplug CopyNES from your PC, it will automatically revert
+to play mode.  So, you can use it like any other NES.  It automatically
+disables everything to prevent conflicts or incompatibilities.
+
+
+3.  Write WRAM
+--------------
+
+This option lets you write a saved-game back to your cartridge.  Got a
+good Zelda saved game you want to play on the real thing?  No problem.
+
+First, make sure you have the desired cartridge installed into CopyNES.
+
+Second, enter the desired cartridge type (MMC1, 3, 5, or 6).  
+
+Next, enter a filename (up to 8 characters, .SAV assumed) and hit enter.
+
+It will then upload the plugin and WRAM data.  Turn off CopyNES and remove
+the cart and you're good to go.
+
+4.  Split NES
+-------------
+
+You can split up an NES file here.  Enter the filename (and make sure the
+.NES file is in your CopyNES root directory) and this will split it up and
+produce a .CHR and .PRG with the same name as the original .NES.  
+
+NOTE: This will over-write any .PRG and .CHR file of the same name!
+
+5.  RegPlay
+-----------
+
+This option isn't terribly useful, but I used it to debug some stuff.
+It lets you upload in real time an audio register dump that the NES will
+then play.  It currently supports regular Nintendo audio and VRC7 stuff.
+
+For NES style dumps, it likes files in the following format:
+
+Frame
+Write:  4000:33
+Write:  4015:00
+Write:  4011:33
+Frame
+Frame
+Frame
+Write:  4001:12
+etc.  
+
+Note the spacing, it is required for this to work properly.
+It checks for the literal "Frame" and "Write" (caps as indicated)
+and it looks for the register numbers at offset 11 (so it only grabs
+the "11" of "4011" and then offset 14 for the data byte (all offsets
+are counting from character 1)
+
+"Frame" waits 1 frame (1/60th of a second) or so.
+
+For VRC7 style dumps, it likes the following format:
+
+frame
+frame
+frame
+9010  12
+9030  34
+frame
+frame
+
+Works the same as above, only for VRC7.
+
+
+6.  Make NES
+------------
+
+This function lets you join a .CHR and .PRG file into an .NES file.
+Useful for if you have to dump EPROMs or something and me an .NES. I use
+it to package my own stuff into .NES files.  Make sure the .CHR and .PRG
+are in the CopyNES root dir.
+
+First, enter the filename of the .PRG and .CHR file.
+
+Next, enter a mapper number.
+
+Third, enter if it uses a battery or not.
+
+Fourth, enter the mirroring bit.
+
+Finally, enter if it's 4 screen mirroring or not.
+
+It will then make the .NES file and plop it in the CopyNES root.
+
+7.  Options
+-----------
+
+Lets you view the current options as defined in the .ini file.  Not
+terribly useful, but eh :-)
+
+8.  Bank Brk
+------------
+
+This bank breaker function allows you to break a file up into multiple
+pieces.  I use it to break i.e. a 128K PRG ROM file up into 8 16K files
+for easier processing or whatever.  It is very very very handy and 
+useful.
+
+First, enter the filename you wish to break apart.  (It must be in the
+CopyNES root dir)
+
+next, enter a bank size.  i.e. 16384 for 16K banks.
+
+If more than 8 banks will be generated, it will ask if you REALLY want to
+do this, before spraying a billion files all over your harddrive.
+
+Also, if the banks are not "even" (i.e. one bank will be smaller than the
+others, the program will warn you and ask if you wish to continue.  
+
+These two functions prevent you making a mess because of a typeo or 
+whatever.
+
+The files will be stuffed into the CopyNES root dir with the following 
+format:
+
+If the original file was test.bin, then it will produce  test.00, test.01,
+test.02... etc.  File naming follows the hex convention so if you select
+16 banks, it will produce i.e. test.00 through test.0f
+
+
+9.  RAM Cart
+------------
+
+If you have a RAM cart, this function will let you upload a game to it
+for playing/testing/whatever.  To use, enter the filename of your NROM
+game you wish to load (which should be in the CopyNES root dir).  This
+will then load it.  If PRG/CHR is too big, it will warn you but still
+try loading it anyways.
+
+
+10.  Disasm
+-----------
+
+Note: QBASIC may complain after you use this with an out of memory error
+or some crap.  I suggest using the included disasm.bas file for all your
+disassembly needs.  Also, this will end with an error.  This is normal :-)
+The aforementioned disasm.bas does not do this. Use that instead.
+
+11.  Fix GAR
+------------
+
+You can fix a Game Action Replay with this.  Make sure gar.bin is sitting
+in your CopyNES root dir before trying to upload a new one.  If you DL
+a GAR RAM image, it will be named gard.bin  for GAR Download.  This
+prevents you blowing away the GOOD version.  That'd be bad :-)
+
+Enter 1 or 2 depending on what you want to do.  At the point where it says
+"wait a bit", you should wait 1/2 sec or so before hitting enter.  This
+gives it time to run the stub between loads.
+
+Finally, gard.bin will be downloaded, or gar.bin will be uploaded depending
+on which you selected.
+
+NOTE: You can royally fuck a GAR using this function.  Only use this if you
+100% know what the hell you are doing!  For an already-dead GAR, this
+will not make it worse, and most likely will fix it.. but, you have 
+been warned :-) 
+
+12.  Make UNIF 
+--------------
+
+As the name implies, makes a .UNF file.  Works similar to the make NES above.
+
+13. VRC7 Regs
+-------------
+
+This option lets you tweak the VRC7 registers to see what happens.  Not
+very useful to 99.9999% of the population.  I used this to "tune" a set of
+instruments for the VRC7 emulation.  I think it's as close as it's going to
+get, but if you have a Lagrange Point cart and some way to get the audio
+out, by all means go for it!  It's pretty self-explanatory.
+
+This uses the file insts.bin in the CopyNES root directory.  On startup,
+the instruments will be loaded out of this file.  Hitting ' will save the
+current setup back to the file, so be careful.  If you come up with a better
+set, by all means send it to me :-)  Oh yeah, hitting space will start/stop
+the current sound.  \ selects what you wanna hear (nothing, one, the other,
+or both at the same time) for ease of determining if you got it right.
+
+14.  NES info
+-------------
+
+You can see what version the BIOS is in your CopyNES along with the 
+version string.  Version 1.00 of the BIOS does not support the version
+string.  Only BIOS versions 2.00 and higher do.  (Current version of the
+BIOS when this was written is 2.00)
+
+15.  Break UNIF
+---------------
+
+As the name implies, it breaks a UNF file up into its constituent parts
+of .CHR and .PRG.  Works the same as the break NES above but for UNF files.
+
+16.  Play NSF
+-------------
+
+If you have an NSF cart (and only I have one at the moment, heh)  then
+this is how you use it.
+
+Select the desired NSF to play and hit enter. It will be loaded and run.
+On-screen commands show the various things you can do.  And that's about
+it.  If you have NON-banked NSFs, and a RAM cart, you can play NSFs using
+this function.
+
+17.  Bankwatch
+--------------
+
+W00t.  This is the best part of the whole wad.  It is designed to reverse
+engineer mappers and other junk.  Note that it is not magical, and you 
+should really have lots of skillz before attempting to do anything useful
+with it.  Assuming you do, here's the scoop.
+
+Keys:
+
+
+Writing/Reading data to/from the NES
+------------------------------------
+
+0 through 9, a through f - these will enter hex data at the address/data
+                           line at the top.  A ^ shows up below the selected 
+                           digit that will be changed.  Once you enter a 
+                           digit, the pointer will move to the next.
+
+left/right - These will change the pointer's position without changing
+             a digit.
+
+` (below ~) - This will lock the pointer's position and prevent it moving
+              when a number is entered. left/right still works.  Useful for
+              only changing 1 digit at a time to step thru i.e. 10h thru 1fh
+              or whatever.
+
+w - Write data. The byte will be written to the address specified.  Simple
+    as that.  Written data is shown in the read/write history list.
+
+r - Read data.  The address specified will be read.  The data value is not 
+    used.  Result is shown in the read/write history list.
+
+x - Reset NES.  This will reset the NES.  Useful for debugging stuff that
+    requires a reset to clear... i.e. multicart mapper lock bits.  Reset
+    is shown in the read/write history list.
+
+h - show the quick help screen for the keys
+
+
+Graphical CHR bank and PRG bank output
+--------------------------------------
+
+F1 through F4 - adjust the palette for the 4 colours of the graphics.
+                Each press will cycle thru 1 colour.  16 total colours 
+                are possible.
+
+z - Enable/disable CHR/PRG graphic listing.  This will speed things up.
+    Note that the graphics are only updated after a read/write function.
+    So, hitting Z will appear to have no result until a read/write is 
+    performed.
+
+g - "Gigantic" mode.  Hitting this will make the CHR/PRG stuff twice as
+    big for more viewage.  Makes things a tad slower.
+
+l - Load banks from cart.  This will mark up banks for you to make it
+    easier to figure out what banks are what.  Note that you need to write
+    custom code in the BANKWTCH.ASM file again, since it won't know otherwise
+    what type of mapping it uses.
+
+PRG bank identification
+-----------------------
+
+Bankwatch allows you to identify banks and then show them.  Checks are
+performed via CRC so it may take a little bit of time to calculate them
+on the NES, so stuff slows down.  Invaluable to figuring out how the hell
+certain mappers work that let you switch PRG banks in multiple ways.
+Note that you must write a little code in the bankwatch plugin to use this
+feature... since it's mapper specific. (note: these keys are all upper case)
+
+L - Instruct the bankwatch to calculate the CRC of all banks (feeps when
+    done since this could take awhile!)
+
+R - read in the banks we calculated
+
+B - Use the CRC'd banks instead of showing it in char format
+
+Other functions
+---------------
+
+o - Dump data.  This will dump data from the NES space.  Any amount of 
+    data dumping is supported from anywhere.  Enter a start address, size,
+    and filename and away it goes.  All values in hex.
+
+[,],\ - These will run custom pieces of code in the BANKWTCH.ASM file.
+        This lets you put custom routines in there for debugging things
+        such as IRQs and crap.  The idea being you can put your asm code
+        in there, assemble it, and run them this way.  I used this to
+        debug almost all the IRQs on the carts I RE'd.  
+
+{,},| - These will reset the counters for the above.  The counters made it
+        easy to count writes or reads without having to do it manually.
+
+r - Receive data.  Note: this is similar to the above custom stuff.  This
+    is designed to receive data from the BANKWTCH.ASM plugin.  I use it
+    for alot of fun stuff like dumping tables of results from manipulating
+    mapper registers and junk.
+
+G - (note: capital G)  Run code.  GOs from the address indicated in the
+    address line.  Can cause crashies if you don't know what the fuck you
+    are doing :-)
+
+<esc> - gets you out of Bankwatch(tm).
+
+
+
+18.  Microbug
+-------------
+
+This is the big one!  I think it may even be a little bit nicer than
+Bankwatch!  This utility lets you actually EMULATE and debug code on
+the NES... in the cartridge.  You can single step, and run to a breakpoint
+(yes, breakpoint) ON the cartridge.  
+
+The power of Microbug is quite massive, and I have used it to reverse
+engineer the toughest of the tough carts by single stepping the code to
+untangle what the programmers were doing.  It was successfully used to
+break the protection on Earthworm Jim 2... a "pirate original" famicom
+game that had some insane protections.  
+
+Microbug consists of a complete 6502 emulator that sits in the CopyNES 
+BIOS (V 2.00 and up) and uses 16 bytes of RAM at 01f0-01ff to hold its 
+various registers.  It also uses some of the port chip registers, like 
+the timer latches, to hold more data so it doesn't eat up RAM.  Microbug
+has "safe" emulated stack operations that prevent the special RAM area
+being over written. The stack wraps from 100h to 1efh, and likewise from
+1efh to 100h.  Several areas of memory are "protected" from being written
+to or read from.  These include PPU register 0 (i.e. 2000h and its mirrors)
+and 4800h-4fffh, which is the port chip.  Any writes to these areas results
+in a write to 4200h-42ffh (the upper byte is just forced to 42h).  This
+should prevent it upsetting most things... There are a few cart mappers that
+map regs down there, but they all use 4100-41ff, 4300-43ff, etc. so
+writes there should be "safe".  The only mapper I know of that has regs in
+4800-4fff is Namcot 106, but I don't think many of those games will be
+debugged by this, so eh.  The last protection performed, is if a write to
+the "bad place" will occur (01f0h-01ffh), it will be shifted by 10h bytes
+and wrapped in page 1.  i.e. writing to 01f0h will really write to 0100h,
+writing to 01ffh will really write to 010fh.  This will prevent most code
+crashing.  Reads too are similarally modified.
+
+The other small limitation is interrupts are 100% disabled for the emulated
+code.  However, you can manually trigger NMI's, IRQ's, and resets via the
+function keys.  Since this thing doesn't run in real time, this is not an
+issue.
+
+The key functions should be pretty self-explainatory... They are written
+right on the screen.  The "watch" window (which shows real time RAM 
+contents) can be turned on and off to speed up debugging.  Likewise, the
+"bank" window can be turned off also.  It defaults to off on startup.
+
+F1 through F9 set the functions to the right of the labels.  Simply enter
+a hex number and hit enter to lock it in.  If it's too big, it will be
+truncated to 8 or 16 bits (depending on where it's going).  The interface
+will then update with the new values.
+
+
