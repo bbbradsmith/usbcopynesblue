@@ -57,7 +57,8 @@ void	GetProgPath (void)
 
 void	GetConfig (void)
 {
-	char Config[MAX_PATH], tmpdir[MAX_PATH], tmpstr[16];
+	char Config[MAX_PATH], tmpdir[MAX_PATH];
+	//char tmpstr[16];
 	strcpy(Config,Path_MAIN);
 	strcat(Config,"USB CopyNES.ini");
 	SaveCRC = GetPrivateProfileInt("USB CopyNES","SaveCRC",0,Config);
