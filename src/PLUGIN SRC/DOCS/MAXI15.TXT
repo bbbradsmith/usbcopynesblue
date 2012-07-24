@@ -1,0 +1,202 @@
+From: Mark <yww72@ukgateway.net>
+
+Preliminary Maxi-15 Mapper Hardware Description
+===============================================
+
+The Maxi-15 cartridge contains 15 different games, and was sold in the USA by
+AVE. A cartridge containing a slightly different set of games was sold in
+Australia by HES. All the games are original, unlicensed. Most or all were
+previously released on separate cartridges. It is the best legal multi-game
+cartridge that I have played. (Having said that, the only other legal multi-
+game cartridge I have played is Action 52...)
+
+I examined an AVE Maxi-15 cartridge. The HES version probably uses the same
+circuit board but different ROMs. I would like to see a scan of the HES
+version's board to confirm this.
+
+This is a preliminary summary of how I believe the mapper hardware works. If
+you want to add support for this mapper in your emulator, and it doesn't seem
+to work, please let me know. Also report any inaccuracies or ambiguities.
+
+
+I have uploaded an image of the AVE Maxi 15 cartridge in .nes format to
+       http://members.xoom.com/borkbork/Maxi-15.tar.gz     (480583 bytes long)
+
+For testing purposes, I have set the mapper number in the header to $E7 = 231.
+
+Also in the archive is Maxi-15_Intro.nes. This contains the selection menu
+code. This is simply the first 32K PRG and 8K CHR data with a mapper 0 .nes
+header. It works after a fashion with the darkNESs 0.24 emulator. It did not
+seem to work with two old versions of LoopyNES and Nofrendo that I had lying
+around. I did not try it on a real NES.
+
+
+
+Credits
+-------
+Thanks to:
+ Chris Covell, for lending me his Maxi-15 cartridge
+ Kevin Horton, for dumping the data from the ROMs of his Maxi-15 cartridge
+
+No thanks to:
+ Me, for taking such an incredibly long time to get around to figuring out
+ this info.
+
+
+
+Board description
+-----------------
+There are two 4Mbit Macronix MX23C4000 mask ROMs for PRG and CHR data, which
+are marked as follows in the cartridge I examined:
+
+  H9237
+  23C4000-1033
+  MGC1-PGM
+  U2-F0AD
+  S29549
+
+and
+
+  H9237
+  23C4000-1034
+  MGC1-CHR
+  U9-D935
+  S29552
+
+The F0AD and D935 numbers are checksums for the data contained in each ROM.
+
+
+The board has space for another two ROMs, and has at least some support for
+8Mbit ROM chips. (I have yet to fully confirm this, but if so it would in
+theory allow up to 32Mbit of data.)
+
+Memory-mapping hardware consists of eleven chips: 74LS273, 74LS32 x 2,
+74LS175 x 2, 74LS138 x 2, 74LS30, 74HC08, 74HC04 and a 4053.
+
+There are several discrete components, mostly related to the CIC-defeating
+function.
+
+
+
+Mapper description
+------------------
+
+This mapper is interesting for a couple of reasons:
+ - It is "one way". That is, after setting a certain register the only way to
+   return to the initial state is by resetting the console.
+ - Registers are set by writing *or reading* certain locations. In the case
+   of writing, the programmer would need to ensure that the written value and
+   that put on the data bus by the program ROM do not conflict. (It is
+   possible to disable the ROMs. By doing this -- running code from RAM --
+   the mapper could be set by writes with no regard to what is in ROM at that
+   location. I have no idea whether the game does this.)
+
+
+There are three registers, which I will call R1, R2 and R3. R3 can probably
+be ignored for emulation purposes.
+
+  R1 is accessed at $FF80-$FF9F
+  R2 is accessed at $FFE8-$FF7F
+  R3 is accessed at $FFC0-$FFDF (but see below)
+
+R1 has 8 bits. R2 has 4 bits; only D6, D5, D4 and D0 are used. R3 has two
+bits; only D1 and D0 are used.
+
+Initially it is not possible to access R3. This is only possible after R1 has
+been set to a non-zero value.
+
+On power-up, and when the Reset button is pressed, registers R1 and R2 are
+cleared. R3 is not cleared when Reset is pressed. After R1 has been set to a
+non-zero value, it cannot be changed until the Reset button is pressed.
+
+
+
+R1 and R2 functions
+-------------------
+
+R1:     D7    D6  | D5    D4  | D3    D2    D1  | D0
+        ----------+-----------+-----------------+----
+         m     s  |  x     x  | r18   r17   r16 | r15
+
+R2:     D7  | D6    D5    D4  | D3    D2    D1  | D0
+        ----+-----------------+-----------------+----
+         -  | c15   c14   c13 |  -     -     -  | p15
+
+
+R1 bit 7 - Mirroring.
+
+  0: PA10 connected to VRAM A10. This is horizontal scrolling, "vertical
+     mirroring".
+
+  1: PA11 connected to VRAM A10. This is vertical scrolling, "horizontal
+     mirroring".
+
+
+R1 bit 6 - "Page mode".
+
+  0: R1 bits 3-0 (r18-r15) set address lines A18-A15 of both the PRG and CHR
+     ROMs. That is, they select which 32K bank of each ROM is active.
+
+  1: R1 bit 0 is ignored. Instead bits 3-1 (r18-r16) set address lines A18-A16
+     of both PRG and CHR ROMs. That is, they select which 64K bank of each ROM
+     is active. R2 bit 0 (p15) sets address line A15 of the PRG ROM, and R2
+     bit 6 (c15) sets address line A15 of the CHR ROM.
+
+R1 bits 4 & 5 - to do with having two PRG and CHR ROMs, and/or support for
+8Mbit ROMs. The important thing here is that if bit 5 is set to 1, both
+PRG and CHR ROMs are disabled.
+
+R2 bit 6 (c15) is only used when the R1 bit 6 (the "page mode") is 1.
+
+R2 bits 5-4 (c14-c13) set address lines A14-A13 of the CHR ROM. That is, they
+select which 8K of the currently-selected 32K CHR bank is active.
+
+
+
+
+R3 functions
+------------
+
+R3:     D7    D6    D5    D4    D3    D2  | D1    D0
+        ----------------------------------+----------
+         -     -     -     -     -     -  | RST   OUT
+
+Values written to bits 1 and 0 of R3 are used to drive the CIC RST and CIC
+OUT lines. R3 will probably be set somehow by the game code, but this should
+not be important for emulator writers. (Unless writing to R3 can cause the
+console to be reset.) Anyway, top-loading NES and Famicom consoles do not
+have CIC chips.
+
+
+
+Explanation
+-----------
+
+I will try and explain the effective situation after R1 has been written.
+Remember, R1 can only be set once.
+
+If R1 bit 6 ("page mode") is 0:
+  PRG $8000-$FFFF is fixed to the 32K block which was selected by bits 3-0.
+  Similarly, bits 3-0 select which 32K block of the CHR ROM is used.
+
+  Then R2 bits 5-4 (c14-c13) set which 8K out of the selected 32K of CHR
+  data appears at PPU $0000-$1FFF.
+
+  So here you effectively have fixed 32K PRG (not pageable), with four
+  8K banks of CHR data.
+
+
+If R1 bit 6 ("page mode") is 1:
+  R1 bits 3-1 (r18-r16) select which 64K block of PRG and CHR data is used.
+
+  R2 bit 0 (p15) sets which half of the selected 64K of PRG data appears at
+  $8000-$FFFF.
+
+  R2 bits 6-4 (c15-c15) set which 8K out of the selected 64K of CHR data
+  appears at PPU $0000-$1FFF.
+
+  So here you effectively have 64K PRG (two pages of 32K), with eight 8K
+  banks of CHR data.
+-- Mark
+
+

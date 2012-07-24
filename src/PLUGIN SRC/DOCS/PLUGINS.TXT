@@ -1,0 +1,310 @@
+                           Implementing a Mapper
+                           ---------------------
+
+
+10/09/05
+KH
+--
+
+
+
+OK, this document will describe the process of coming up with a mapper
+plugin from start to finish.  The process is pretty straight forward.
+The files I will be talking about are all in the /plugins/ directory
+since this is where all the "magic" happens.  
+
+Inside the /plugins/ directory are a few files and utilities that I
+use to make the plugins.
+
+First, though, I should describe how the CopyNES host code will interact
+with the plugin.
+
+When the plugin is first loaded and run, it is loaded into 0400-07FF in
+the NES address space, which is at the end of RAM.  Control is then
+passed to 0400h where execution commenses.  Your code will then have a
+start address of 0400h.  
+
+The host code then expects the following things to be sent back to it
+in the following order:
+
+
+1) Mirroring byte.  This will be the value 0, 1, 2, or 4.
+
+0 - Horizontal mirroring (hard wired)
+1 - Vertical mirroring   (hard wired)
+2 - 4-screen mirroring   (i.e. Gauntlet)
+4 - Mapper-controlled mirroring (i.e. MMC1)
+
+
+2) After the mirroring byte, then "packets" are sent back to the host in
+   any order.
+
+A packet is made up of a header which is composed of 2 size bytes and a
+type byte.
+
+Generally, you will send back a PRG ROM packet, then a CHR ROM packet, and
+finally a WRAM packet (in that order; if CHR/WRAM exist that is).
+
+0  BYTE  low byte of size
+1  BYTE  high byte of size
+2  BYTE  type
+3+ BYTE  ROM data
+
+The size is in 256 byte pages, so to dump a 32K ROM, you'd enter 0080h as
+the size.  For a 256K ROM, you'd use 0400h as the size.  Etc.
+
+Type byte. 4 bytes are defined as indicated below:
+
+0 - We are done.  If sent, the host code will consider the dump finished.
+1 - PRG ROM.  The following data is PRG ROM data.
+2 - CHR ROM.  The following data is CHR ROM data.
+3 - WRAM.  The following data is WRAM contents (of the saved game, if any).
+4 - Special function.  This is used in relation to ROMStrings(tm) to
+    indicate that more packets will follow.
+
+So, a complete transmission might look something like this:
+
+
+00h     -  mirroring byte, Horiz. mirroring was found.
+
+80h
+00h     -  size is 0080h blocks (32K)
+01h     -  we are dumping PRG ROM data
+
+<32K bytes of PRG ROM data>
+
+20h
+00h     -  size is 0020h blocks (8K)
+02h     -  we are dumping CHR ROM data
+
+<8K bytes of CHR ROM data>
+
+00h
+00h     -  size is 0000h blocks (0K)
+00h     -  we are done dumping this cartridge
+
+
+--------------
+
+The file "template.asm" is the standard template I use to start a plugin.
+First, copy it to a new file called "myplug.asm".  Finally, open this
+file.
+
+The template file has a few "stock" routines in it that I use in almost
+every plugin in one way or another.  The first being the mirroring
+determination.  The program will write some data to a nametable and then
+poke around to see where it pops up at.  In this way, the mirroring type
+can be sussed out automatically.  
+
+Next, it dumps 32K of PRG ROM.  First it sends the 3 byte header to the
+host code to tell it how many blocks of 256 bytes it will send (in this
+case, 128 of them.  128*256 = 32768 which is 32K bytes).  Then it sends
+01h which tells it that this is PRG ROM data.  Then the 32K of data
+is sent.  The host code keeps track of how many bytes it wants to receive.
+Note that if you send too many or too few bytes, the host code will get
+out of synch and hang or do other bad things.
+
+After dumping PRG, it will then dump CHR ROM.  This works like before only
+it specifies 8K worth of data, and 02h for CHR ROM.  Finally, the 8K
+of CHR ROM is dumped to the PC.
+
+Once the PRG/CHR is done dumping, it will then send 00h, 00h, 00h which is
+the "end marker" that says we are done dumping data.
+
+The final instruction in the plugin should be an RTS to return us back to
+the CopyNES BIOS.
+
+
+-------------------
+
+There are some stock routines you can use in the CopyNES BIOS to make life
+easy.  We have seen 1 of them get used already, which was "send_byte".
+
+These are vectored into the 0200h area in RAM, and the BIOS stores 
+JMP locations here to make life easier to hook to the BIOS.  This was done
+so that in case some of the BIOS locations changed, they were still easily
+accessable.  Making them absolute JMPs (as opposed to vectored JMPs) 
+speeds the code up some.
+
+At the top of the template are the following entries:
+
+send_byte:   .equ 0200h
+chk_vram:    .equ 0206h
+chk_wram:    .equ 0209h
+wr_ppu:      .equ 020ch
+read_byte:   .equ 020fh
+init_crc:    .equ 0212h
+do_crc:      .equ 0215h
+finish_crc:  .equ 0218h
+crc0:        .equ 0080h
+crc1:        .equ 0081h
+crc2:        .equ 0082h
+crc3:        .equ 0083h
+
+
+And finally, here's the description of what each one does:
+
+----------------------
+send_byte:   .equ 0200h
+
+Sends a byte to the PC.  The byte to be written goes into the accumulator.
+No other registers are affected (to make life easy for doing loops).
+
+----------------------
+chk_vram:    .equ 0206h
+
+Checks to see if RAM is installed at 0000-1FFF in the PPU space.  The
+zero flag will be set/cleared depending on if RAM is present.  If zero,
+then RAM is present.  If not zero, no RAM is present.
+
+----------------------
+chk_wram:    .equ 0209h
+
+Similar to the above, only it checks to see if WRAM is present on the cart
+at 6000-7FFF.  If zero, then RAM is present.  If not zero, no RAM is present.
+
+----------------------
+wr_ppu:      .equ 020ch
+
+Sets PPU address.  Sets PPU address to 0100h*accumulator.  So, if the Acc
+holds 12h, then the PPU address is set to 01200h.  
+
+----------------------
+read_byte:   .equ 020fh
+
+Reads a byte from the host PC.  The result is stuck into the accumulator.
+
+----------------------
+init_crc:    .equ 0212h
+do_crc:      .equ 0215h
+finish_crc:  .equ 0218h
+crc0:        .equ 0080h
+crc1:        .equ 0081h
+crc2:        .equ 0082h
+crc3:        .equ 0083h
+
+
+CRC stuff.  Before you use the CRC stuff, first call init_crc.  This will
+set everything up.
+
+Next, with the byte you wish to CRC in the accumulator, call do_crc.  Keep
+calling do_crc for each byte you wish to CRC.
+
+Then, call finish_crc when you're done CRCing data.
+
+Finally, read the CRC out of CRC0 through CRC3.   That's all there is to it.
+
+Check out the MMC1 plugin (SXROM.ASM) to see all of these routines being
+used (both CRC and the other routines).
+
+----------------------
+
+Check out the plugins to see how some of the harder stuff was done, such 
+as MMC3 auto-detection of ROM sizes and such.  It's kinda tricky, but the 
+main idea is to check 1 bank of ROM against another to see if they match.  
+That's how the size is determined.  CRCing is useful for this if you cannot 
+have 2 selectable PRG or CHR banks... like MMC1. MMC3 allows for 2 or more 
+banks of each, so CRCing was not needed.
+
+----------------------
+
+OK, so you've not got a file you want to assemble.  Run the ASM.BAT file
+with myplug as a parameter like so:
+
+ASM MYPLUG
+
+This will assemble your plugin, and drop it in the /plugdone/ directory
+in the CopyNES directory structure.
+
+Next, run the CopyNES host code and edit the following (page down 2-3 times
+to find it in the code, below all the declares):
+
+   'user stuff goes here for easy testing and debugging
+   usermap = 0
+   userplug$ = "test.bin"
+   userunif$ = "testprogram"
+
+Edit it to select the stuff you want.  In our case, we're dumping NROM
+which is mapper 0.  So, change it to this:
+
+   'user stuff goes here for easy testing and debugging
+   usermap = 0
+   userplug$ = "myplug.bin"
+   userunif$ = "mytestplugin"
+
+Now, run the host code.  Go to "dump cart" and then look at the very first
+entry, which is "User Mapper".  Check at the bottom and it should show
+your goodies!
+
+i.e.:
+
+Plugin filename: myplug.bin
+  Mapper number: 0
+ UNIF boardname: mytestplugin
+
+Now, hit enter and follow the prompts to dump your plugin's very first
+ROM!  If all goes well, it will finish dumping, and you will have a shiny
+new ROM sitting in the /finished/ directory! 
+
+----------------------
+
+OK, so let's say you got yourself a plugin you are happy with and want
+to insert it into the type list.  So, this is what you do.
+
+Open the makebase.bas file in QBASIC and scroll down to the bottom.  You'll
+see a bunch of data statements.  This is where you can drop your entry.
+
+It will look something like this:
+
+DATA "*"," ",0,"Common Mappers"
+DATA "xxxx","xxxx.bin",998,"User Mapper"
+DATA "NES-NROM","nrom.bin",0,"Generic NROM games 32K PRG / 8K CHR max"
+DATA "NES-MMC1","sxrom.bin",1,"Generic MMC1 (all types)"
+
+Each "Data" line has 4 entries:
+
+1) The UNIF board type
+2) The plugin's filename
+3) The iNES mapper number
+4) The text description field
+
+There are 3 special UNIF board types that are actually "commands" for the
+database code.  These are as such:
+
+"*"    This is a category heading.  Mapper number and plugin entries are not
+       used.  The text description field has the category heading.
+
+"xxxx" This is the special "user mapper" tag that lets the host code know
+       where to stick your custom data that you enter in the main host code
+       at the top.
+
+"x"    This indicates that we are at the end of the data.  Used to stop
+       reading.
+
+There are 2 special mapper numbers:
+
+Mapper 998:  This tells the host code to insert the user's custom mapper #
+Mapper 999:  This plugin will not generate an .NES file, and will only
+             generate a UNIF file.
+
+Other than this, it is very straight forward.  You can create new categories
+by inserting a category heading entry anywhere you want it.   
+
+So, let's say you want to drop your plugin under the "test & dev use"
+heading.  Make a new DATA entry right below the heading entry:
+
+DATA "*"," ",0,"Test & Dev Use"
+DATA <you just put this here>
+
+Now, enter the data for your plugin:
+
+DATA "*"," ",0,"Test & Dev Use"
+DATA "testprogram","myplug.asm",0,"W00t! This is my own plugin! dumps NROM"
+
+Run the program and it will generate a new mappers.dat file for use by the
+main CopyNES host code.  Run the host code and you should see your mapper
+pop up in the list!  That's all there is to it.  
+
+Have fun making plugins. :-)
+
+

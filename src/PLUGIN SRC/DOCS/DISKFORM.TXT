@@ -1,0 +1,60 @@
+FDS disk format
+by loopy (zxcvzxcv@netzero.net)
+
+
+FDS disks are made up of multiple blocks of data; the first byte of
+each block is an ID describing the type of block:
+
+1: disk header
+2: file count
+3: file header
+4: file data
+
+The blocks will be ordered 1,2,3,4,3,4,3,4,etc.. up to the end of the disk.
+On a real FDS disk, every block is followed by 2 extra unused bytes; these
+are missing in .FDS files (used by FwNES, etc)
+
+--------------
+1. disk header
+--------------
+( 1 byte) #$01 BlockID
+(14 byte) "*NINTENDO-HVC*" Recognition data for Disk System
+( 1 byte) Maker ID
+( 4 byte) Game ID
+( 1 byte) Game Version Number
+( 1 byte) Disk Side (0=sideA 1=sideB)
+( 1 byte) Additional Number 1
+( 1 byte) Additional Number 2
+( 1 byte) Additional Number 3
+( 1 byte) Preload# (see BlockID=3)
+(30 byte) Reserved (Unused in DiskBIOS)
+
+-------------
+2. file count
+-------------
+( 1 byte)  #$02 BlockID
+( 1 byte)  Number of files
+
+--------------
+3. file header
+--------------
+( 1 byte) #$03 BlockID
+( 1 byte) File Number (unused by DiskBIOS)
+( 1 byte) File ID# (DiskBIOS identifies files by this number, NOT the
+          file name.  When a disk is first loaded, BIOS loads files whose ID#
+          is less than or equal to the preload# (see disk header above)
+( 8 byte) File Name (unused by DiskBIOS)
+( 2 byte) File Storage Address
+( 2 byte) File Size
+( 1 byte) File data type (0=Data, 1=CHR, 2=NameTable)
+          (DiskBIOS does not distinguish between 1 & 2)
+
+------------
+4. file data
+------------
+( 1 byte) #$04 BlockID
+( ...   ) File Data (size from field 6 of the file header)
+
+
+
+<EOF>
