@@ -545,10 +545,6 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath=".\CopyNESW.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\CopyNESW.rc"
 				>
 				<FileConfiguration
@@ -567,6 +563,10 @@
 						AdditionalIncludeDirectories="src;$(NoInherit)"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\usbcopynes.ico"
+				>
 			</File>
 		</Filter>
 		<File
