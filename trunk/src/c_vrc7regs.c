@@ -240,7 +240,8 @@ LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			WriteByte(0xAA);
 			for (i = 0; i < 8; i++)
 				WriteByte(instdata[0][i]);
-			WriteByte(0xFF);
+			WriteByte(inst);
+			WriteByte(oct & ~(0x40|0x80));
 			break;
 
 		case IDC_VRC7_SAVE:
