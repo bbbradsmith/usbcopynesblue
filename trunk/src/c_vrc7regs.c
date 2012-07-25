@@ -248,7 +248,7 @@ LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			SelectInstrument(hDlg, inst);	// save changes
 			EnableWindow(GetDlgItem(hDlg,IDC_VRC7_SAVE), FALSE);
 			changed = FALSE;
-			fseek(data,16,SEEK_SET);
+			fseek(data,8,SEEK_SET);
 			for (i = 1; i < 16; i++)
 			{
 				for (j = 0; j < 8; j++)
@@ -296,7 +296,7 @@ BOOL	CMD_VRC7REGS (void)
 	int i, j;
 	BOOL status;
 
-	if (!PromptFile(topHWnd,"VRC7 Instrument Data (*.bin)\0*.bin\0\0",filename,NULL,Path_MAIN,"Please select an instrument set...","bin",FALSE))
+	if (!PromptFile(topHWnd,"VRC7 Instrument Data (*.vrc7)\0*.vrc7\0\0",filename,NULL,Path_MAIN,"Please select an instrument set...","vrc7",FALSE))
 		return FALSE;
 	data = fopen(filename, "r+b");
 	if (data == NULL)
