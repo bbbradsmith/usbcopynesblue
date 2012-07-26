@@ -51,7 +51,7 @@ void	UpdateInstrument (HWND hDlg)
 	instdata[0][2] |= i << 6;
 	SetDlgItemInt(hDlg, IDC_VRC7_MKEYEDIT, i, FALSE);
 
-	instdata[0][2] &= ~0x1F;
+	instdata[0][2] &= ~0x3F;
 	i = SendDlgItemMessage(hDlg, IDC_VRC7_MVOLSLID, TBM_GETPOS, 0, 0);
 	instdata[0][2] |= i;
 	SetDlgItemInt(hDlg, IDC_VRC7_MVOLEDIT, i, FALSE);
@@ -129,7 +129,7 @@ void	SelectInstrument (HWND hDlg, int newinst)
 	SendDlgItemMessage(hDlg, IDC_VRC7_CMULTSLID, TBM_SETPOS, TRUE, instdata[inst][1] & 0xF);
 
 	SendDlgItemMessage(hDlg, IDC_VRC7_MKEYSLID, TBM_SETPOS, TRUE, (instdata[inst][2] >> 6) & 0x3);
-	SendDlgItemMessage(hDlg, IDC_VRC7_MVOLSLID, TBM_SETPOS, TRUE, instdata[inst][2] & 0x1F);
+	SendDlgItemMessage(hDlg, IDC_VRC7_MVOLSLID, TBM_SETPOS, TRUE, instdata[inst][2] & 0x3F);
 
 	SendDlgItemMessage(hDlg, IDC_VRC7_CKEYSLID, TBM_SETPOS, TRUE, (instdata[inst][3] >> 6) & 0x3);
 	SendDlgItemMessage(hDlg, IDC_VRC7_CFEEDSLID, TBM_SETPOS, TRUE, instdata[inst][3] & 0x7);
@@ -166,7 +166,7 @@ LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 		SendDlgItemMessage(hDlg, IDC_VRC7_MKEYSLID, TBM_SETRANGE, TRUE, MAKELONG(0,3));
 
 		SendDlgItemMessage(hDlg, IDC_VRC7_CFEEDSLID, TBM_SETRANGE, TRUE, MAKELONG(0,7));
-		SendDlgItemMessage(hDlg, IDC_VRC7_MVOLSLID, TBM_SETRANGE, TRUE, MAKELONG(0,31));
+		SendDlgItemMessage(hDlg, IDC_VRC7_MVOLSLID, TBM_SETRANGE, TRUE, MAKELONG(0,63));
 
 		SendDlgItemMessage(hDlg, IDC_VRC7_CASLID, TBM_SETRANGE, TRUE, MAKELONG(0,15));
 		SendDlgItemMessage(hDlg, IDC_VRC7_MASLID, TBM_SETRANGE, TRUE, MAKELONG(0,15));
