@@ -241,8 +241,8 @@ been warned :-)
 
 As the name implies, makes a .UNF file.  Works similar to the make NES above.
 
-13. VRC7 Regs
--------------
+13. VRC7 Tuner
+--------------
 
 This option lets you tweak the VRC7 registers to see what happens.  Not
 very useful to 99.9999% of the population.  I used this to "tune" a set of
@@ -250,12 +250,14 @@ instruments for the VRC7 emulation.  I think it's as close as it's going to
 get, but if you have a Lagrange Point cart and some way to get the audio
 out, by all means go for it!  It's pretty self-explanatory.
 
-This uses the file insts.bin in the CopyNES root directory.  On startup,
-the instruments will be loaded out of this file.  Hitting ' will save the
-current setup back to the file, so be careful.  If you come up with a better
-set, by all means send it to me :-)  Oh yeah, hitting space will start/stop
-the current sound.  \ selects what you wanna hear (nothing, one, the other,
-or both at the same time) for ease of determining if you got it right.
+This asks for a .vrc7 file; default ones are provided in the PRG directory.
+The instruments will be loaded out of this file. If you come up with a better
+set, by all means send it to me :-)
+
+Keyboard Commands:
+Q - Play custom patch.
+W - Play builtin patch.
+E - Release playing notes.
 
 14.  NES info
 -------------
