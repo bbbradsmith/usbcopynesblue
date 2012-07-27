@@ -7,6 +7,19 @@ static	CHAR	filename[MAX_PATH];
 static	BYTE	inst, oct;
 static	BOOL	changed;
 static	FILE	*data;
+static	HWND	dialog;
+static	HHOOK	keyhook;
+
+static void PlayNote(BYTE oct_)
+{
+	int i;
+	WriteByte(0x55);
+	WriteByte(0xAA);
+	for (i = 0; i < 8; i++)
+		WriteByte(instdata[0][i]);
+	WriteByte(inst);
+	WriteByte(oct_);
+}
 
 void	UpdateInstrument (HWND hDlg)
 {
@@ -150,15 +163,73 @@ void	SelectInstrument (HWND hDlg, int newinst)
 	SetDlgItemInt(hDlg, IDC_VRC7_INSTEDIT, inst, FALSE);
 }
 
+LRESULT CALLBACK KeyHookProc(int code, WPARAM wParam, LPARAM lParam)
+{
+	HWND hDlg = dialog;
+	BOOL keydown = !(lParam & (1<<30));
+
+	if (code < 0)
+	{
+		return CallNextHookEx(keyhook, code, wParam, lParam);
+	}
+
+	switch(wParam)
+	{
+	case 'Q':
+		// play custom
+		if (keydown)
+		{
+			oct &= ~(0x40|0x80);
+			oct |= 0x80;
+			PlayNote(oct);
+			CheckDlgButton(hDlg, IDC_VRC7_CUSTOM, (oct & 0x80) ? BST_CHECKED : BST_UNCHECKED);
+			CheckDlgButton(hDlg, IDC_VRC7_BUILTIN, (oct & 0x40) ? BST_CHECKED : BST_UNCHECKED);
+		}
+		return TRUE;
+	case 'W':
+		// play builtin
+		if (keydown)
+		{
+			oct &= ~(0x40|0x80);
+			oct |= 0x40;
+			PlayNote(oct);
+			CheckDlgButton(hDlg, IDC_VRC7_CUSTOM, (oct & 0x80) ? BST_CHECKED : BST_UNCHECKED);
+			CheckDlgButton(hDlg, IDC_VRC7_BUILTIN, (oct & 0x40) ? BST_CHECKED : BST_UNCHECKED);
+		}
+		return TRUE;
+	case 'E':
+		// stop playing note
+		if (keydown)
+		{
+			PlayNote(oct & ~(0x40|0x80));
+		}
+		return TRUE;
+	default:
+		break;
+	}
+
+	return CallNextHookEx(keyhook, code, wParam, lParam);
+}
+
 LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int i, j;
 	switch (message)
 	{
 	case WM_INITDIALOG:
+		dialog = hDlg;
+		keyhook = SetWindowsHookEx(WH_KEYBOARD, KeyHookProc, NULL, GetCurrentThreadId());
+		//if (keyhook == NULL)
+		//{
+		//	char errmsg[256];
+		//	DWORD err = GetLastError();
+		//	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, errmsg, sizeof(errmsg), NULL);
+		//	OutputDebugString(errmsg);
+		//}
+
 		SendDlgItemMessage(hDlg, IDC_VRC7_INSTSLID, TBM_SETRANGE, TRUE, MAKELONG(1,15));
 		SendDlgItemMessage(hDlg, IDC_VRC7_OCTSLID, TBM_SETRANGE, TRUE, MAKELONG(0,7));
-		
+
 		SendDlgItemMessage(hDlg, IDC_VRC7_CMULTSLID, TBM_SETRANGE, TRUE, MAKELONG(0,15));
 		SendDlgItemMessage(hDlg, IDC_VRC7_MMULTSLID, TBM_SETRANGE, TRUE, MAKELONG(0,15));
 
@@ -227,21 +298,11 @@ LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			break;
 
 		case IDC_VRC7_PLAY:
-			WriteByte(0x55);
-			WriteByte(0xAA);
-			for (i = 0; i < 8; i++)
-				WriteByte(instdata[0][i]);
-			WriteByte(inst);
-			WriteByte(oct);
+			PlayNote(oct);
 			break;
 
 		case IDC_VRC7_STOP:
-			WriteByte(0x55);
-			WriteByte(0xAA);
-			for (i = 0; i < 8; i++)
-				WriteByte(instdata[0][i]);
-			WriteByte(inst);
-			WriteByte(oct & ~(0x40|0x80));
+			PlayNote(oct & ~(0x40|0x80));
 			break;
 
 		case IDC_VRC7_SAVE:
@@ -284,10 +345,14 @@ LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 
 	case WM_CLOSE:
 		if (!changed || (MessageBox(hDlg, "Really discard changes?", CMD_NAME, MB_YESNO | MB_ICONQUESTION) == IDYES))
+		{
+			UnhookWindowsHookEx(keyhook);
 			EndDialog(hDlg,TRUE);
+		}
 		return TRUE;
 		break;
 	}
+
 	return FALSE;
 }
 
