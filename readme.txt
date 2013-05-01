@@ -7,4 +7,3 @@ Compilation requires Visual Studio 2008.
 src/     - source files for program
 src/tmp/ - intermediate files created during compilation
 bin/     - output executable, and data files used for program
-
