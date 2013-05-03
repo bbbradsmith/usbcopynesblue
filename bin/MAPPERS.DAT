@@ -1,5 +1,5 @@
 92  1   28  41  45  120 
-0   10  14  55  60  77  80  89  93  99  105 120 126 139 172 177 
+0   10  14  55  60  77  80  89  93  99  105 120 127 140 173 178 
 *                                       0   Common Mappers                                                           
 xxxx                       xxxx.bin     998 User Mapper                                                              
 NES-NROM                   nrom.bin     0   Generic NROM games 32K PRG / 8K CHR max                                  
@@ -126,6 +126,7 @@ UNL-H2288                  ewj2.bin     123 Earth Worm Jim, MMC3-alike w/ copy p
 UNL-8237                   pokeahin.bin 114 Pocahontas 2                                                             
 UNL-Cony1                  cony1.bin    83  Cony Mapper with 1K CHR banks                                            
 UNL-Cony2                  cony2.bin    82  Cony Mapper with 2K CHR banks                                            
+UNL-UxROM-512              u5rom.bin    2   UxROM oversized: 512k                                                    
 *                                       0   Single Game Bootlegs                                                     
 BTL-MONTY                  monty.bin    125 Monty on the Run FDS conversion                                          
 BTL-DD2                    dd2.bin      127 Double Dragon 2 using lots of 4*4 reg files                              
@@ -173,8 +174,8 @@ BMC-Generic76in1           76in1.bin    226 76 in 1, 2Mbyte PRG, 8K VRAM
 BMC-1991SuperHiK7in1       7in1.bin     44  7 in 1: 1Mbyte PRG, 1Mbyte CHR, MMC3                                     
 BMC-GoldenGame150in1       150in1.bin   235 'Golden Game' 150 in 1                                                   
 *                                       1   WRAM Writer Plugins (CopyNESW only)                                      
-WRAM-MMC1                  sxram.bin    997 WRAM Writer for MMC1                                                     
-WRAM-MMC3                  txram.bin    997 WRAM writer for MMC3                                                     
-WRAM-MMC5                  exram.bin    997 WRAM Writer for MMC5                                                     
-WRAM-MMC6                  hkram.bin    997 WRAM writer for MMC6                                                     
+WRAM-MMC1                  sxram.bin    997 WRAM Writer for MMC1 (SxROM)                                             
+WRAM-MMC3                  txram.bin    997 WRAM writer for MMC3 (TxROM)                                             
+WRAM-MMC5                  exram.bin    997 WRAM Writer for MMC5 (ExROM)                                             
+WRAM-MMC6                  hkram.bin    997 WRAM writer for MMC6 (HkROM)                                             
 *                                       0   end                                                                      

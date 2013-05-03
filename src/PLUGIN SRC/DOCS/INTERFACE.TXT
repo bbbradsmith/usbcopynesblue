@@ -1,0 +1,7 @@
+[23:25] <@kevtris> yeah the way it works is this:
+[23:25] <@kevtris> there's 4 handshaking lines and 8 data lines
+[23:25] <@kevtris> there's a send toggle and a send ack,  a receive toggle, and a receive ack
+[23:26] <@kevtris> when the PC wants to send data, it puts data on the 8 bit bus and toggles send toggle 
+[23:26] <@kevtris> then when copynes gets the data its send ack matches the send toggle line
+[23:26] <@kevtris> receive works identically, except copyNES is doing the sending (the PC must ack)
+[23:27] <@kevtris> so it checks for a difference in the send ack / send toggle lines.  if they are different, the PC must've sent a byte.  if they are the same, it hasn't yet
