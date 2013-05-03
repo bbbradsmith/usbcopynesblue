@@ -176,5 +176,5 @@ BMC-GoldenGame150in1       150in1.bin   235 'Golden Game' 150 in 1
 WRAM-MMC1                  sxram.bin    997 WRAM Writer for MMC1                                                     
 WRAM-MMC3                  txram.bin    997 WRAM writer for MMC3                                                     
 WRAM-MMC5                  exram.bin    997 WRAM Writer for MMC5                                                     
-WRAM-MMC6                  hxram.bin    997 WRAM writer for MMC6                                                     
+WRAM-MMC6                  hkram.bin    997 WRAM writer for MMC6                                                     
 *                                       0   end                                                                      
