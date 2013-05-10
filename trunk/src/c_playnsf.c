@@ -41,7 +41,6 @@ LRESULT CALLBACK DLG_PlayNSF(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				NSF_cursong = 1;
 			SetDlgItemInt(hDlg,IDC_NSF_CURSONG,NSF_cursong,FALSE);
 		case IDC_NSF_REPLAY:
-	/* FIXME: find out why this code breaks after running once */
 			ResetNES(RESET_COPYMODE);
 			if (!WriteByte(0x9F))	// Play NSF
 			{
@@ -241,53 +240,39 @@ BOOL	LoadNSF (char *filename)
 	}
 	StatusText("...done!");
 
-	//if (!ramcart)
-	// this additional upload is still required, even if the upload was done via the ramcart option?
+	// this additional upload is still required
+	// even if the upload was done via the ramcart option,
+	// because the NSF player in the BIOS doesn't finish its job until after the upload;
+	// hopefully this won't interfere with the ramcart itself (seems fine for PowerPakLite).
 	{
 		unsigned int pos = 0;
 		StatusText("Uploading NSF data...");
 		if (nblks)
 		{
-			int v, a;
+			int v;
 			for (v = 0; v < nblks; v++)
 			{
-				for (a = 0; a < 4096; a++)
-				{
-					BYTE r = 0;
-					if (pos < (64*1024))
-					{
-						r = nsfdata[pos];
-						++pos;
-					}
-					if (!WriteByte(r))
-					{
-						free(nsfdata);
-						StatusText("Unable to write!");
-						StatusOK();
-						return FALSE;
-					}
-				}
-				StatusPercent(v*100/nblks);
-			}
-		}
-		if (nrem)
-		{
-			int a;
-			for (a = 0; a < nrem; a++)
-			{
-				BYTE r = 0;
-				if (pos < (64*1024))
-				{
-					r = nsfdata[pos];
-					++pos;
-				}
-				if (!WriteByte(r))
+				if(!WriteBlock(nsfdata+pos,4096))
 				{
 					free(nsfdata);
 					StatusText("Unable to write!");
 					StatusOK();
 					return FALSE;
 				}
+				pos += 4096;
+				if ((pos + 4095) >= (64 * 4096)) pos = 0; // read safety
+
+				StatusPercent(v*100/nblks);
+			}
+		}
+		if (nrem)
+		{
+			if(!WriteBlock(nsfdata+pos,nrem))
+			{
+				free(nsfdata);
+				StatusText("Unable to write!");
+				StatusOK();
+				return FALSE;
 			}
 			StatusPercent(100);
 		}
