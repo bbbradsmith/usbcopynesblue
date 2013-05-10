@@ -2,34 +2,15 @@
 #define	CMD_NAME	"RAM Cart"
 
 
-BOOL	NRAMcart (char *plugin)
+BOOL	NRAMcart (char* plugin, char* filedata)
 {
-	char filenes[MAX_PATH];
-	FILE *NES;
 	int i, j, PRGsize;
 	BYTE PRGamt;
 	BYTE header[16];
 	BYTE mapper;
-	char* filedata;
+	char* data;
 
-	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
-		return FALSE;
-
-	OpenStatus(topHWnd);
-
-	if ((NES = fopen(filenes,"rb")) == NULL)
-	{
-		MessageBox(topHWnd,"Unable to open file!",MSGBOX_TITLE,MB_OK | MB_ICONERROR);
-		CloseStatus();
-		return FALSE;
-	}
-	fread(header,1,16,NES);
-	if (memcmp(header,"NES\x1A",4))
-	{
-		StatusText("Selected file is not an iNES ROM image!");
-		StatusOK();
-		return FALSE;
-	}
+	memcpy(header,filedata,16);
 	if (header[4] == 2)
 	{
 		PRGamt = 0;
@@ -44,9 +25,7 @@ BOOL	NRAMcart (char *plugin)
 	}
 	else
 	{
-		fclose(NES);
 		StatusText("Invalid PRG size, must be 16KB or 32KB!");
-		StatusOK();
 		return FALSE;
 	}
 
@@ -57,20 +36,21 @@ BOOL	NRAMcart (char *plugin)
 	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
 	if ((mapper != 0) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
-		CloseStatus();
+		StatusText("Load aborted.");
 		return FALSE;
 	}
 
 	if (header[6] & 1)
 		MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
-	else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
+	else
+		MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(plugin))
 	{
-		CloseStatus();
+		StatusText("Plugin load failed!");
 		return FALSE;
 	}
 	StatusText("Initializing plugin...");
@@ -78,103 +58,69 @@ BOOL	NRAMcart (char *plugin)
 	Sleep(SLEEP_SHORT);
 	if (!WriteByte(PRGamt))
 	{
-		CloseStatus();
+		StatusText("Failed to send.");
 		return FALSE;
 	}
 	
-	filedata = malloc(1024);
 	StatusText("Sending PRG data...");
 	if (!WriteByte(header[4]))
 	{
-		CloseStatus();
-		fclose(NES);
-		free(filedata);
+		StatusText("Failed to send.");
 		return FALSE;
 	}
-	fseek(NES,0x10,SEEK_SET);
+	data = filedata + 16; // PRG
 	for (i = 0; i < header[4]; i++)
 	{
 		for (j = 0; j < 16; j++)
 		{
-	    fread(filedata, 1024, 1, NES);
-      if (!WriteBlock(filedata, 1024))
+			if (!WriteBlock(data, 1024))
 			{
-				CloseStatus();
-				fclose(NES);
-				free(filedata);
+				StatusText("Failed to send.");
 				return FALSE;
 			}
+			data += 1024;
 			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));
 		}
 	}
 	StatusPercent(100);
 	StatusText("...done!");
 	
-	
 	StatusText("Sending CHR data...");
+	data = filedata + 16 + (header[4] * 16384); // CHR
 	for (i = 0; i < header[5]; i++)
 	{
 		for (j = 0; j < 8; j++)
 		{
-	    fread(filedata, 1024, 1, NES);
-      if (!WriteBlock(filedata, 1024))
+			if (!WriteBlock(data, 1024))
 			{
-				CloseStatus();
-				fclose(NES);
-				free(filedata);
+				StatusText("Failed to send.");
 				return FALSE;
 			}
+			data += 1024;
 			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
 		}
 	}
 	StatusPercent(100);
 	StatusText("...done!");
-	
-	
-	fclose(NES);
-  free(filedata);
-	StatusText("Program running - Press OK to exit.");
-	ResetNES(RESET_PLAYMODE | RESET_NORESET);
-	StatusOK();
-	ResetNES(RESET_COPYMODE);
+
 	return TRUE;
 }
 
-BOOL	CNRAMcart (char *plugin)
+
+BOOL	CNRAMcart (char* plugin, char* filedata)
 {
-	char filenes[MAX_PATH];
-	FILE *NES;
 	int i, j;
 	BYTE header[16];
 	BYTE mapper;
 	int maxchr = 4;
-	char *filedata;
+	char* data;
 
-	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
-		return FALSE;
-
-	OpenStatus(topHWnd);
-
-	if ((NES = fopen(filenes,"rb")) == NULL)
-	{
-		MessageBox(topHWnd,"Unable to open file!",MSGBOX_TITLE,MB_OK | MB_ICONERROR);
-		CloseStatus();
-		return FALSE;
-	}
-	fread(header,1,16,NES);
-	if (memcmp(header,"NES\x1A",4))
-	{
-		StatusText("Selected file is not an iNES ROM image!");
-		StatusOK();
-		return FALSE;
-	}
+	memcpy(header,filedata,16);
 	if ((header[4]) && (header[4] <= 2))
 		StatusText("%iKB PRG ROM data located...", header[4] * 16);
 	else
 	{
-		fclose(NES);
 		StatusText("Invalid PRG size, must be 16KB or 32KB!");
-		StatusOK();
 		return FALSE;
 	}
 
@@ -186,16 +132,14 @@ BOOL	CNRAMcart (char *plugin)
 		StatusText("More than %iKB of CHR ROM data was detected, sending first %iKB only...", maxchr * 8, maxchr * 8);
 	else if (header[5] == 3)
 	{
-		fclose(NES);
 		StatusText("Invalid CHR ROM size (%iKB)!", maxchr * 8);
-		StatusOK();
 		return FALSE;
 	}
 	else	StatusText("%iKB CHR ROM data located...", header[5] * 8);
 
 	if ((mapper != 0) && (mapper != 3) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
-		CloseStatus();
+		StatusText("Load aborted.");
 		return FALSE;
 	}
 	if (header[6] & 1)
@@ -207,7 +151,7 @@ BOOL	CNRAMcart (char *plugin)
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(plugin))
 	{
-		CloseStatus();
+		StatusText("Plugin load failed!");
 		return FALSE;
 	}
 	StatusText("Initializing plugin...");
@@ -215,112 +159,77 @@ BOOL	CNRAMcart (char *plugin)
 	Sleep(SLEEP_SHORT);
 
 	StatusText("Sending CHR data...");
-	fseek(NES,0x10 + header[4] * 16384,SEEK_SET);
-	filedata = malloc(1024);
-	
+	data = filedata + 16 + (header[4] * 16384); // CHR
 	if (!WriteByte(header[5]))
 	{
-		CloseStatus();
+		StatusText("Failed to send!");
 		return FALSE;
 	}
 	for (i = 0; i < header[5]; i++)
 	{
 		for (j = 0; j < 8; j++)
 		{
-	    fread(filedata, 1024, 1, NES);
-      if (!WriteBlock(filedata, 1024))
+			if (!WriteBlock(data, 1024))
 			{
-				CloseStatus();
-				fclose(NES);
-				free(filedata);
+				StatusText("Failed to send!");
 				return FALSE;
 			}
+			data += 1024;
 			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
 		}
 	}
 	StatusPercent(100);
 	StatusText("...done!");
 
-
 	StatusText("Sending PRG data...");
 	if (!WriteByte(header[4]))
 	{
-		CloseStatus();
-		fclose(NES);
-		free(filedata);
+		StatusText("Failed to send!");
 		return FALSE;
 	}
-	fseek(NES,0x10,SEEK_SET);
+	data = filedata + 16; // PRG
 	for (i = 0; i < header[4]; i++)
 	{
 		for (j = 0; j < 16; j++)
 		{
-	    fread(filedata, 1024, 1, NES);
-      if (!WriteBlock(filedata, 1024))
+			if (!WriteBlock(data, 1024))
 			{
-				CloseStatus();
-				fclose(NES);
-				free(filedata);
+				StatusText("Failed to send!");
 				return FALSE;
 			}
+			data += 1024;
 			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));
 		}
 	}
 	StatusPercent(100);
 	StatusText("...done!");
 	
-	fclose(NES);
-	free(filedata);
 	StatusText("Write protect your cartridge, then press OK to run program...");
 	StatusButton();
 	if (!WriteByte(0x55) || !WriteByte(0xAA))
 	{
-		CloseStatus();
+		StatusText("Failed to send!");
 		return FALSE;
 	}
-	StatusText("Program running - Press OK to exit.");
-	ResetNES(RESET_PLAYMODE | RESET_NORESET);
-	StatusOK();
-	ResetNES(RESET_COPYMODE);
+
 	return TRUE;
 }
 
-BOOL	UFROMcart (char *plugin)
+
+BOOL	UFROMcart (char* plugin, char* filedata)
 {
-	char filenes[MAX_PATH];
-	FILE *NES;
 	int i, j;
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
-	char *filedata;
+	char* data;
 
-	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
-		return FALSE;
-
-	OpenStatus(topHWnd);
-
-	if ((NES = fopen(filenes,"rb")) == NULL)
-	{
-		MessageBox(topHWnd,"Unable to open file!",MSGBOX_TITLE,MB_OK | MB_ICONERROR);
-		CloseStatus();
-		return FALSE;
-	}
-	fread(header,1,16,NES);
-	if (memcmp(header,"NES\x1A",4))
-	{
-		fclose(NES);
-		StatusText("Selected file is not an iNES ROM image!");
-		StatusOK();
-		return FALSE;
-	}
+	memcpy(header,filedata,16);
 	if ((header[4] == 1) || (header[4] == 2) || (header[4] == 4) || (header[4] == 8) || (header[4] == 16))
 		StatusText("%iKB PRG ROM data located...", header[4] * 16);
 	else
 	{
-		fclose(NES);
 		StatusText("Invalid PRG size, must be an even amount between 16KB and 256KB!");
-		StatusOK();
 		return FALSE;
 	}
 
@@ -331,8 +240,7 @@ BOOL	UFROMcart (char *plugin)
 
 	if ((mapper != 2) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
-		fclose(NES);
-		CloseStatus();
+		StatusText("Load aborted.");
 		return FALSE;
 	}
 	if (header[6] & 1)
@@ -344,8 +252,7 @@ BOOL	UFROMcart (char *plugin)
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(plugin))
 	{
-		fclose(NES);
-		CloseStatus();
+		StatusText("Plugin load failed!");
 		return FALSE;
 	}
 	StatusText("Initializing plugin...");
@@ -355,8 +262,7 @@ BOOL	UFROMcart (char *plugin)
 	StatusText("Erasing Flash ROM...");
 	if (!ReadByte(&banks))
 	{
-		fclose(NES);
-		CloseStatus();
+		StatusText("Failed to read!");
 		return FALSE;
 	}
 	for (i = 0; i < banks; i++)
@@ -364,8 +270,7 @@ BOOL	UFROMcart (char *plugin)
 		BYTE a;
 		if (!ReadByte(&a))
 		{
-			fclose(NES);
-			CloseStatus();
+			StatusText("Failed to read!");
 			return FALSE;
 		}
 		StatusPercent(100 * i / banks);
@@ -373,90 +278,60 @@ BOOL	UFROMcart (char *plugin)
 	StatusPercent(100);
 	StatusText("...done!");
 
-	filedata = malloc(1024);
+	StatusText("Sending data...");
+	data = filedata + 16; // PRG
 	for (banks = 0; banks < 16; )
 	{
-		fseek(NES,0x10,SEEK_SET);
 		for (i = 0; i < header[4]; i++, banks++)
 		{
 			for (j = 0; j < 16; j++)
 			{
-				fread(filedata,1024,1,NES);
-				if (!WriteBlock(filedata, 1024))
+				if (!WriteBlock(data, 1024))
 				{
-					fclose(NES);
-					CloseStatus();
-					free(filedata);
+					StatusText("Failed to send!");
 					return FALSE;
 				}
+				data += 1024;
 				StatusPercent(((banks * 16 + j) * 100) / 256);
 			}
 		}
 	}
 	StatusPercent(100);
 	StatusText("...done!");
-	fclose(NES);
-	free(filedata);
 
 	if (!ReadByte(&banks))
 	{
-		CloseStatus();
+		StatusText("Failed to read!");
 		return FALSE;
 	}
 	if (banks != 0)
 	{
 		StatusText("An error occurred while writing to the cartridge!");
-		StatusOK();
 		return FALSE;
 	}
 
-	StatusText("Program running - Press OK to exit.");
-	ResetNES(RESET_PLAYMODE | RESET_NORESET);
-	StatusOK();
-	ResetNES(RESET_COPYMODE);
 	return TRUE;
 }
 
 
-
-
-BOOL	PowerPakLitecart (char *plugin)
+BOOL	PowerPakLitecart (char* plugin, char* filedata)
 {
-	char filenes[MAX_PATH];
-	FILE *NES;
 	int i, j;
 	BYTE header[16];
 	BYTE mapper;
 	int maxchr = 4;
 	int maxprg = 0;
 	BYTE config = 0;
-	char *filedata;
+	char* data;
 
-	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
-		return FALSE;
-
-	OpenStatus(topHWnd);
-
-	if ((NES = fopen(filenes,"rb")) == NULL)
-	{
-		MessageBox(topHWnd,"Unable to open file!",MSGBOX_TITLE,MB_OK | MB_ICONERROR);
-		CloseStatus();
-		return FALSE;
-	}
-	fread(header,1,16,NES);
-	if (memcmp(header,"NES\x1A",4))
-	{
-		StatusText("Selected file is not an iNES ROM image!");
-		StatusOK();
-		return FALSE;
-	}
+	memcpy(header,filedata,16);
 
 	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
 	if ((mapper != 0) && (mapper != 1) && (mapper != 2) && (mapper != 3) && 
 		(mapper != 7) && (mapper != 11) && (mapper != 34) && (mapper != 66) && 
 		(MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
-		CloseStatus();
+		StatusText("Load aborted.");
 		return FALSE;
 	}
 
@@ -511,9 +386,7 @@ BOOL	PowerPakLitecart (char *plugin)
 
 	if (header[4] > maxprg)
 	{
-		fclose(NES);
 		StatusText("Invalid PRG size, more than %iKB of PRG ROM data was detected!", maxprg * 8);
-		StatusOK();
 		return FALSE;
 	}
 	else
@@ -529,38 +402,30 @@ BOOL	PowerPakLitecart (char *plugin)
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(plugin))
 	{
-		CloseStatus();
-		fclose(NES);
+		StatusText("Plugin load failed!");
 		return FALSE;
 	}
 	StatusText("Initializing plugin...");
 	RunCode();
 	Sleep(SLEEP_SHORT);
 	
-	
-	
 	StatusText("Sending PRG data...");
 	if (!WriteByte(header[4]))
 	{
-		CloseStatus();
-		fclose(NES);
+		StatusText("Failed to send.");
 		return FALSE;
 	}
-	fseek(NES,0x10,SEEK_SET);
-	filedata = malloc(1024);
-	
+	data = filedata + 16; // PRG
 	for (i=0; i<header[4]; i++)
 	{
 		for (j=0; j<16; j++)
 		{
-			fread(filedata, 1024, 1, NES);
-			if (!WriteBlock(filedata, 1024))
+			if (!WriteBlock(data, 1024))
 			{
-				free(filedata);
-				CloseStatus();
-				fclose(NES);
+				StatusText("Failed to send.");
 				return FALSE;
 			}
+			data += 1024;
 			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));     
 		}
 	}
@@ -569,126 +434,87 @@ BOOL	PowerPakLitecart (char *plugin)
 	StatusText("...done!");	
 
 	StatusText("Sending CHR data...");
-	fseek(NES,0x10 + header[4] * 16384,SEEK_SET);
+	data = filedata + 16 + (header[4] * 16384); // CHR
 	if (!WriteByte(header[5]))
 	{
-		CloseStatus();
-		fclose(NES);
-		free(filedata);
+		StatusText("Failed to send.");
 		return FALSE;
 	}
-	
 	for (i = 0; i < header[5]; i++)
 	{
 		for (j = 0; j < 8; j++)
 		{
-	    fread(filedata, 1024, 1, NES);
-      if (!WriteBlock(filedata, 1024))
+			if (!WriteBlock(data, 1024))
 			{
-        free(filedata);
-				CloseStatus();
-				fclose(NES);
+				StatusText("Failed to send.");
 				return FALSE;
 			}
+			data += 1024;
 			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
 		}
 	}
 	StatusPercent(100);
 	StatusText("...done!");
-	fclose(NES);
-	free(filedata);
 
 
-  ///SEND CONFIG PRG BYTE
-  config = (header[4] - 1) * 16;
-  if (mapper == 0) config = config + 0;
-  if (mapper == 1) config = config + 1;  
-  if (mapper == 2) config = config + 2;
-  if (mapper == 3) config = config + 3;  
-  if (mapper == 7) config = config + 4;  
-  if (mapper == 11) config = config + 5;  
-  if (mapper == 34) config = config + 6;  
-  if (mapper == 66) config = config + 7;  
+	///SEND CONFIG PRG BYTE
+	config = (header[4] - 1) * 16;
+	if (mapper == 0) config = config + 0;
+	if (mapper == 1) config = config + 1;  
+	if (mapper == 2) config = config + 2;
+	if (mapper == 3) config = config + 3;  
+	if (mapper == 7) config = config + 4;  
+	if (mapper == 11) config = config + 5;  
+	if (mapper == 34) config = config + 6;  
+	if (mapper == 66) config = config + 7;  
 
- 	StatusText("config 1 = %i", config); 
-  
-    
-  if (!WriteByte(config))
+	StatusText("config 1 = %i", config); 
+
+	if (!WriteByte(config))
 	{
-		CloseStatus();
+		StatusText("Failed to send.");
 		return FALSE;
-	}  
-  
+	}
 
-  ///SEND CONFIG CHR BYTE
-  config = (header[5] - 1);
-  if (header[5] == 0)
-    config = 32;     //chr ram enable bit
-  if (header[6] & 1)  //mirror=1
-    config = config + 16;
- 
-  	StatusText("config 2 = %i", config); 
-    
-  if (!WriteByte(config))
+	///SEND CONFIG CHR BYTE
+	config = (header[5] - 1);
+	if (header[5] == 0)
+		config = 32;     //chr ram enable bit
+	if (header[6] & 1)  //mirror=1
+		config = config + 16;
+
+		StatusText("config 2 = %i", config); 
+
+	if (!WriteByte(config))
 	{
-		CloseStatus();
+		StatusText("Failed to send.");
 		return FALSE;
-	}   
+	}
 
-   
-   	
+	//if (!WriteByte(0x55) || !WriteByte(0xAA))
+	//{
+	//	return FALSE;
+	//}
 
-//	if (!WriteByte(0x55) || !WriteByte(0xAA))
-//	{
-//		CloseStatus();
-//		return FALSE;
-//	}
-	StatusText("Program running - Press OK to exit.");
-	ResetNES(RESET_PLAYMODE | RESET_NORESET);
-	StatusOK();
-	ResetNES(RESET_COPYMODE);
 	return TRUE;
 }
 
 
-
-
-BOOL	PowerPakcart (char *plugin)
+BOOL	PowerPakcart (char* plugin, char* filedata)
 {
-	char filenes[MAX_PATH];
-	FILE *NES;
 	int i, j;
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
-	char *filedata;
+	char* data;
 
-	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
-		return FALSE;
+	memcpy(header,filedata,16);
 
-	OpenStatus(topHWnd);
-
-	if ((NES = fopen(filenes,"rb")) == NULL)
-	{
-		MessageBox(topHWnd,"Unable to open file!",MSGBOX_TITLE,MB_OK | MB_ICONERROR);
-		CloseStatus();
-		return FALSE;
-	}
-	fread(header,1,16,NES);
-	if (memcmp(header,"NES\x1A",4))
-	{
-		fclose(NES);
-		StatusText("Selected file is not an iNES ROM image!");
-		StatusOK();
-		return FALSE;
-	}
 	if (header[4] == 4)
 		StatusText("%iKB PRG ROM data located...", header[4] * 16);
 	else
 	{
-		fclose(NES);
 		StatusText("Invalid PRG size, must be 64KB PRG!");
-		StatusOK();
 		return FALSE;
 	}
 
@@ -699,8 +525,7 @@ BOOL	PowerPakcart (char *plugin)
 
 	if ((mapper != 2) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
-		fclose(NES);
-		CloseStatus();
+		StatusText("Load aborted.");
 		return FALSE;
 	}
 
@@ -709,8 +534,7 @@ BOOL	PowerPakcart (char *plugin)
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(plugin))
 	{
-		fclose(NES);
-		CloseStatus();
+		StatusText("Plugin load failed!");
 		return FALSE;
 	}
 	StatusText("Initializing plugin...");
@@ -720,8 +544,7 @@ BOOL	PowerPakcart (char *plugin)
 	StatusText("Erasing Flash ROM...");
 	if (!ReadByte(&banks))
 	{
-		fclose(NES);
-		CloseStatus();
+		StatusText("Failed to read.");
 		return FALSE;
 	}
 	for (i = 0; i < banks; i++)
@@ -729,8 +552,7 @@ BOOL	PowerPakcart (char *plugin)
 		BYTE a;
 		if (!ReadByte(&a))
 		{
-			fclose(NES);
-			CloseStatus();
+			StatusText("Failed to send.");
 			return FALSE;
 		}
 		StatusPercent(100 * i / banks);
@@ -740,65 +562,140 @@ BOOL	PowerPakcart (char *plugin)
 
 	StatusText("Sending PRG data...");
 	
-	filedata = malloc(1024);
-
 	for (i=0; i<4; i++)
 	{
-		fseek(NES,0x10,SEEK_SET);  //go to start of prg
+		data = filedata + 16; // PRG
 		for (j=0; j<64; j++)
 		{
-			fread(filedata, 1024, 1, NES);  //write 64KB
-			if (!WriteBlock(filedata, 1024))
+			if (!WriteBlock(data, 1024))
 			{
-				free(filedata);
-				CloseStatus();
-				fclose(NES);
+				StatusText("Failed to send.");
 				return FALSE;
 			}
+			data += 1024;
 			StatusPercent(((i*64 + j) * 100) / 256);   
 		}
 	}
 	
 	StatusPercent(100);
 	StatusText("...done!");	
-	fclose(NES);
-	free(filedata);
 
 	if (!ReadByte(&banks))
 	{
-		CloseStatus();
+		StatusText("Failed to read.");
 		return FALSE;
 	}
 	if (banks != 0)
 	{
 		StatusText("An error occurred while writing to the cartridge!");
-		StatusOK();
 		return FALSE;
 	}
 
-	StatusText("Program running - Press OK to exit.");
-	ResetNES(RESET_PLAYMODE);
-	StatusOK();
-	ResetNES(RESET_COPYMODE);
 	return TRUE;
 }
 
 
-
-
-BOOL	Glidercart (char *plugin)
+BOOL	Glidercart (char* plugin, char* filedata)
 {
-	char filenes[MAX_PATH];
-	FILE *NES;
 	int i, j;
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
-	char *filedata;
+	char* data;
 
+	memcpy(header,filedata,16);
+
+	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
+
+	if (header[5] > 0)
+		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
+
+	StatusText("Resetting USB CopyNES...");
+	ResetNES(RESET_COPYMODE);
+	StatusText("Loading plugin...");
+	if (!LoadPlugin(plugin))
+	{
+		StatusText("Plugin load failed!");
+		return FALSE;
+	}
+	StatusText("Initializing plugin...");
+	RunCode();
+	Sleep(SLEEP_SHORT);
+
+	StatusText("Erasing Flash ROM...");
+	if (!ReadByte(&banks))
+	{
+		StatusText("Failed to read.");
+		return FALSE;
+	}
+	for (i = 0; i < banks; i++)
+	{
+		BYTE a;
+		if (!ReadByte(&a))
+		{
+			StatusText("Failed to send.");
+			return FALSE;
+		}
+		StatusPercent(100 * i / banks);
+	}
+	StatusPercent(100);
+	StatusText("...done!");
+
+	StatusText("Sending PRG data...");
+	
+	for (i=0; i<4; i++)
+	{
+		data = filedata + 16; // PRG
+		for (j=0; j<64; j++)
+		{
+			if (!WriteBlock(data, 1024))
+			{
+				StatusText("Failed to send.");
+				return FALSE;
+			}
+			data += 1024;
+			StatusPercent(((i*64 + j) * 100) / 256);   
+		} 
+	}
+	
+	StatusPercent(100);
+	StatusText("...done!");	
+
+	if (!ReadByte(&banks))
+	{
+		StatusText("Failed to read.");
+		return FALSE;
+	}
+	if (banks != 0)
+	{
+		StatusText("An error occurred while writing to the cartridge!");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+BOOL	CMD_RAMCART (void)
+{
+	PPlugin plugin;
+	char filenes[MAX_PATH];
+	FILE *NES;
+	long filesize;
+	char *filedata;
+	BYTE header[16];
+	BOOL result;
+
+	// select board name
+	plugin = PromptPlugin(PLUG_UPLOAD);
+	if (plugin == NULL)
+		return FALSE;
+
+	// select NES file
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
 		return FALSE;
 
+	// open status window
 	OpenStatus(topHWnd);
 
 	if ((NES = fopen(filenes,"rb")) == NULL)
@@ -807,128 +704,132 @@ BOOL	Glidercart (char *plugin)
 		CloseStatus();
 		return FALSE;
 	}
-	fread(header,1,16,NES);
+
+	// determine file size
+	fseek(NES,0,SEEK_END);
+	filesize = ftell(NES);
+	fseek(NES,0,SEEK_SET);
+
+	if (filesize < 16)
+	{
+		MessageBox(topHWnd,"NES file is too small to contain iNES header!",MSGBOX_TITLE,MB_OK | MB_ICONERROR);
+		fclose(NES);
+		CloseStatus();
+		return FALSE;
+	}
+
+	// some plugins require 64k of data always
+	filedata = malloc( (filesize<(16+(64*1024))) ? (16+(64*1024)) : filesize);
+
+	if (filedata == NULL)
+	{
+		MessageBox(topHWnd,"Out of memory loading NES!",MSGBOX_TITLE,MB_OK | MB_ICONERROR);
+		fclose(NES);
+		CloseStatus();
+		return FALSE;
+	}
+
+	fread(filedata,1,filesize,NES);
+	memcpy(header,filedata,16);
+	fclose(NES);
+
 	if (memcmp(header,"NES\x1A",4))
 	{
-		fclose(NES);
 		StatusText("Selected file is not an iNES ROM image!");
 		StatusOK();
+		free(filedata);
 		return FALSE;
 	}
 
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
-
-	if (header[5] > 0)
-		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
-
-
-	StatusText("Resetting USB CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (filesize < (16 + (header[4] * 16384) + (header[5] * 8192)))
 	{
-		fclose(NES);
-		CloseStatus();
+		StatusText("NES file is too small to contain specified PRG/CHR data!");
+		StatusOK();
+		free(filedata);
 		return FALSE;
 	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
 
-	StatusText("Erasing Flash ROM...");
-	if (!ReadByte(&banks))
-	{
-		fclose(NES);
-		CloseStatus();
-		return FALSE;
-	}
-	for (i = 0; i < banks; i++)
-	{
-		BYTE a;
-		if (!ReadByte(&a))
-		{
-			fclose(NES);
-			CloseStatus();
-			return FALSE;
-		}
-		StatusPercent(100 * i / banks);
-	}
-	StatusPercent(100);
-	StatusText("...done!");
+	result = FALSE;
 
-	StatusText("Sending PRG data...");
-	
-	filedata = malloc(1024);
+	if (plugin->num == 0)
+		result = NRAMcart(plugin->file, filedata);
+	else if (plugin->num == 1)
+		result = CNRAMcart(plugin->file, filedata);
+	else if (plugin->num == 2)
+		result = UFROMcart(plugin->file, filedata);
+	else if (plugin->num == 3)
+		result = PowerPakLitecart(plugin->file, filedata);
+	else if (plugin->num == 4)
+		result = PowerPakcart(plugin->file, filedata);
+	else if (plugin->num == 5)
+		result = Glidercart(plugin->file, filedata);
+	else	
+		result = FALSE;
 
-	for (i=0; i<4; i++)
-	{
-		fseek(NES,0x10,SEEK_SET);  //go to start of prg
-		for (j=0; j<64; j++)
-		{
-			fread(filedata, 1024, 1, NES);  //write 64KB
-  
-			if (!WriteBlock(filedata, 1024))
-			{
-				free(filedata);
-				CloseStatus();
-				fclose(NES);
-				return FALSE;
-			}
-			StatusPercent(((i*64 + j) * 100) / 256);   
-		} 
-	}
-	
-	StatusPercent(100);
-	StatusText("...done!");	
-	fclose(NES);
 	free(filedata);
 
-
-	if (!ReadByte(&banks))
+	if (result == TRUE)
 	{
-		CloseStatus();
-		return FALSE;
-	}
-	if (banks != 0)
-	{
-		StatusText("An error occurred while writing to the cartridge!");
+		StatusText("Program running - Press OK to exit.");
+		ResetNES(RESET_PLAYMODE | RESET_NORESET);
 		StatusOK();
-		return FALSE;
+		ResetNES(RESET_COPYMODE);
+	}
+	else
+	{
+		StatusOK();
 	}
 
-	StatusText("Program running - Press OK to exit.");
-	ResetNES(RESET_PLAYMODE);
-	StatusOK();
-	ResetNES(RESET_COPYMODE);
-	return TRUE;
+	return result;
 }
 
-
-
-
-BOOL	CMD_RAMCART (void)
+BOOL	RAMCartLoad (char* filedata, long int filesize)
 {
 	PPlugin plugin;
+	BYTE header[16];
+	BOOL result;
+
 	// select board name
 	plugin = PromptPlugin(PLUG_UPLOAD);
 	if (plugin == NULL)
-      return FALSE;
+		return FALSE;
+
+	if (filesize < 16)
+	{
+		StatusText("NES file is too small to contain iNES header!");
+		return FALSE;
+	}
+
+	memcpy(header,filedata,16);
+
+	if (memcmp(header,"NES\x1A",4))
+	{
+		StatusText("Selected file is not an iNES ROM image!");
+		return FALSE;
+	}
+
+	if (filesize < (16 + (header[4] * 16384) + (header[5] * 8192)))
+	{
+		StatusText("NES file is too small to contain specified PRG/CHR data!");
+		return FALSE;
+	}
+
+	result = FALSE;
 
 	if (plugin->num == 0)
-      return NRAMcart(plugin->file);
+		result = NRAMcart(plugin->file, filedata);
 	else if (plugin->num == 1)
-      return CNRAMcart(plugin->file);
+		result = CNRAMcart(plugin->file, filedata);
 	else if (plugin->num == 2)
-      return UFROMcart(plugin->file);
+		result = UFROMcart(plugin->file, filedata);
 	else if (plugin->num == 3)
-	  return PowerPakLitecart(plugin->file);
+		result = PowerPakLitecart(plugin->file, filedata);
 	else if (plugin->num == 4)
-	  return PowerPakcart(plugin->file);     
-    else if (plugin->num == 5)
-      return Glidercart(plugin->file);   
- 	else	
-    
-    
-    
-    return FALSE;
+		result = PowerPakcart(plugin->file, filedata);
+	else if (plugin->num == 5)
+		result = Glidercart(plugin->file, filedata);
+	else	
+		result = FALSE;
+
+	return result;
 }
