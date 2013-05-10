@@ -3,6 +3,10 @@
 
 //CHANGE ME add block usb writes
 
+// defined in c_ramcart.c
+// used to load 32k NSF as an NROM
+extern	BOOL	RAMCartLoad (char* filedata, long int filesize);
+
 static	char	NSF_name[33], NSF_artist[33], NSF_copyright[33];
 static	BYTE	NSF_banks[8]; 
 static	BYTE	NSF_cursong, NSF_totalsongs;
@@ -72,47 +76,149 @@ BOOL	LoadNSF (char *filename)
 {
 	FILE *NSF;
 	BYTE header[128];
-	int i, nbytes, nblks, nrem;
+	int i, j, nbytes, nblks, nrem;
+	char* nsfdata;
+	char* nesdata;
+	unsigned int loadaddr;
+	BOOL ramcart = FALSE;
+	BOOL bankswitch = FALSE;
 
 	NSF = fopen(filename,"rb");
 	if (NSF == NULL)
 	{
-		MessageBox(topHWnd,"Unable to open file!",MSGBOX_TITLE,MB_OK);
+		StatusText("Unable to open file!");
+		StatusOK();
 		return FALSE;
 	}
 
 	OpenStatus(topHWnd);
+
+	if (fread(header,1,128,NSF) != 128)
+	{
+		StatusText("Unable to read NSF header.");
+		StatusOK();
+		return FALSE;
+	}
+
+	// gather file size
+	fseek(NSF,0,SEEK_END);
+	nbytes = ftell(NSF) - 128;
+	fseek(NSF,128,SEEK_SET);
+
+	// load NSF data
+	nsfdata = calloc(16 + (64*1024), 1);
+	if (nsfdata == NULL)
+	{
+		StatusText("Out of memory for temporary NSF storage!");
+		StatusOK();
+		return FALSE;
+	}
+	fread(nsfdata, 1, 64*1024, NSF);
+	fclose(NSF);
+
+	// temporary space for dummy NES upload to ramcart
+	nesdata = calloc(16 + (64*1024), 1);
+	if (nesdata == NULL)
+	{
+		free(nsfdata);
+		StatusText("Out of memory for temporary NES storage!");
+		StatusOK();
+		return FALSE;
+	}
+
+	// allow user to upload as RAMCart
+	StatusText("Upload NSF data to RAMCart...");
+
+	// dummy iNES file for upload
+	nesdata[0x0] = 'N';
+	nesdata[0x1] = 'E';
+	nesdata[0x2] = 'S';
+	nesdata[0x3] = 0x1A;
+	nesdata[0x4] = 2; // 32k PRG
+	// rest is 0s
+
+	loadaddr = header[0x8] + (header[0x9] * 256);
+
+	for (i=0; i < 8; ++i)
+	{
+		if (header[0x70+i] != 0)
+			bankswitch = TRUE;
+	}
+
+	if (bankswitch) // some <32k NSFs don't really bankswitch, try and accomodate
+	{
+		for (i=0; i < 8; ++i)
+		{
+			for (j=0; j<4096; ++j)
+			{
+				BYTE r = 0;
+				int readaddr = j + (header[0x70+i] * 4096) - (loadaddr & 0xFFF);
+				if (readaddr >= 0)
+					r = nsfdata[readaddr];
+				nesdata[(i*4096)+j+16] = r;
+			}
+		}
+	}
+	else // just place all NSF data at load address (note padding to 64k keeps this safe)
+	{
+		memcpy(nesdata + 16 + (loadaddr & 0x7FFF), nsfdata, 32 * 1024);
+	}
+
+	// send to ramcart
+	if (RAMCartLoad(nesdata, 16+(64*1024)))
+	{
+		ramcart = TRUE;
+
+		if (nbytes > (32 * 1024))
+			StatusText("NSF is larger than 32k, may not be playable.");
+		if (bankswitch)
+			StatusText("NSF is bankswitched, may not be playable.");
+
+		// erase evidence of bankswitching
+		nbytes = 32*1024;
+		memcpy(nsfdata, nesdata+16, 64*1024);
+		for (i=0; i<8; ++i) // no bankswitching
+			header[0x70+i] = 0;
+		header[0x9] = 0x80; // load 800
+		header[0x8] = 0x00;
+	}
+	else
+		StatusText("Failed or skipped.");
+	free(nesdata);
+	// ===========================
+
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 
 	StatusText("Setting USB CopyNES to NSF player mode...");
 	if (!WriteByte(0x8E))
 	{
-		CloseStatus();
+		free(nsfdata);
+		StatusText("Unable to write!");
+		StatusOK();
 		return FALSE;
 	}
-
-	if (fread(header,1,128,NSF) != 128)
-		return FALSE;
 
 	StatusText("Uploading NSF header...");
 
 	if (!WriteByte(header[0x8]) || !WriteByte(header[0x9]) || !WriteByte(header[0xA]) ||
 		!WriteByte(header[0xB]) || !WriteByte(header[0xC]) || !WriteByte(header[0xD]))
 	{
-		CloseStatus();
+		free(nsfdata);
+		StatusText("Unable to write!");
+		StatusOK();
 		return FALSE;
 	}
 
-	fseek(NSF,0,SEEK_END);
-	nbytes = ftell(NSF) - 128;
 	if (!WriteByte((BYTE)(nbytes >> 0)) || !WriteByte((BYTE)(nbytes >> 8)) || !WriteByte((BYTE)(nbytes >> 16)))
 	{
-		CloseStatus();
+		free(nsfdata);
+		StatusText("Unable to write!");
+		StatusOK();
 		return FALSE;
 	}
 	nbytes++;
-	fseek(NSF,128,SEEK_SET);
+
 	nblks = nbytes / 4096;
 	nrem = nbytes % 4096;
 
@@ -120,69 +226,83 @@ BOOL	LoadNSF (char *filename)
 	{
 		if (!WriteByte(NSF_banks[i] = header[0x70 | i]))
 		{
-			CloseStatus();
+			free(nsfdata);
+			StatusText("Unable to write!");
+			StatusOK();
 			return FALSE;
 		}
 	}
 	if (!WriteByte(NSF_totalsongs = header[0x6]) || !WriteByte(NSF_cursong = header[0x7]))
 	{
-		CloseStatus();
+		free(nsfdata);
+		StatusText("Unable to write!");
+		StatusOK();
 		return FALSE;
 	}
+	StatusText("...done!");
 
-	StatusText("Uploading NSF data...");
-	if (nblks)
+	//if (!ramcart)
+	// this additional upload is still required, even if the upload was done via the ramcart option?
 	{
-		int v, a;
-		for (v = 0; v < nblks; v++)
+		unsigned int pos = 0;
+		StatusText("Uploading NSF data...");
+		if (nblks)
 		{
-			for (a = 0; a < 4096; a++)
+			int v, a;
+			for (v = 0; v < nblks; v++)
 			{
-				BYTE r;
-				if (fread(&r,1,1,NSF) == 0)
+				for (a = 0; a < 4096; a++)
 				{
-					MessageBox(topHWnd,"Error! Failed to read NSF data!",MSGBOX_TITLE,MB_OK);
-					CloseStatus();
-					return FALSE;
+					BYTE r = 0;
+					if (pos < (64*1024))
+					{
+						r = nsfdata[pos];
+						++pos;
+					}
+					if (!WriteByte(r))
+					{
+						free(nsfdata);
+						StatusText("Unable to write!");
+						StatusOK();
+						return FALSE;
+					}
+				}
+				StatusPercent(v*100/nblks);
+			}
+		}
+		if (nrem)
+		{
+			int a;
+			for (a = 0; a < nrem; a++)
+			{
+				BYTE r = 0;
+				if (pos < (64*1024))
+				{
+					r = nsfdata[pos];
+					++pos;
 				}
 				if (!WriteByte(r))
 				{
-					CloseStatus();
+					free(nsfdata);
+					StatusText("Unable to write!");
+					StatusOK();
 					return FALSE;
 				}
 			}
-			StatusPercent(v*100/nblks);
+			StatusPercent(100);
 		}
+		StatusText("...done!");
 	}
-	if (nrem)
-	{
-		int a;
-		for (a = 0; a < nrem; a++)
-		{
-			BYTE r;
-			if (fread(&r,1,1,NSF) == 0)
-			{
-				StatusText("Error! Failed to read NSF data!");
-				StatusOK();
-				return FALSE;
-			}
-			if (!WriteByte(r))
-			{
-				CloseStatus();
-				return FALSE;
-			}
-		}
-		StatusPercent(100);
-	}
-	StatusText("...done!");
+
 	Sleep(SLEEP_SHORT);
-	fseek(NSF,14,SEEK_SET);
-	fread(NSF_name,1,32,NSF);
-	fread(NSF_artist,1,32,NSF);
-	fread(NSF_copyright,1,32,NSF);
+
+	memcpy(NSF_name,     header+14   ,32);
+	memcpy(NSF_artist,   header+14+32,32);
+	memcpy(NSF_copyright,header+14+64,32);
 	NSF_name[32] = NSF_artist[32] = NSF_copyright[32] = 0;
-	fclose(NSF);
-	CloseStatus();
+	free(nsfdata);
+
+	StatusOK();
 	return DialogBox(hInst,MAKEINTRESOURCE(IDD_PLAYNSF),topHWnd,DLG_PlayNSF);
 }
 
@@ -190,7 +310,7 @@ BOOL	CMD_PLAYNSF (void)
 {
 	BOOL result;
 	char filename[MAX_PATH];
-	if (!PromptFile(topHWnd,"NSF Files (*.NSF)\0*.nsf\0\0",filename,NULL,NULL,"Select an NSF","nsf",FALSE))
+	if (!PromptFile(topHWnd,"NSF Files (*.NSF)\0*.nsf\0\0",filename,NULL,Path_NSF,"Select an NSF","nsf",FALSE))
 		return FALSE;
 	result = LoadNSF(filename);
 	ResetNES(RESET_COPYMODE);
