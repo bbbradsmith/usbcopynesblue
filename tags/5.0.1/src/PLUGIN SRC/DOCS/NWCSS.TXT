@@ -1,0 +1,40 @@
+                       Nintendo World Cup / Super Spike V.B.
+                       -------------------------------------
+
+
+
+K.Horton
+11/09/2000
+V1.0
+
+
+
+
+--------------------------
+
+I have assigned this mapper #47 (that's 47 decimal)
+
+Wow, another cascaded mapper.  This one isn't too tough though.  It is
+a normal MMC3 cartridge with a single register mapped in at 06000h.  Total
+ROM size is 256K PRG, 256K CHR in 2 128K/128K banks.
+
+--------------------------
+
+
+How to work it good:
+
+
+06000h:
+
+7  bit 0
+--------
+xxxxxxxB
+
+
+B: bank select.  When 0, selects the first 128K of CHR ROM and the first
+128K of PRG ROM.  When 1, selects the second 128K of CHR ROM and second
+128K of PRG ROM.
+
+--
+
+That's it. :-)  This ROM works like any other MMC3 game.

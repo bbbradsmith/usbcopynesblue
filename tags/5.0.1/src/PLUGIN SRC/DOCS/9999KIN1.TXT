@@ -1,0 +1,50 @@
+   Novel Diamond Gold Card 9999999 in 1, Mapper: BMC-NovelDiamond9999999in1
+   ------------------------------------------------------------------------
+
+1.8.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-NovelDiamond9999999in1 
+for the UNIF format.  If you must use ines, use mapper #54.  (that's 
+54 decimal)
+
+
+This is your basic stupid multicart.  It has 4 or 5 REAL games on it and
+a silly seeded random # generator thing to make the listing.  The menu
+has fucking *The Lion King* graphics and music, too! I mean, WTF?
+
+---
+
+
+The hardware:
+
+1 gloptopped 128K PRG ROM, 1 gloptopped 64K CHR ROM.  One glopped 74LS161.
+
+
+-
+
+The cart has a single register.  Write anywhere in 8000h-FFFFh.  A0-2 are
+used.
+
+
+-
+
+Bank Select Register:
+
+
+It uses A0, A1, and A2.  This means the address written to matters, while
+the actual data written does not.  
+
+PRG ROM is broken up into 4 32K banks.  A0 and A1 control the bank.
+A0 = LSB, A1 = MSB.
+
+CHR ROM is broken up into 8 8K banks.  A0,A1, and A2 control the bank.
+A0 = LSB. A2 = MSB.
+
+
+That's it.
+

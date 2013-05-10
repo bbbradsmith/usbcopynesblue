@@ -1,0 +1,80 @@
+                Clatron / Myriad Games 6 in 1 Mapper #41 Info
+                ---------------------------------------------
+
+
+03.29.2000
+
+V1.00
+
+Mapper info by The Mad Dumper
+
+Thanks to AlanD for drawing out the schematic for me
+and to Thomas S. for implementation help
+---
+
+
+OK, this is one sadistic mapper circuit.
+
+There are two registers on it... I will call them Reg1 and Reg2 for
+simplicity sake.
+
+When the NES is switched on, or the reset button is pressed, both
+registers are cleared to 00h.  There is a cool little diode / RC circuit
+on the M2 line that does this. 
+
+
+------------------------
+
+Reg1 is the "main control" register.  It has six bits.
+
+You write to it by writing a byte to 06000h thru 067ffh.  Like other
+multicarts, the address lines are used instead of the datalines, and the
+value of the byte written has no effect.  A0 = bit 0, A1 = bit 1, etc.  
+
+A0-A5 are used:
+
+
+Bits:
+
+0 - PRG 0
+1 - PRG 1
+2 - PRG 2 / enable second register * (see text)
+3 - CHR 2
+4 - CHR 3
+5 - Mirror control.  0 = V, 1 = H
+
+PRG 0-2 specify a 32K PRG bank that appears at 8000-FFFF.  Note that the
+banks are 32K in size, and there are 8 of them for a total PRG size of
+256K bytes.
+
+Bit 2 is strange.  When it is 1, it enables writes to the second register.
+
+
+------------------------
+
+Reg2 is the "auxilary CHR control" register.  It only has 2 bits.
+
+You write to it at 08000-0ffffh.  Writes are only accepted if bit 2 of
+reg1 is set.  Writes are rejected if this bit is 0!  Unlike the above
+register, writes this one relies on what is written instead of the address
+it is written to.
+
+Bits:
+
+0 - CHR 0
+1 - CHR 1
+
+CHR bits 0,1 (from this register) and bits CHR bits 2,3 (from reg1) select
+the desired bank for the CHR ROM.  There are 16 8K banks for a total of
+128K bytes worth of CHR ROM
+
+
+
+------------------------
+
+Last notes:  The game "Cosmo Cop" seems to exploit a PPU bug of some form
+or another.  It checks the sprite0 hit flag, while sprites are turned off!!
+So, on emulators it locks up after showing the title screen.  If the hit
+flag is turned on while sprites are disabled in the emulator, the game
+(and the other 5 on the cart) work flawless.  So, some more PPU research
+may be in order.

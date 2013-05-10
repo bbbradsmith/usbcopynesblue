@@ -1,0 +1,50 @@
+
+1  A15 PRG ROM
+2  /WR CHR
+3  A11 CHR
+4  /CE CHR
+5  /RD CHR
+6  nc
+7  /CE PRG ROM
+8  A14 PRG
+9  A0  PRG
+10 A14 CHR ROM
+11 D0  PRG
+12 D1  PRG
+13 A16 PRG ROM
+14 GND
+
+15 nc
+16 A15 CHR ROM
+17 nc
+18 D2  PRG
+19 nc
+20 A17 PRG ROM
+21 A10 CHR
+22 A12 CHR
+23 /A15 PRG
+24 R/W PRG
+25 A13 CHR ROM
+26 A8  PRG
+27 nc
+28 +5V
+
+decoded:           
+15                 0
+ -------------------
+ ??xx xxx? xxxx xxx?
+
+D0-D2 used
+
+8000 (mirroring?)
+8001 not used
+8100
+8101
+
+c000
+c001
+c100
+c101
+
+
+
