@@ -3,16 +3,16 @@
 #define MAX_LOADSTRING 100
 
 // Global Variables:
-HINSTANCE hInst;								// current instance
-HWND	topHWnd = NULL;								// main window
+HINSTANCE hInst;        // current instance
+HWND	topHWnd = NULL; // main window
 
-TCHAR szTitle[MAX_LOADSTRING];							// The application name
-TCHAR szWindowClass[MAX_LOADSTRING];						// The title bar text
+TCHAR szTitle[MAX_LOADSTRING];       // The application name
+TCHAR szWindowClass[MAX_LOADSTRING]; // The title bar text
 
 // Foward declarations of functions included in this code module:
-ATOM				MyRegisterClass(HINSTANCE hInstance);
-BOOL				InitInstance(HINSTANCE, int);
-LRESULT CALLBACK	CopyNES_Menu(HWND, UINT, WPARAM, LPARAM);
+ATOM                MyRegisterClass(HINSTANCE hInstance);
+BOOL                InitInstance(HINSTANCE, int);
+LRESULT CALLBACK    CopyNES_Menu(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -29,7 +29,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Main message loop:
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
-                if (!IsDialogMessage(DlgStatus,&msg) && !IsDialogMessage(topHWnd,&msg))
+		if (!IsDialogMessage(DlgStatus,&msg) && !IsDialogMessage(topHWnd,&msg))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -59,35 +59,37 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	return TRUE;
 }
 
-BOOL	Startup	(void);
-BOOL	Shutdown (void);
+BOOL    Startup (void);
+BOOL    Shutdown (void);
 
-BOOL	CMD_MAKENES (void);
-BOOL	CMD_MAKEUNIF (void);
-BOOL	CMD_SPLITNES (void);
-BOOL	CMD_SPLITUNIF (void);
+BOOL    CMD_MAKENES (void);
+BOOL    CMD_MAKEUNIF (void);
+BOOL    CMD_SPLITNES (void);
+BOOL    CMD_SPLITUNIF (void);
 
-BOOL	CMD_BREAKBANK (void);
-BOOL	CMD_DISASM (void);
-BOOL	CMD_OPTIONS (void);
-BOOL	CMD_NESINFO (void);
+BOOL    CMD_BREAKBANK (void);
+BOOL    CMD_DISASM (void);
+BOOL    CMD_OPTIONS (void);
+BOOL    CMD_NESINFO (void);
 
-BOOL	CMD_PLAYCART (void);
-BOOL	CMD_RAMCART (void);
-BOOL	CMD_PLAYNSF (void);
-BOOL	CMD_REGPLAY (void);
+BOOL    CMD_PLAYCART (void);
+BOOL    CMD_RAMCART (void);
+BOOL    CMD_PLAYNSF (void);
+BOOL    CMD_REGPLAY (void);
 
-BOOL	CMD_DUMPCART (void);
-BOOL	CMD_WRITEWRAM (void);
-BOOL	CMD_RUNPLUG (void);
-BOOL	CMD_FIXGAR (void);
+BOOL    CMD_DUMPCART (void);
+BOOL    CMD_WRITEWRAM (void);
+BOOL    CMD_RUNPLUG (void);
+BOOL    CMD_FIXGAR (void);
 
-BOOL	CMD_BANKWATCH (void);
-BOOL	CMD_MICROBUG (void);
-BOOL	CMD_VRC7REGS (void);
+BOOL    CMD_BANKWATCH (void);
+BOOL    CMD_MICROBUG (void);
+BOOL    CMD_VRC7REGS (void);
 BOOL    CMD_RECONNECT (void);
 
-void	EnableMenus (HWND hDlg)
+BOOL    CMD_PLAYLOG (void);
+
+void EnableMenus (HWND hDlg)
 {
 	if (HWVer == 0)
 	{
@@ -146,8 +148,8 @@ void	EnableMenus (HWND hDlg)
 		
 		if (HWVer < 4)
 			MessageBox(topHWnd,"Unrecognized USB CopyNES BIOS version detected!", "USB CopyNES", MB_OK | MB_ICONERROR);
-        if (HWVer == 255)
- 			MessageBox(topHWnd,"USB CopyNES connect failed!  Try reconnecting.", "USB CopyNES", MB_OK | MB_ICONERROR);          
+		if (HWVer == 255)
+			MessageBox(topHWnd,"USB CopyNES connect failed!  Try reconnecting.", "USB CopyNES", MB_OK | MB_ICONERROR);          
 	}
 }
 
@@ -165,98 +167,107 @@ LRESULT CALLBACK CopyNES_Menu(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 		}
 		ShowWindow(hDlg,SW_SHOWNORMAL);
 		EnableMenus(hDlg);
-		return TRUE;			break;
+		return TRUE;
+		break;
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
-	  	case IDC_MAIN_MAKENES:		
-        success = CMD_MAKENES();	
-        break;
-		  case IDC_MAIN_MAKEUNIF:		
-        success = CMD_MAKEUNIF();	
-        break;
-		  case IDC_MAIN_SPLITNES:
-     		success = CMD_SPLITNES();	
-        break;
-		  case IDC_MAIN_SPLITUNIF:
-        success = CMD_SPLITUNIF();	
-        break;
+		case IDC_MAIN_MAKENES:
+			success = CMD_MAKENES();
+			break;
+		case IDC_MAIN_MAKEUNIF:
+			success = CMD_MAKEUNIF();
+			break;
+		case IDC_MAIN_SPLITNES:
+			success = CMD_SPLITNES();
+			break;
+		case IDC_MAIN_SPLITUNIF:
+			success = CMD_SPLITUNIF();
+			break;
 
-		  case IDC_MAIN_BREAKBANK:
-        success = CMD_BREAKBANK();	
-        break;
-		  case IDC_MAIN_DISASM:		
-        success = CMD_DISASM();
-        break;
-		  case IDC_MAIN_OPTIONS:		
-        success = CMD_OPTIONS();	
-        break;
-		  case IDC_MAIN_NESINFO:	
-        InitPort();	
-        success = CMD_NESINFO();	
-        break;
+		case IDC_MAIN_BREAKBANK:
+			success = CMD_BREAKBANK();
+			break;
+		case IDC_MAIN_DISASM:
+			success = CMD_DISASM();
+			break;
+		case IDC_MAIN_OPTIONS:
+			success = CMD_OPTIONS();
+			break;
+		case IDC_MAIN_NESINFO:
+			InitPort();
+			success = CMD_NESINFO();
+			break;
 
-		  case IDC_MAIN_PLAYCART:
-        InitPort();	
-        success = CMD_PLAYCART();	
-        break;
-		  case IDC_MAIN_RAMCART:
-        InitPort();	
-        success = CMD_RAMCART();	
-        break;
-		  case IDC_MAIN_PLAYNSF:
-        InitPort();	
-        success = CMD_PLAYNSF();	
-        break;
-		  case IDC_MAIN_REGPLAY:
-        InitPort();	
-        success = CMD_REGPLAY();	
-        break;
+		case IDC_MAIN_PLAYCART:
+			InitPort();
+			success = CMD_PLAYCART();
+			break;
+		case IDC_MAIN_RAMCART:
+			InitPort();
+			success = CMD_RAMCART();
+			break;
+		case IDC_MAIN_PLAYNSF:
+			InitPort();
+			success = CMD_PLAYNSF();
+			break;
+		case IDC_MAIN_REGPLAY:
+			InitPort();
+			success = CMD_REGPLAY();
+			break;
 
-		  case IDC_MAIN_DUMPCART:		
-        InitPort();	
-        success = CMD_DUMPCART();	
-        break;
-	  	case IDC_MAIN_WRITEWRAM:	
-        InitPort();	
-        success = CMD_WRITEWRAM();	
-        break;
-	  	case IDC_MAIN_RUNPLUG:		
-        InitPort();	
-        success = CMD_RUNPLUG();	
-        break;
-	  	case IDC_MAIN_FIXGAR:		
-        InitPort();	
-        success = CMD_FIXGAR();		
-        break;
+		case IDC_MAIN_DUMPCART:
+			InitPort();
+			success = CMD_DUMPCART();
+			break;
+		case IDC_MAIN_WRITEWRAM:
+			InitPort();
+			success = CMD_WRITEWRAM();
+			break;
+		case IDC_MAIN_RUNPLUG:
+			InitPort();
+			success = CMD_RUNPLUG();
+			break;
+		case IDC_MAIN_FIXGAR:
+			InitPort();
+			success = CMD_FIXGAR();
+			break;
 
-	  	case IDC_MAIN_BANKWATCH:	
-        InitPort();	
-        success = CMD_BANKWATCH();	
-        break;
-	  	case IDC_MAIN_MICROBUG:		
-        InitPort();	
-        success = CMD_MICROBUG();	
-        break;
-	  	case IDC_MAIN_VRC7REGS:		
-        InitPort();	
-        success = CMD_VRC7REGS();	
-        break;
-	  	case IDC_MAIN_RECONNECT:
-        success = CMD_RECONNECT();  
-		    EnableMenus(hDlg);
-        break;
+		case IDC_MAIN_BANKWATCH:
+			InitPort();
+			success = CMD_BANKWATCH();
+			break;
+		case IDC_MAIN_MICROBUG:
+			InitPort();
+			success = CMD_MICROBUG();
+			break;
+		case IDC_MAIN_VRC7REGS:
+			InitPort();
+			success = CMD_VRC7REGS();
+			break;
+		case IDC_MAIN_RECONNECT:
+			success = CMD_RECONNECT();
+			EnableMenus(hDlg);
+			break;
+
+		case IDC_MAIN_PLAYLOG:
+			InitPort();
+			success = CMD_PLAYLOG();
+			break;
 		}
 		if (!success)
 			MessageBox(topHWnd,"An error occurred during the previous operation!","USB CopyNES",MB_OK | MB_ICONERROR);
-		return TRUE;			break;
+		return TRUE;
+		break;
 	case WM_CLOSE:
 		Shutdown();
 		DestroyWindow(hDlg);
-		return 0;			break;
+		return 0;
+		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
-		return 0;			break;
+		return 0;
+		break;
 	}
 	return FALSE;
 }

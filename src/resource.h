@@ -36,6 +36,7 @@
 #define IDC_MAIN_MICROBUG               1017
 #define IDC_MAIN_VRC7REGS               1018
 #define IDC_PROMPT_TITLE                1019
+#define IDC_MAIN_PLAYLOG                1019
 #define IDC_PROMPT_DATA                 1020
 #define IDC_PLUGIN_CATEGORY             1021
 #define IDC_PLUGIN_LIST                 1022

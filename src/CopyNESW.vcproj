@@ -339,6 +339,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\c_playlog.c"
+				>
+			</File>
+			<File
 				RelativePath=".\c_playnsf.c"
 				>
 				<FileConfiguration
