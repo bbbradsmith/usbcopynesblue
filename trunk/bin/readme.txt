@@ -24,7 +24,7 @@ Known Bugs:
 Changes:
 
 v5.0.1 - 5/10/2013
- - NSF player now works with common RAM carts.
+ - NSF player now works with common RAM carts. (Cancel RAM cart plugin dialog for old NSF cart behaviour.)
  - RAM cart code refactoring to allow use with other program functions.
  - Created U5ROM oversized UxROM plugin.
  - Fixed misnamed MMC6 WRAM writer in MAPPERS.DAT
