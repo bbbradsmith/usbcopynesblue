@@ -18,8 +18,8 @@ MAPPERS.DAT format
     = mapper number
     = column of plugin description
     = column of end of line
-  The second line is a list of integers indicating which line of the
-    file each category begins at.
+  The second line is a list of integers indicating which line of the file
+    each category begins at.
     Note that line #0 begins on the third line of the file, since two lines
     of other information appear before the plugin list.
   Each category header should have: (aligned to the specified columns)
