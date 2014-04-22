@@ -691,8 +691,8 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 {
 	int i, j;
 	BYTE header[16];
-	BYTE mapper;
-	BYTE banks;
+	BYTE mapper, a;
+	BYTE bank, banks;
 	char string[256];
 	char* data;
 
@@ -736,25 +736,25 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 
 	StatusText("Erasing Flash ROM...");
 	banks=32;
-	if (!WriteByte(banks))
+	if (!WriteByte(banks))	//Start of plugin.
 	{
 		StatusText("Failed to write!");
 		return FALSE;
 	}
-	if(!ReadByte(&banks))
+	if(!ReadByte(&banks))	//Get actual number of banks, confirmed by manufacturer/chip ID.
 	{
 		StatusText("Failed to read!");
 		return FALSE;
 	}
-	if(banks == 0)
-	{
+	if(banks == 0)	//If Banks was 0, then the manufacturer/chip ID was not recognized.
+	{				//If you get this error, and you have an actual flash cart, then I will need to know these ID numbers.
 		BYTE low_id, high_id;
-		if(!ReadByte(&low_id))
+		if(!ReadByte(&low_id))	//Manufacturer ID
 		{
 			StatusText("Failed to read!");
 			return FALSE;
 		}
-		if(!ReadByte(&high_id))
+		if(!ReadByte(&high_id))	//Chip ID
 		{
 			StatusText("Failed to read!");
 			return FALSE;
@@ -763,30 +763,34 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 		StatusText(string);
 		return FALSE;
 	}
-	if(banks < header[4])
+	if(banks < header[4])	//Now that we confirmed the actual flash cart size, we just check to make sure the rom WILL fit this cart.
 	{
 		StatusText("Rom selected is too large for this flash cart");
 		return FALSE;
 	}
-	for (i = 0; i < banks; i++)
+	if(!WriteByte(banks))	//Send start signal to actually erase the cart.
 	{
-		BYTE a;
-		if (!ReadByte(&a))
-		{
-			StatusText("Failed to read!");
-			return FALSE;
-		}
-		StatusPercent(100 * i / banks);
-		DoEvents();
+		StatusText("Failed to write!");
+		return FALSE;
+	}
+	if (!ReadByte(&a))	//Wait for cart erase to be completed.
+	{
+		StatusText("Failed to read!");
+		return FALSE;
+	}
+	if(a!=banks)
+	{
+		StatusText("Failed to Erase Cart!");
+		return FALSE;
 	}
 	StatusPercent(100);
 	StatusText("...done!");
 
 	StatusText("Sending data...");
-	for (banks = 0; banks < 32; )
+	for (bank = 0; bank < banks; )
 	{
 		data = filedata + 16; // PRG
-		for (i = 0; i < header[4]; i++, banks++)
+		for (i = 0; i < header[4]; i++, bank++)
 		{
 			for (j = 0; j < 16; j++)
 			{
@@ -796,10 +800,10 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 					return FALSE;
 				}
 				data += 1024;
-				StatusPercent(((banks * 16 + j) * 100) / 512);
+				StatusPercent(((bank * 16 + j) * 100) / 512);
 				DoEvents();
 			}
-			if((header[4]==2) && (banks < 30))
+			if((header[4]==2) && (bank < 30))
 			{
 				banks++;	//Code to force the lower 16KB bank to fill every flash bank, except the last one.
 				break;

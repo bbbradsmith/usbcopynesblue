@@ -61,7 +61,7 @@ currbank:    .equ 00e8h
              jsr send_byte
              lda temp3+1
              cmp #000h
-             bne er_loop
+             bne er_start
              
              txa             ;Unrecognized flash chip. Lets not erase it to be on the safe side.
              jsr send_byte
@@ -69,30 +69,10 @@ currbank:    .equ 00e8h
              jsr send_byte
              rts
              
-             
-er_loop:     lda #080h
-             sta temp1+1
-			 ldx currbank
-             jsr selbank
-             jsr erasesector
-             lda #090h
-             sta temp1+1
-             jsr erasesector
-             lda #0a0h
-             sta temp1+1
-             jsr erasesector
-             lda #0b0h
-             sta temp1+1
-             jsr erasesector
-             
-             lda currbank
+er_start:    jsr read_byte	;Wait for confirmation to start.
+             jsr eraseflash
              jsr send_byte
-             
-             inc currbank
-             lda currbank
-             cmp temp3+1
-             bne er_loop
-             
+
              lda #0
              sta currbank
              
@@ -148,11 +128,13 @@ dobyte:
 
 
 wtloop3:     lda (temp1),y
-             eor (temp1),y
+             cmp (temp1),y
              bne wtloop3   ;check toggle
-             lda #0f0h
-             sta (temp1),y  ;reset to read mode
-             rts
+             cmp temp2
+             beq wr_success
+             lda #0F0h
+             sta romsiz
+wr_success:  rts
              
 softwareid:  
              ldx #001h
@@ -196,7 +178,7 @@ ret_16:      lda #010h
 ret_32:      lda #020h
              rts
 
-erasesector:       
+eraseflash:       
              ldx #001h
              jsr selbank
              lda #0aah    ;erase sector command
@@ -222,16 +204,23 @@ erasesector:
              lda #055h
              sta 0Aaaah   ;write to 2AAA
 
-             ldx currbank
+             ldx #001h
              jsr selbank
-             lda #030h
-             sta (temp1),y
+             lda #010h
+             sta 09555h
              
-wtloop:      lda (temp1),y
-             eor (temp1),y
+wtloop:      lda 09555h
+             cmp 09555h
              bne wtloop
-             lda #0f0h
-             sta (temp1),y  ;reset to read mode
+             lda 09555h
+             cmp 09555h
+             bne wtloop
+             lda 09555h
+             cmp #0FFh
+             beq er_success
+             lda #0FFh
+             rts
+er_success:  lda temp3+1
              rts
 
 
