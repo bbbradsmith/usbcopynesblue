@@ -244,7 +244,7 @@ BOOL	Startup	(void)
 	memset(&Plugins[numcats-1], 0, sizeof(PCategory));		// clear the new one at the end
 
 	i = numcats - 2;						// and then populate the one 2nd from the end
-	j = 6;			// number of plugins below
+	j = 7;			// number of plugins below
 	Plugins[i] = (PCategory)malloc(sizeof(TCategory));
 	Plugins[i]->list = (PPlugin *)malloc((j + 1) * sizeof(PPlugin));
 	memset(Plugins[i]->list, 0, (j + 1) * sizeof(PPlugin));
@@ -286,6 +286,12 @@ BOOL	Startup	(void)
 	Plugins[i]->list[5]->file = strdup("glider.bin");
 	Plugins[i]->list[5]->num = 5;
 	Plugins[i]->list[5]->desc = strdup("Glider House Flasher");
+
+	Plugins[i]->list[6] = malloc(sizeof(TPlugin));
+	Plugins[i]->list[6]->name = strdup("UNROM512 Flasher");
+	Plugins[i]->list[6]->file = strdup("unrom512.bin");
+	Plugins[i]->list[6]->num = 6;
+	Plugins[i]->list[6]->desc = strdup("Sealie Computing UNROM512 Flasher");
 	// END RAMCART
 
     if (OpenPort())

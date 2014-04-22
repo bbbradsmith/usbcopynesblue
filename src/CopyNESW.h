@@ -82,7 +82,8 @@ BOOL	RunCode		(void);
 #define	SLEEP_LONG	1000
 char	*strjoin3	(char *out, const char *in1, const char *in2, const char *in3);
 void	WriteUNIF	(char *,char *,int,int,int,int);
-void	WriteNES	(char *,int,int,int,int);
+void	WriteNES	(char *,int,int,int,int,int,int,int,int,int);
+void	DoEvents	();
 
 #define	MSGBOX_TITLE	"USB CopyNES - " CMD_NAME
 

@@ -198,12 +198,12 @@ void	WriteUNIF (char *basename, char *board, int battery, int mirror, int foursc
 		fclose(CHR);
 	MessageBox(topHWnd,".UNIF created successfully!","USB CopyNES",MB_OK);
 }
-void	WriteNES (char *basename, int mapper, int battery, int mirror, int fourscrn)
+void	WriteNES (char *basename, int mapper, int battery, int mirror, int fourscrn, int nes2, int wram, int vram, int submapper, int tv)
 {
 	FILE *NES, *PRG, *CHR;
 	char filename[MAX_PATH];
 	int a;
-	unsigned char prglen = 0, chrlen = 0, maplo, maphi;
+	unsigned char prglen = 0, chrlen = 0, prgchr_hi = 0, maplo, maphi, mapext, temp;
 	if (mapper == -1)
 		return;		// UNIF only, do not generate .NES
 
@@ -211,26 +211,55 @@ void	WriteNES (char *basename, int mapper, int battery, int mirror, int fourscrn
 		battery = (MessageBox(topHWnd,"Really has battery?","NES",MB_YESNO | MB_ICONQUESTION) == IDYES);
 
 	NES = fopen(strjoin3(filename,Path_NES,basename,".nes"),"wb");
+	if(!NES)
+	{
+		MessageBox(topHWnd,"Failed to create .NES File","USB CopyNES",MB_OK);
+		return;
+	}
 	PRG = fopen(strjoin3(filename,Path_PRG,basename,".prg"),"rb");
+	if(!PRG)
+	{
+		MessageBox(topHWnd,"Failed to create .NES File","USB CopyNES",MB_OK);
+		fclose(NES);
+		unlink(strjoin3(filename,Path_NES,basename,".nes"));
+		return;
+	}
 	CHR = fopen(strjoin3(filename,Path_CHR,basename,".chr"),"rb");
 
 	fwrite("NES\x1A",4,1,NES);
 	fseek(PRG,0,SEEK_END);
-	prglen = (unsigned char)(ftell(PRG) / 16384);
+	prglen = (unsigned char)((ftell(PRG) / 16384) & 0xFF);
+	if(nes2) prgchr_hi = (unsigned char)(((ftell(PRG) / 16384) & 0xF00) >> 8);
 	fwrite(&prglen,1,1,NES);
 	fseek(PRG,0,SEEK_SET);
 	if (CHR)
 	{
 		fseek(CHR,0,SEEK_END);
-		chrlen = (unsigned char)(ftell(CHR) / 8192);
+		chrlen = (unsigned char)((ftell(CHR) / 8192) & 0xFF);
+		prgchr_hi |= (unsigned char)(((ftell(CHR) / 8192) & 0xF00) >> 4);
 		fseek(CHR,0,SEEK_SET);
 	}
 	fwrite(&chrlen,1,1,NES);
 	maplo = ((mapper & 0x0F) << 4) | (mirror) | (battery << 1) | (fourscrn << 3);
 	fwrite(&maplo,1,1,NES);
 	maphi = (mapper & 0xF0);
+	if(nes2) maphi |= 0x08;
 	fwrite(&maphi,1,1,NES);
-	fwrite("\0\0\0\0\0\0\0\0",1,8,NES);
+	if(!nes2) fwrite("\0\0\0\0\0\0\0\0",1,8,NES);
+	else
+	{
+		mapext = ((mapper & 0xF00) >> 8);
+		mapext |= ((submapper & 0x0F) << 4);
+		fwrite(&mapext,1,1,NES);
+		fwrite(&prgchr_hi,1,1,NES);
+		temp = wram & 0xFF;
+		fwrite(&temp,1,1,NES);
+		temp = vram & 0xFF;
+		fwrite(&temp,1,1,NES);
+		temp = tv & 0x03;
+		fwrite(&temp,1,1,NES);
+		fwrite("\0\0\0",1,3,NES);
+	}
 	for (a = 0; a < prglen; a++)
 	{
 		char PRGdata[16384];

@@ -80,6 +80,7 @@ BOOL	NRAMcart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));
+			DoEvents();
 		}
 	}
 	StatusPercent(100);
@@ -98,6 +99,7 @@ BOOL	NRAMcart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
+			DoEvents();
 		}
 	}
 	StatusPercent(100);
@@ -176,6 +178,7 @@ BOOL	CNRAMcart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
+			DoEvents();
 		}
 	}
 	StatusPercent(100);
@@ -199,6 +202,7 @@ BOOL	CNRAMcart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));
+			DoEvents();
 		}
 	}
 	StatusPercent(100);
@@ -274,14 +278,15 @@ BOOL	UFROMcart (char* plugin, char* filedata)
 			return FALSE;
 		}
 		StatusPercent(100 * i / banks);
+		DoEvents();
 	}
 	StatusPercent(100);
 	StatusText("...done!");
 
 	StatusText("Sending data...");
-	data = filedata + 16; // PRG
 	for (banks = 0; banks < 16; )
 	{
+		data = filedata + 16; // PRG
 		for (i = 0; i < header[4]; i++, banks++)
 		{
 			for (j = 0; j < 16; j++)
@@ -293,6 +298,7 @@ BOOL	UFROMcart (char* plugin, char* filedata)
 				}
 				data += 1024;
 				StatusPercent(((banks * 16 + j) * 100) / 256);
+				DoEvents();
 			}
 		}
 	}
@@ -427,6 +433,7 @@ BOOL	PowerPakLitecart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));     
+			DoEvents();
 		}
 	}
 	
@@ -451,6 +458,7 @@ BOOL	PowerPakLitecart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
+			DoEvents();
 		}
 	}
 	StatusPercent(100);
@@ -556,6 +564,7 @@ BOOL	PowerPakcart (char* plugin, char* filedata)
 			return FALSE;
 		}
 		StatusPercent(100 * i / banks);
+		DoEvents();
 	}
 	StatusPercent(100);
 	StatusText("...done!");
@@ -574,6 +583,7 @@ BOOL	PowerPakcart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i*64 + j) * 100) / 256);   
+			DoEvents();
 		}
 	}
 	
@@ -637,6 +647,7 @@ BOOL	Glidercart (char* plugin, char* filedata)
 			return FALSE;
 		}
 		StatusPercent(100 * i / banks);
+		DoEvents();
 	}
 	StatusPercent(100);
 	StatusText("...done!");
@@ -655,6 +666,7 @@ BOOL	Glidercart (char* plugin, char* filedata)
 			}
 			data += 1024;
 			StatusPercent(((i*64 + j) * 100) / 256);   
+			DoEvents();
 		} 
 	}
 	
@@ -664,6 +676,109 @@ BOOL	Glidercart (char* plugin, char* filedata)
 	if (!ReadByte(&banks))
 	{
 		StatusText("Failed to read.");
+		return FALSE;
+	}
+	if (banks != 0)
+	{
+		StatusText("An error occurred while writing to the cartridge!");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL	UNROM512cart (char* plugin, char* filedata)
+{
+	int i, j;
+	BYTE header[16];
+	BYTE mapper;
+	BYTE banks;
+	char* data;
+
+	memcpy(header,filedata,16);
+	if ((header[4] == 1) || (header[4] == 2) || (header[4] == 4) || (header[4] == 8) || (header[4] == 16) || (header[4] == 32))
+		StatusText("%iKB PRG ROM data located...", header[4] * 16);
+	else
+	{
+		StatusText("Invalid PRG size, must be an even amount between 16KB and 512KB!");
+		return FALSE;
+	}
+
+	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
+
+	if (header[5] > 0)
+		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
+
+	if ((mapper != 30) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+	{
+		StatusText("Load aborted.");
+		return FALSE;
+	}
+
+	if (header[6] & 8)
+		MessageBox(topHWnd,"Please set your cartridge to ONE Screen mirroring.\n(ONE jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
+	else if (header[6] & 1)
+		MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring. \n(HORIZ jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
+	else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.\n(VERT jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
+
+	StatusText("Resetting USB CopyNES...");
+	ResetNES(RESET_COPYMODE);
+	StatusText("Loading plugin...");
+	if (!LoadPlugin(plugin))
+	{
+		StatusText("Plugin load failed!");
+		return FALSE;
+	}
+	StatusText("Initializing plugin...");
+	RunCode();
+	Sleep(SLEEP_SHORT);
+
+	StatusText("Erasing Flash ROM...");
+	banks=32;
+	if (!WriteByte(banks))
+	{
+		StatusText("Failed to write!");
+		return FALSE;
+	}
+	for (i = 0; i < banks; i++)
+	{
+		BYTE a;
+		if (!ReadByte(&a))
+		{
+			StatusText("Failed to read!");
+			return FALSE;
+		}
+		StatusPercent(100 * i / banks);
+		DoEvents();
+	}
+	StatusPercent(100);
+	StatusText("...done!");
+
+	StatusText("Sending data...");
+	for (banks = 0; banks < 32; )
+	{
+		data = filedata + 16; // PRG
+		for (i = 0; i < header[4]; i++, banks++)
+		{
+			for (j = 0; j < 16; j++)
+			{
+				if (!WriteBlock(data, 1024))
+				{
+					StatusText("Failed to send!");
+					return FALSE;
+				}
+				data += 1024;
+				StatusPercent(((banks * 16 + j) * 100) / 512);
+				DoEvents();
+			}
+		}
+	}
+	StatusPercent(100);
+	StatusText("...done!");
+
+	if (!ReadByte(&banks))
+	{
+		StatusText("Failed to read!");
 		return FALSE;
 	}
 	if (banks != 0)
@@ -763,6 +878,8 @@ BOOL	CMD_RAMCART (void)
 		result = PowerPakcart(plugin->file, filedata);
 	else if (plugin->num == 5)
 		result = Glidercart(plugin->file, filedata);
+	else if (plugin->num == 6)
+		result = UNROM512cart(plugin->file, filedata);
 	else	
 		result = FALSE;
 
@@ -828,6 +945,8 @@ BOOL	RAMCartLoad (char* filedata, long int filesize)
 		result = PowerPakcart(plugin->file, filedata);
 	else if (plugin->num == 5)
 		result = Glidercart(plugin->file, filedata);
+	else if (plugin->num == 6)
+		result = UNROM512cart(plugin->file, filedata);
 	else	
 		result = FALSE;
 

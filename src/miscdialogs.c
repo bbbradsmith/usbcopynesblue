@@ -105,6 +105,22 @@ void	StatusButtonAsync (BOOL enabled)
 		SetFocus(GetDlgItem(DlgStatus,IDC_STATUS_BUTTON)); 
 }
 
+void	DoEvents (void)
+{
+    MSG msg;
+ 
+    while ( PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE ) )
+    {
+        if ( GetMessage(&msg, NULL, 0, 0))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        else
+            break;
+    }
+}
+
 BOOL	StatusButtonPressed (void)
 {
 	MSG msg;
@@ -331,7 +347,7 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 static char custplug_name[1024] = "CUSTOM";
 static char custplug_file[1024] = "custom.bin";
 static char custplug_desc[1024] = "User-Defined Mapper";
-static TPlugin custplug = {custplug_name, custplug_file, 998, custplug_desc};
+static TPlugin custplug = {custplug_name, custplug_file, 9998, custplug_desc};
 
 PPlugin	PromptPlugin (int Type)
 {
@@ -340,21 +356,21 @@ PPlugin	PromptPlugin (int Type)
 	if (result == NULL)
 		return NULL;
 
-	if (result->num != 998)
+	if (result->num != 9998)
 		return result;
 
-	PromptTitle = "Specify iNES mapper number (cancel for none):\r\n(-1 to skip .NES, 999 to skip .NES and .UNIF)";
+	PromptTitle = "Specify iNES mapper number (cancel for none):\r\n(-1 to skip .NES, 9999 to skip .NES and .UNIF)";
 	if (Prompt(topHWnd))
 		custplug.num = atoi(PromptResult);
 	else	custplug.num = -1;
 
-	if (custplug.num != 999)
+	if (custplug.num != 9999)
 	{
 		PromptTitle = "Specify UNIF board name (cancel for none):";
 		if (Prompt(topHWnd))
 			strcpy(custplug.name,PromptResult);
 		else if (custplug.num == -1)
-			custplug.num = 999;
+			custplug.num = 9999;
 	}
 
 	while (1)

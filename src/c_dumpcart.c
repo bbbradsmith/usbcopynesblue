@@ -10,6 +10,8 @@ BOOL	CMD_DUMPCART (void)
 	char filename[MAX_PATH];
 	char fnamebuf[MAX_PATH];
 	int cmode, battery, bytes, numk;
+	int mapper,submapper=0;
+	int nes2=0, wram=0, vram=0;
 	BYTE ctype;
 	WORD nblks;
 	char Status[256];
@@ -19,6 +21,8 @@ BOOL	CMD_DUMPCART (void)
 	plugin = PromptPlugin(PLUG_STD);
 	if (plugin == NULL)
 		return FALSE;
+
+	mapper = plugin->num;
 
 	PromptTitle = "Choose a ROM filename (omit extension)";
 	if (!Prompt(topHWnd))
@@ -81,17 +85,43 @@ BOOL	CMD_DUMPCART (void)
 		switch (ctype)
 		{
 		case 1:	ext = ".prg";
+			if(numk >= 4096) nes2 = 1;
 			path = Path_PRG;
 			sprintf(Status,"Dumping %iK PRG ROM...",numk);	break;
 		case 2:	ext = ".chr";
+			if(numk >= 2048) nes2 = 1;
 			path = Path_CHR;
 			sprintf(Status,"Dumping %iK CHR ROM...",numk);	break;
 		case 3:	ext = ".sav";
 			path = Path_WRAM;
-			sprintf(Status,"Dumping %iK WRAM...",numk);
+			sprintf(Status,"Dumping %iK WRAM/VRAM...",numk);
 			battery = 1;					break;
 		case 4:	rbyte = nblks / 4;
 			continue;
+		case 5:	nes2 = 1;
+			wram = nblks & 0xFF;
+			vram = nblks >> 8;
+			if(wram & 0xF0) battery = 1;
+			if(vram & 0xF0) battery = 1;
+			sprintf(Status,"Non battery WRAM size: %i Bytes...", ((wram & 0x0f)?64 << (wram & 0x0F):0));
+			StatusText(Status);
+			sprintf(Status,"battery WRAM size: %i Bytes...", ((wram >> 4)?64 << (wram & 0x0F):0));
+			StatusText(Status);
+			sprintf(Status,"Non battery VRAM size: %i Bytes...", ((vram & 0x0f)?64 << (vram & 0x0F):0));
+			StatusText(Status);
+			sprintf(Status,"battery VRAM size: %i Bytes...", ((vram >> 4)?64 << (vram & 0x0F):0));
+			StatusText(Status);
+			continue;
+		case 6:	//Mapper number override by plugin.
+			mapper = nblks & 0xFFF;
+			submapper = (nblks & 0xF000) >> 12;
+			sprintf(Status,"Mapper number: %i, submapper: %i...",mapper,submapper);
+			StatusText(Status);
+			if((mapper > 255) || (submapper > 0))
+				nes2 = 1;					continue;
+		case 255:
+			sprintf(Status,".");
+			continue;	//Prevent timeout.
 		default:StatusText("Unknown block type %i! Aborting...",ctype);
 			StatusOK();
 			return FALSE;					break;
@@ -139,6 +169,7 @@ BOOL	CMD_DUMPCART (void)
 				}
 			}
 			StatusPercent((s*100)/numk);
+			DoEvents();
 		}
 		StatusPercent(100);
 		StatusText("...done!");
@@ -156,9 +187,9 @@ BOOL	CMD_DUMPCART (void)
 		int scrn4 = (cmode & 0x2) >> 1;
 		int mirror = (~cmode & 0x1);
 		int mcon = (cmode & 0x4) >> 2;
-		if (plugin->num == 999)
+		if (plugin->num == 9999)
 			return TRUE;
-		WriteNES(filename,plugin->num,battery,mirror,scrn4);
+		WriteNES(filename,mapper,battery,mirror,scrn4,nes2,wram,vram,submapper,0);
 		if (MakeUnif == 1)
 		  WriteUNIF(filename,plugin->name,battery,mirror,scrn4,mcon);
 		if (SaveFiles == 0)
