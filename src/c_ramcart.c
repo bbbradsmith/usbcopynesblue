@@ -693,6 +693,7 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
+	char string[256];
 	char* data;
 
 	memcpy(header,filedata,16);
@@ -709,7 +710,7 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 	if (header[5] > 0)
 		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
 
-	if ((mapper != 30) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+	if (!((mapper == 30) || (mapper == 2)) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
 		StatusText("Load aborted.");
 		return FALSE;
@@ -738,6 +739,33 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 	if (!WriteByte(banks))
 	{
 		StatusText("Failed to write!");
+		return FALSE;
+	}
+	if(!ReadByte(&banks))
+	{
+		StatusText("Failed to read!");
+		return FALSE;
+	}
+	if(banks == 0)
+	{
+		BYTE low_id, high_id;
+		if(!ReadByte(&low_id))
+		{
+			StatusText("Failed to read!");
+			return FALSE;
+		}
+		if(!ReadByte(&high_id))
+		{
+			StatusText("Failed to read!");
+			return FALSE;
+		}
+		sprintf(string,"Unrecognized flash device: Manufacturer ID = 0x%.2X, Chip ID = 0x%.2X",low_id,high_id);
+		StatusText(string);
+		return FALSE;
+	}
+	if(banks < header[4])
+	{
+		StatusText("Rom selected is too large for this flash cart");
 		return FALSE;
 	}
 	for (i = 0; i < banks; i++)
@@ -770,6 +798,11 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 				data += 1024;
 				StatusPercent(((banks * 16 + j) * 100) / 512);
 				DoEvents();
+			}
+			if((header[4]==2) && (banks < 30))
+			{
+				banks++;	//Code to force the lower 16KB bank to fill every flash bank, except the last one.
+				break;
 			}
 		}
 	}
