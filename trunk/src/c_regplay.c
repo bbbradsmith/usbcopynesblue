@@ -46,6 +46,7 @@ BOOL	RegPlayNES (char *filename)
 		{
 			FrameNum++;
 			StatusPercent((FrameNum*100)/NumFrames);
+			DoEvents();
 			if (!WriteByte(0xFF))
 			{
 				CloseStatus();
@@ -111,6 +112,7 @@ BOOL	RegPlayVRC7 (char *filename)
 		{
 			FrameNum++;
 			StatusPercent((FrameNum*100)/NumFrames);
+			DoEvents();
 			Sleep(16);	// wait about a frame or so
 		}
 	}

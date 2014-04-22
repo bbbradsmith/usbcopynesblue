@@ -3,26 +3,30 @@
 
 #define MAX_LOG_LEN     1024 * 1024 * 10
 
+unsigned int get_percent(FILE *f, unsigned int start)
+{
+	unsigned int log_pos, log_end;
+	log_pos = ftell(f);
+	fseek(f,0,SEEK_END);
+	log_end = ftell(f);
+	fseek(f,log_pos,SEEK_SET);
+	if((log_end-start)==0)
+		return 0;
+	return ((log_pos - start)*100) / (log_end-start);
+}
+
 BOOL    LogPlay (char *filename)
 {
 	char line[256];
 	unsigned char * log;
-	unsigned int log_len;
 	unsigned int log_pos;
+	unsigned int reset=0;
 	FILE *f;
 
 	OpenStatus(topHWnd);
 
-	log_len = 0;
-	log = malloc(MAX_LOG_LEN);
-	if (log == NULL)
-	{
-		StatusText("Could not allocate memory for log data.");
-		StatusOK();
-		return FALSE;
-	}
+	log_pos = 0;
 
-	StatusText("Parsing log file...");
 	f = fopen(filename,"rt");
 	if (f == NULL)
 	{
@@ -31,77 +35,79 @@ BOOL    LogPlay (char *filename)
 		free(log);
 		return FALSE;
 	}
+
+	StatusPercent(0);
+	StatusButtonAsync(TRUE);
 	do
 	{
 		fgets(line,sizeof(line),f);
-
-		if (!strncmp(line, "PLAY", 4)) // advance frame
+		if(feof(f))
 		{
-			log[log_len] = 0x01; // next frame command
-			++log_len;
+			log_pos = ftell(f);
+			StatusPercent(get_percent(f,log_pos));
+			if(reset)
+				WriteByte(0x01);
+			DoEvents();
+			if(StatusButtonPressed())
+				break;
+			else
+				continue;
+		}
+
+		if(!strncmp(line, "BEGIN", 5))
+		{
+			StatusText("Resetting USB CopyNES...");
+			ResetNES(RESET_COPYMODE);
+			StatusText("Loading plugin...");
+			if (!LoadPlugin("playlog.bin"))
+			{
+				StatusText("Could not load playlog.bin.");
+				StatusOK();
+				return FALSE;
+			}
+			StatusText("Initializing plugin...");
+			RunCode();
+			Sleep(SLEEP_SHORT);
+			StatusText("Playing...");
+			StatusText(line+5);
+			reset=1;
+			log_pos = ftell(f);
+		}
+		else if (!strncmp(line, "END", 3))
+		{
+			StatusPercent(100);
+			break;
+		}
+		else if (!strncmp(line, "PLAY", 4)) // advance frame
+		{
+			StatusPercent(get_percent(f,log_pos));
+			if(reset)
+				WriteByte(0x01);
+			DoEvents();
+			if(StatusButtonPressed())
+				break;
 		}
 		else if (!strncmp(line, "WRITE", 5))
 		{
 			unsigned int adr, val;
 			sscanf(line,"WRITE(%04X,%02X)",&adr,&val);
-			log[log_len+0] = (adr >> 8) & 0xFF;
-			log[log_len+1] = adr & 0xFF;
-			log[log_len+2] = val;
-			log_len += 3;
-
-			if (adr == 0x9030) // VRC7 requires delay
+			if(reset)
 			{
-				log[log_len] = 0x02; // delay command
-				++log_len;
+				WriteByte((adr>>8)&0xFF);
+				WriteByte(adr&0xFF);
+				WriteByte(val);
+
+				if (adr == 0x9030) // VRC7 requires delay
+				{
+					WriteByte(0x02);
+				}
 			}
 		}
 
-		if ((log_len + 4) >= MAX_LOG_LEN)
-		{
-			StatusText("Log exceeds maximum size!");
-			StatusOK();
-			free(log);
-			return FALSE;
-		}
-	} while (!feof(f));
+	} while (1);
 	fclose(f);
-
-	StatusText("Resetting USB CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin("playlog.bin"))
-	{
-		StatusText("Could not load playlog.bin.");
-		StatusOK();
-		free(log);
-		return FALSE;
-	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
-	StatusText("Playing...");
-	StatusPercent(0);
-
-	for (log_pos=0; log_pos<log_len;)
-	{
-		int block_size = 256;
-		int left =  log_len-log_pos;
-		if (left < block_size)
-			block_size = left;
-
-		if (!WriteBlock(log + log_pos,block_size))
-		{
-			StatusText("Error sending block.");
-			StatusOK();
-			free(log);
-			return FALSE;
-		}
-		log_pos += block_size;
-		StatusPercent(log_pos * 100 / log_len);
-	}
 	StatusText("Done.");
-	StatusOK();
-	free(log);
+	CloseStatus();
 	ResetNES(RESET_COPYMODE);
 	return TRUE;
 }

@@ -117,6 +117,8 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
+
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),FALSE);
 		// disable all "online" options
 	}
 	else
@@ -145,6 +147,8 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
+
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),TRUE);
 		
 		if (HWVer < 4)
 			MessageBox(topHWnd,"Unrecognized USB CopyNES BIOS version detected!", "USB CopyNES", MB_OK | MB_ICONERROR);

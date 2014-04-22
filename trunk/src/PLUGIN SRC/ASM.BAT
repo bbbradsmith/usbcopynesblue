@@ -1,6 +1,2 @@
-
-tasm -65 -x %1.asm
-del %1.int
-ren %1.obj %1.int
-ffc %1.int %1.bin
-rem move %1.bin ..\plugdone\
+tasm64 -65 -b -q -x DONE\%1.ASM ..\..\bin\plugins\%1.BIN
+del DONE\%1.lst
