@@ -48,10 +48,26 @@ currbank:    .equ 00e8h
              jsr read_byte
              sta temp3+1      ;receive number of sectors to erase
              
+             
+             
+             
              lda #0
              sta romsiz
              sta currbank
              sta temp1+0
+             
+             jsr softwareid
+             sta temp3+1
+             jsr send_byte
+             lda temp3+1
+             cmp #000h
+             bne er_loop
+             
+             txa             ;Unrecognized flash chip. Lets not erase it to be on the safe side.
+             jsr send_byte
+             tya
+             jsr send_byte
+             rts
              
              
 er_loop:     lda #080h
@@ -136,6 +152,48 @@ wtloop3:     lda (temp1),y
              bne wtloop3   ;check toggle
              lda #0f0h
              sta (temp1),y  ;reset to read mode
+             rts
+             
+softwareid:  
+             ldx #001h
+             jsr selbank
+             lda #0aah    ;erase sector command
+             sta 09555h  ;write to 5555
+
+             ldx #000h
+             jsr selbank
+             lda #055h
+             sta 0Aaaah  ;write to 2AAA
+             
+              ldx #001h
+             jsr selbank
+             lda #090h
+             sta 09555h
+             
+             lda 08001h
+             tay
+             lda 08000h
+             
+             ldx #0F0h
+             stx 08000h
+             tax
+             
+             cmp #0BFh
+             bne ret_zero
+             tya
+             cmp #0B5h
+             beq ret_8
+             cmp #0B6h
+             beq ret_16
+             cmp #0B7h
+             beq ret_32
+ret_zero:    lda #000h
+             rts
+ret_8:       lda #008h
+             rts
+ret_16:      lda #010h
+             rts
+ret_32:      lda #020h
              rts
 
 erasesector:       
