@@ -84,10 +84,12 @@ prog1:       ldx currbank
              sta temp1+0      ;start of bank to program
              
 prog2:       jsr read_byte
+             cmp #0FFh
+             beq skip_byte	;Erased flash already has 0xFF at this location. :)
              sta temp2
              ldy #000h
              jsr dobyte
-             inc temp1+0
+skip_byte:   inc temp1+0
              bne prog2
              inc temp1+1
              lda #0c0h
