@@ -768,7 +768,7 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 		StatusText("Rom selected is too large for this flash cart");
 		return FALSE;
 	}
-	if(!WriteByte(banks))	//Send start signal to actually erase the cart.
+	if(!WriteByte(header[4]))	//Send start signal to actually erase the cart.
 	{
 		StatusText("Failed to write!");
 		return FALSE;
@@ -778,7 +778,7 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 		StatusText("Failed to read!");
 		return FALSE;
 	}
-	if(a!=banks)
+	if(a!=header[4])
 	{
 		StatusText("Failed to Erase Cart!");
 		return FALSE;
@@ -787,8 +787,9 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 	StatusText("...done!");
 
 	StatusText("Sending data...");
-	for (bank = 0; bank < banks; )
-	{
+	//for (bank = 0; bank < banks; )
+	//{
+	bank=0;
 		data = filedata + 16; // PRG
 		for (i = 0; i < header[4]; i++, bank++)
 		{
@@ -800,16 +801,11 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 					return FALSE;
 				}
 				data += 1024;
-				StatusPercent(((bank * 16 + j) * 100) / 512);
+				StatusPercent(((bank * 16 + j) * 100) / (header[4]*16));
 				DoEvents();
 			}
-			if((header[4]==2) && (bank < 30))
-			{
-				banks++;	//Code to force the lower 16KB bank to fill every flash bank, except the last one.
-				break;
-			}
 		}
-	}
+	//}
 	StatusPercent(100);
 	StatusText("...done!");
 

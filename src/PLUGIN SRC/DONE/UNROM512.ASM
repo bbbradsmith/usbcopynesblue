@@ -33,6 +33,8 @@ temp3_hi:    .equ 00e5h
 temp4:       .equ 00e6h
 romsiz:      .equ 00e7h
 currbank:    .equ 00e8h
+flashsize:   .equ 00e9h
+romsize:     .equ 00eah
 
              ;plugin header that describes what it does
              
@@ -60,6 +62,7 @@ currbank:    .equ 00e8h
              sta temp3+1
              jsr send_byte
              lda temp3+1
+             sta flashsize
              cmp #000h
              bne er_start
              
@@ -70,6 +73,8 @@ currbank:    .equ 00e8h
              rts
              
 er_start:    jsr read_byte	;Wait for confirmation to start.
+             sta romsize	;Store size of actual rom.
+             sta temp3+1	;And only receive just as many banks.
              jsr eraseflash
              jsr send_byte
 
@@ -87,8 +92,21 @@ prog2:       jsr read_byte
              cmp #0FFh
              beq skip_byte	;Erased flash already has 0xFF at this location. :)
              sta temp2
-             ldy #000h
+curr_byte:   ldy #000h
              jsr dobyte
+             clc
+             lda currbank
+             adc romsize
+             cmp flashsize
+             bcs next_byte
+             sta currbank
+             jsr selbank
+             jmp curr_byte
+next_byte:   sec
+             sbc flashsize
+             sta currbank
+             jsr selbank
+             
 skip_byte:   inc temp1+0
              bne prog2
              inc temp1+1
@@ -98,6 +116,9 @@ skip_byte:   inc temp1+0
              inc currbank
              dec temp3+1
              bne prog1
+             
+             lda #000h
+             jsr selbank
              
              lda romsiz
              jsr send_byte
