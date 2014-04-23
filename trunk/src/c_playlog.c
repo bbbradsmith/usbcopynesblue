@@ -108,7 +108,7 @@ BOOL    LogPlay (char *filename)
 				WriteByte((adr>>8)&0xFF);
 				WriteByte(adr&0xFF);
 				WriteByte(val);
-				if((adr >= 0x4040) && (adr <= 0x4013))
+				if((adr >= 0x4010) && (adr <= 0x4013))
 				{
 					if(!dpcm)
 					{
