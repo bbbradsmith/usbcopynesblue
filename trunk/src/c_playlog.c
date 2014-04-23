@@ -20,7 +20,8 @@ BOOL    LogPlay (char *filename)
 	char line[256];
 	unsigned char * log;
 	unsigned int log_pos;
-	unsigned int loop_start;
+	unsigned int loop_start=0;
+	unsigned int dpcm=0;
 	unsigned int reset=0;
 	FILE *f;
 
@@ -57,6 +58,7 @@ BOOL    LogPlay (char *filename)
 
 		if(!strncmp(line, "BEGIN", 5))
 		{
+			dpcm = 0;
 			StatusText("Resetting USB CopyNES...");
 			ResetNES(RESET_COPYMODE);
 			StatusText("Loading plugin...");
@@ -94,7 +96,8 @@ BOOL    LogPlay (char *filename)
 		}
 		else if (!strncmp(line, "LOOPEND",7)) //Loop End Point
 		{
-			fseek(f,loop_start,SEEK_SET);
+			if(loop_start)
+				fseek(f,loop_start,SEEK_SET);
 		}
 		else if (!strncmp(line, "WRITE", 5))
 		{
@@ -105,6 +108,14 @@ BOOL    LogPlay (char *filename)
 				WriteByte((adr>>8)&0xFF);
 				WriteByte(adr&0xFF);
 				WriteByte(val);
+				if((adr >= 0x4040) && (adr <= 0x4013))
+				{
+					if(!dpcm)
+					{
+						dpcm = 1;
+						StatusText("Warning: This Track has DPCM");
+					}
+				}
 
 				//It is true that VRC7 requires delay. however, the delay is more than achieved
 				//by the amount of time it takes for the copynes to receive the next 3 bytes.
