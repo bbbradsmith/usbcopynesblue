@@ -108,14 +108,23 @@ BOOL    LogPlay (char *filename)
 				WriteByte((adr>>8)&0xFF);
 				WriteByte(adr&0xFF);
 				WriteByte(val);
-				if((adr >= 0x4010) && (adr <= 0x4013))
+				if((adr == 0x4010) && (val & 0xCF))
+					dpcm |= 1;
+				if((adr == 0x4011) && (val & 0x7F))
+					dpcm |= 2;
+				if((adr == 0x4012) && (val & 0xFF))
+					dpcm |= 4;
+				if((adr == 0x4013) && (val & 0xFF))
+					dpcm |= 8;
+				if((adr == 0x4015) && (val & 0x10))
+					dpcm |= 0x10;
+
+				if((dpcm > 0x10) && (dpcm < 0x20))
 				{
-					if(!dpcm)
-					{
-						dpcm = 1;
-						StatusText("Warning: This Track has DPCM");
-					}
+					StatusText("Warning: This track uses DPCM");
+					dpcm |= 0x20;
 				}
+
 
 				//It is true that VRC7 requires delay. however, the delay is more than achieved
 				//by the amount of time it takes for the copynes to receive the next 3 bytes.
