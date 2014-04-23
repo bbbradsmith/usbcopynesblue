@@ -20,6 +20,7 @@ BOOL    LogPlay (char *filename)
 	char line[256];
 	unsigned char * log;
 	unsigned int log_pos;
+	unsigned int loop_start;
 	unsigned int reset=0;
 	FILE *f;
 
@@ -87,6 +88,14 @@ BOOL    LogPlay (char *filename)
 			if(StatusButtonPressed())
 				break;
 		}
+		else if (!strncmp(line, "LOOPSTART",9)) //Loop Start Point
+		{
+			loop_start = ftell(f);
+		}
+		else if (!strncmp(line, "LOOPEND",7)) //Loop End Point
+		{
+			fseek(f,loop_start,SEEK_SET);
+		}
 		else if (!strncmp(line, "WRITE", 5))
 		{
 			unsigned int adr, val;
@@ -97,10 +106,16 @@ BOOL    LogPlay (char *filename)
 				WriteByte(adr&0xFF);
 				WriteByte(val);
 
-				if (adr == 0x9030) // VRC7 requires delay
-				{
-					WriteByte(0x02);
-				}
+				//It is true that VRC7 requires delay. however, the delay is more than achieved
+				//by the amount of time it takes for the copynes to receive the next 3 bytes.
+				//a single jsr read_byte, takes at least 52 cycles to complete.  The delay loop
+				//required is at least 42 cycles, and the one used by lagrangepoint takes 61 cyles.
+				//The total effective time for the next address/value pair to be written is at least
+				//168 cycles.
+				//if(adr == 0x9030)
+				//{
+				//	WriteByte(0x02);
+				//}
 			}
 		}
 

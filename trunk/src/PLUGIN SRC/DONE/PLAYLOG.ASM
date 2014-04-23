@@ -71,15 +71,15 @@ in_mode:    .equ 0304bh
 ;   $ab $cd $ef = write $ef to $abcd
 
 read_loop:  jsr read_byte
-            ; VRC7 delay
-            cmp #02h
-            bne no_delay
-            stx 082h ; $82 was just the ZP address used by lagrange point for this
-            ldx #08h
-delay_loop: dex
-            bne delay_loop
-            ldx 082h
-            jmp read_loop
+            ; VRC7 delay   ;No need for this.  jsr read_byte takes at least 52 cycles
+;            cmp #02h       ;to complete. :) writes to 9030 only need at least 42 cycles
+;            bne no_delay   ;of delay. The next time 9010/9030 gets writeen will be 6 read_bytes later. :)
+;            stx 082h ; $82 was just the ZP address used by lagrange point for this
+;            ldx #08h
+;delay_loop: dex
+;            bne delay_loop
+;            ldx 082h
+;            jmp read_loop
 no_delay:   cmp #01h
             bne do_write
             ; wait for next vblank
