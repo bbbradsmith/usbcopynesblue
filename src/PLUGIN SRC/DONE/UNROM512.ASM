@@ -81,8 +81,12 @@ er_start:    jsr read_byte	;Wait for confirmation to start.
              lda #0
              sta currbank
              
+             lda romsize
+             cmp flashsize
+             beq direct_prog
+             
 prog1:       ldx currbank
-             jsr selbank      ;select desired bank
+             stx 0c000h      ;select desired bank
              lda #080h
              sta temp1+1
              lda #000h
@@ -100,12 +104,12 @@ curr_byte:   ldy #000h
              cmp flashsize
              bcs next_byte
              sta currbank
-             jsr selbank
+             sta 0c000h
              jmp curr_byte
 next_byte:   sec
              sbc flashsize
              sta currbank
-             jsr selbank
+             sta 0c000h
              
 skip_byte:   inc temp1+0
              bne prog2
@@ -118,7 +122,38 @@ skip_byte:   inc temp1+0
              bne prog1
              
              lda #000h
-             jsr selbank
+             sta 0c000h
+             
+             lda romsiz
+             jsr send_byte
+             rts
+             
+direct_prog: ldx currbank
+             stx 0c000h     ;select desired bank
+             lda #080h
+             sta temp1+1
+             lda #000h
+             sta temp1+0      ;start of bank to program
+             
+prog3:       jsr read_byte
+             cmp #0FFh
+             beq skip_byte2	;Erased flash already has 0xFF at this location. :)
+             sta temp2
+             ldy #000h
+             jsr dobyte
+             
+skip_byte2:  inc temp1+0
+             bne prog3
+             inc temp1+1
+             lda #0c0h
+             cmp temp1+1
+             bne prog3        ;program all 16K
+             inc currbank
+             dec temp3+1
+             bne direct_prog
+             
+             lda #000h
+             sta 0c000h
              
              lda romsiz
              jsr send_byte
@@ -129,23 +164,21 @@ skip_byte:   inc temp1+0
 ;temp1 = address, acc =data
 dobyte:      
              ldx #001h
-             jsr selbank
-             ldx #$AA 
-             stx $9555      ;5555 = $AA
+             stx 0c000h
+             lda #$AA 
+             sta $9555      ;5555 = $AA
 
 
-             ldx #000h
-             jsr selbank
-             ldx #$55 
-             stx $AAAA      ;2AAA = $55
+             sty 0c000h
+             lda #$55 
+             sta $AAAA      ;2AAA = $55
  
-             ldx #001h
-             jsr selbank
+             stx 0c000h
              ldx #$A0 
              stx $9555      ;5555 = $A0
 
              ldx currbank
-             jsr selbank
+             stx 0c000h
              lda temp2
              sta (temp1),y    ;byte to program
 
