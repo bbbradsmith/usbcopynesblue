@@ -216,7 +216,7 @@ p2006hi:     .equ port+0eh   ;use bits 0-6 (2006 high)
 
              .org 01000h
              rts
-
+             
 start:       sei
              cld
              ldx #0fbh
@@ -563,6 +563,28 @@ got_bank:    lda load+1
              sta 5ff8h
              sta temp2         ;start loading at proper bank if non-banked
              rts
+             
+check_play_mode:
+             sei
+             cld
+             ldx #0f8h
+             txs
+             jsr init_port
+             lda port+00h
+             sta temp_byt
+             jsr init_ppu
+             ldx 7
+store_copynes_reset:
+             lda ram_dat,x
+             sta 01f8h,x
+             dex
+             bpl store_copynes_reset
+             lda port+00h
+             and #040h
+             beq no_play2
+             jmp 01f8
+no_play2:
+             jmp start
 
 ;--------------------------------------------------------------------------
 ;Main bulk of the emulator code goes here
@@ -2615,7 +2637,8 @@ identloop:   lda 03fc0h,y
 
              
              .dw nmi
-             .dw start
+             ;.dw start
+             .dw check_play_mode
              .dw irq
              
              .end
