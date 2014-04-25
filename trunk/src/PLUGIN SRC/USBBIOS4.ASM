@@ -2242,10 +2242,10 @@ init_crc:    lda #0ffh
              rts
 
 do_crc:      
-             sta load
-             txa
-             pha
-             lda load
+;             sta load
+;             txa
+;             pha
+;             lda load
              eor crc0        ;xor with first CRC
              tax             ;to get table entry
              lda crc_tab,x
@@ -2259,8 +2259,8 @@ do_crc:
              sta crc2
              lda crc_tab+768,x
              sta crc3
-             pla
-             tax
+;             pla
+;             tax
              rts
 
              
