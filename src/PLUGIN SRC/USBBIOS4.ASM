@@ -573,7 +573,7 @@ check_play_mode:
              lda port+00h
              sta temp_byt
              jsr init_ppu
-             ldx 7
+             ldx #7
 store_copynes_reset:
              lda ram_dat,x
              sta 01f8h,x
