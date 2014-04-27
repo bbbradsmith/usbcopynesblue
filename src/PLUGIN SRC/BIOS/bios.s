@@ -2062,6 +2062,44 @@ dodis2:
 
 ;---------------------
 ;I/O routines
+.ifdef PARALLELPORT
+read_byte:
+	lda port+$00
+	tax
+	eor temp_byte
+	and #$40
+	beq read_byte
+	stx temp_byte
+	ldx port+$01
+	lda port+$00
+	eor #$10
+	sta port+$00
+	txa
+	rts
+
+write_byte:
+	stx temp_x
+	sta port+$01
+	jsr set_out
+	lda port+$00
+	sta temp
+	eor #$20
+	sta port+$20
+	ldx #$00
+	:
+		lda port+$00
+		eor temp
+		and #$80
+		beq :+
+			ldx temp_x
+			rts
+		:
+		dex
+	bne :--
+	beq :--
+	ldx temp_x
+	rts
+.else
 read_byte:
 	lda #$00
 	sta port+$03	;set 6522 data port to input mode
@@ -2103,31 +2141,42 @@ write_byte:
 	lda #$00
 	sta port+$03	;set 6522 data port to input mode
 	rts
+.endif
+
+.ifdef PARALLELPORT
+port_00_init	:= $FE
+port_02_init	:= $3F
+port_03_init	:= $FF
+.else
+port_00_init	:= $FA
+port_02_init	:= $1F
+port_03_init	:= $00
+.endif
 
 init_port:
 	lda #$00
-	sta port+$0b	;ACR register timer disabled
+	sta port+$0b		;ACR register timer disabled
 
 	lda #$ff
-	sta port+$0c	;PCR register
-	sta port+$01	;set data bus
+	sta port+$0c		;PCR register
+	sta port+$01		;set data bus
 
-	lda #$fa	;carten=0, wr=0			1111 1010
-	sta port+$00	;set control port data
+	lda #port_00_init	;carten=0, wr=0			1111 1010
+	sta port+$00		;set control port data
 
-	lda #$1F	;				7654 3210	0=in  1=out
-	sta port+$02	;set control port DIRECTION	0001 1111
-							;D7 in = /TXE
-							;D6 in = PLAY/COPY
-							;D5 in = /RXE
-							;D4 out = /RD
-							;D3 out = EXP0
-							;D2 out = WR
-							;D1 out = enable/disable bios
-							;D0 out = enable/disable cart
+	lda #port_02_init	;				7654 3210	0=in  1=out
+	sta port+$02		;set control port DIRECTION	0001 1111
+								;D7 in = /TXE
+								;D6 in = PLAY/COPY
+								;D5 in = /RXE
+								;D4 out = /RD
+								;D3 out = EXP0
+								;D2 out = WR
+								;D1 out = enable/disable bios
+								;D0 out = enable/disable cart
 
-	lda #$00
-	sta port+$03	;set data to input mode
+	lda #port_03_init
+	sta port+$03		;set data to input mode
 	rts
 
 
@@ -2202,8 +2251,45 @@ init_ppu:
 	bpl :-		;wait 2 screens
 	rts
 
+.IFDEF PARALLELPORT
+print_hex_byte:
+	pha
+	lsr a
+	lsr a
+	lsr a
+	lsr a
+	jsr print_hex_digit
+	pla
+
+print_hex_digit:
+	and #$0f
+	tax
+	lda hex_char,x
+	;
+
+hex_char:
+	.byte "0123456789ABCDEF"
+
+baton:
+	stx temp_x
+	inc baton_c
+	lda #3
+	and baton_c
+	tax
+	lda #$c7
+	jsr set_lcd_addr
+	lda baton_char,x
+	jsr print_char
+	ldx temp_x
+	rts
+
+baton_char:
+	.byte $7C, $2F, $2D, $08
+
+.ELSE
 baton:
 	rts		;removed lcd code	;;TODO - Get source code of parallel port copynes, for inclusion as a DEFINE.
+.ENDIF
 
 set_in:
 	lda #$00	;set data port to all inputs
@@ -2241,11 +2327,157 @@ load_ram:
 
 	jmp back_here
 
+.IFDEF PARALLELPORT
+
+init_lcd1:
+	lda #$38
+	jsr set_lcd_addr
+	lda #$0c
+	jmp set_lcd_addr
+
+set_char_addr:
+	lda #0
+	sta char_ctr
+	lda #1
+	jsr set_lcd_addr
+	jsr delay
+	jsr delay
+	jsr delay
+	jmp delay
+
+put_char:
+	pha
+	inc char_ctr
+	lda char_ctr
+	cmp #9
+	bne :+
+		lda #$c0
+		jsr set_lcd_addr
+		jmp :++
+	:
+	cmp #$11
+	bne :+
+		lda #0
+		sta char_ctr
+		lda #$80
+		jsr set_lcd_addr
+	:
+	pla
+
+print_char:
+	sta port+$01
+	lda port+$00
+	ora #$08
+	sta port+$00
+	and #$fb
+	sta port+$00
+	ora #$04
+	sta port+$00
+	bne lcd_delay
+
+set_lcd_addr:
+	sta port+$01
+	lda port+$00
+	and #$f7
+	sta port+$00
+	and #$fb
+	sta port+$00
+	ora #$04
+	sta port+$00
+
+lcd_delay:
+	lda #$20
+	sec
+
+delay:
+	sbc #1
+	bcs delay
+	rts
+
+print_string:
+	asl a
+	tax
+	lda strings,x
+	sta c
+	inx
+	lda strings,x
+	sta b
+	ldy #0
+	:
+		lda (bc),y
+		bne :+
+			rts
+		:
+		cmp #$7E
+		bne :+
+			jsr set_char_addr
+			jmp :++
+		:
+			jsr put_char
+		:
+		iny
+	bne :----
+	rts
+
+nmi:
+	sei
+	lda #0
+	sta $2000
+	sta $2001
+	sta $4015
+	sta $4017
+	lda #2
+	jsr print_string
+	:
+	jmp :-
+
+init_lcd2:
+	ldx #0
+	lda #$40
+	jsr set_lcd_addr
+	:
+		lda cchar,x
+		jsr print_char
+		inx
+		cpx #8
+	bne :-
+	lda #$80
+	jsr set_lcd_addr
+	rts
+
+strings:
+	.word s_copynes, s_copyplay, s_interrupt, s_playcart
+	.word s_waithost, s_xfer, s_xferdone, s_playing
+	.word s_of
+
+s_copynes:
+	.asciiz "~CopyNES by K.H. "
+s_copyplay:
+	.asciiz "~ A-Copy, B-Play "
+s_interrupt:
+	.asciiz "~INTERRUPT!"
+s_playcart:
+	.asciiz "~  Playing Cart"
+s_waithost:
+	.asciiz "~Waiting for Host"
+s_xfer:
+	.asciiz "~Transferring..."
+s_xferdone:
+	.asciiz "~Transfer Done!"
+s_playing:
+	.asciiz "~Playing "
+s_of:
+	.asciiz " of "
+
+.ELSE
+
 nmi:	inc nmicounter
 	rti
 
 irq:	inc irqcounter
 	rti
+
+.ENDIF
 
 chk_vram:
 	lda #0
@@ -2576,4 +2808,8 @@ footer:
 vectors:
 	.word nmi
 	.word check_play_mode	;Start was killing ram, even for play mode. :(
+.ifdef PARALLELPORT
+	.word nmi
+.else
 	.word irq
+.endif
