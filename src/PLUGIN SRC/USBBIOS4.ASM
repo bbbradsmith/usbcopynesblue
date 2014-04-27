@@ -582,7 +582,7 @@ store_copynes_reset:
              lda port+00h
              and #040h
              beq no_play2
-             jmp 01f8
+             jmp 01f8h
 no_play2:
              jmp start
 
