@@ -1,3 +1,9 @@
+.ifdef PARALLELPORT
+	.out "Assembling Parallel port version of the bios"
+.else
+	.out "Assembling USB version of the bios"
+.endif
+
 
 ;protocol:   
 ;
@@ -101,8 +107,10 @@ len:		.res 3
 banks:		.res 8
 initsng:	.res 2
 
+.ifndef PARALLELPORT
 nmicounter:	.res 1
 irqcounter:	.res 1
+.endif
 
 crc0		:= $80
 crc1		:= $81
@@ -211,12 +219,38 @@ start:		;TODO - since the code has been changed to check for playmode first
 
 	jmp load_ram
 back_here:
+.ifdef PARALLELPORT
+	jsr set_in	;input mode
+
+	ldx #$00
+	stx type_4016
+	stx $4016
+
+	lda #$20
+	bit port+$01
+	beq got_4016
+
+try_2:
+	lda #$02
+	sta type_4016
+	sta $4016
+
+got_4016:
+	jsr init_port
+	lda port+$00
+	sta temp_byte
+	jsr init_lcd
+	jsr load_chars
+	jsr init_ppu
+	jsr lcd_clr
+.else
 
 got_4016:
 	jsr init_port
 	lda controlbus
 	sta temp_byte
 	jsr init_ppu
+.endif
 
 	ldx #0
 	ldy #0
@@ -236,13 +270,32 @@ got_4016:
 		cmp #$ff
 	bne :-
 
-	lda controlbus	;load control port
+.ifdef PARALLELPORT
+	lda #0		;message 0: "welcome message"
+	jsr sho_msg
+
+	bit port+$00	;load control port
+	bvc main	;if bit clear, we're going to copy
+
+	lda #3		;message 3: "Playing Game"
+	jsr sho_msg
+	jmp $0700
+
+	main:
+		jsr set_out
+		jsr lcd_clr
+		lda #4
+		jsr sho_msg	;message 4: "Waiting for Host"
+.else
+
+	lda port+$00	;load control port
 	and #$40	;D6 = play/copy mode
 	beq main	;if bit6=0 COPY mode
 		;jump to play code
 		jmp $0700
 
 	main:
+.endif
 		jsr set_in	;set 6522 input mode
 
 		jsr read_byte	;get mode byte
@@ -285,7 +338,10 @@ mode_1:	jsr read_pack
 	cmp #$a3
 	bne main
 	jsr set_out	;set 6522 output mode
-
+.ifdef PARALLELPORT
+	lda #5
+	jsr sho_msg	;message 5: "Transferring..."
+.endif
 	ldy #0
 	:
 		lda (addl),y
@@ -293,8 +349,15 @@ mode_1:	jsr read_pack
 		iny
 	bne :-
 		inc addh
+.ifdef PARALLELPORT
+		jsr baton
+.endif
 		dec npage
 	bne :-
+.ifdef PARALLELPORT
+	lda #6		;message 6: "Transfer Done!"
+	jsr sho_msg
+.endif
 	lda #120
 	jsr wait_vbl
 	jmp main
@@ -308,6 +371,10 @@ mode_2:
 
 j_main:	jmp main
 	:
+.ifdef PARALLELPORT
+	;lda #5
+	;jsr sho_msg
+.endif
 	ldy #0
 	:
 		jsr read_byte
@@ -315,8 +382,23 @@ j_main:	jmp main
 		iny
 	bne :-
 		inc addh
+.ifdef PARALLELPORT
+		;jsr baton
+.endif
 		dec npage
 	bne :-
+.ifdef PARALLELPORT
+	jsr set_out
+	lda #$80
+	jsr lcd_ins
+	lda $400
+	jsr sho_hex
+	lda $401
+	jsr sho_hex
+
+;	lda #6
+;	jsr sho_msg
+.endif
 	lda #6
 	jsr wait_vbl
 	jmp main
@@ -328,6 +410,10 @@ mode_5:
 	cmp #$e7
 	bne j_main
 	jsr set_out
+.ifdef PARALLELPORT
+	lda #5
+	jsr sho_msg
+.endif
 	lda #>(back_rd-1)
 	pha
 	lda #<(back_rd-1)
@@ -335,6 +421,10 @@ mode_5:
 	jmp (addl)
 
 back_rd:
+.ifdef PARALLELPORT
+	lda #6
+	jsr sho_msg
+.endif
 	lda #60
 	jsr wait_vbl
 	jmp main
@@ -452,6 +542,18 @@ replaynsf:
 	lda #$0f
 	sta $4015
 
+.ifdef PARALLELPORT
+	jsr set_out
+	lda #7
+	jsr sho_msg
+	lda initsng+1
+	jsr sho_hex
+	lda #8
+	jsr sho_msg
+	lda initsng
+	jsr sho_hex
+.endif
+
 	ldy initsng+1
 
 	ldx #0
@@ -558,6 +660,7 @@ work_bank:
 	sta temp2	;start loading at proper bank if non-banked
 	rts
 
+.ifndef PARALLELPORT
 check_play_mode:
 	sei
 	cld
@@ -580,6 +683,7 @@ check_play_mode:
 		jmp $1f8
 	:
 	jmp start
+.endif
 
 ;--------------------------------------------------------------------------
 ;Main bulk of the emulator code goes here
@@ -940,13 +1044,14 @@ execute:
 	sta reg_p	;OR new bits on
 
 edone:
-	;;OLD was read data		lda port+$01	;check if byte waiting to be read(/RXE=0)
-	;;OLD was compare to AA		cmp #$aa
-	;;OLD beq ebreak		;AA = break
-
-	lda port+$00	;NEW read control bus
-	and #$20	;NEW isolate /RXE D5
-	beq ebreak	;NEW zero = byte waiting to be read
+.ifdef PARALLELPORT
+	lda port+$01	;check if byte waiting to be read(/RXE=0)
+	cmp #$aa
+.else
+	lda port+$00	;read control bus
+	and #$20	;isolate /RXE D5
+.endif
+	beq ebreak	;byte waiting to be read
 
 	bit p2006hi	;p2206hi bit6->V
 	bvc continue	;if v clear, goto continue	run code was $40 to break
@@ -969,14 +1074,16 @@ ehalt:
 	lda #$01	;HLT hit, report same
 
 emul8done:
-	jsr write_byte
+	jsr write_byte2
 	jmp mainx
 
 ;break encountered from the PC
 ebreak:
+.ifndef PARALLELPORT
 	jsr read_byte	;NEW read the break byte that was waiting
+.endif
 	lda #$03
-	jsr write_byte
+	jsr write_byte2
 	jmp mainx
 
 ;------------------------------------------------------------------
@@ -990,6 +1097,18 @@ go2brk:
 emulate:
 	lda #$c0	;run 1 instruction
 	sta p2006hi
+
+.ifdef PARALLELPORT
+;RAM chip usage
+;emulate:     lda #040h
+;             ora p2006hi
+;             sta p2006hi
+;             bne emul8
+;
+;go2brk:      lda #0bfh
+;             and p2006hi
+;             sta p2006hi
+.endif
 
 emul8:
 	bit $2002
@@ -1294,6 +1413,16 @@ ppu2006x:
 	ora #$80	;#
 	sta p2006hi	;#
 
+.ifdef PARALLELPORT
+	;lda #$40	;RAM code
+	;and p2006hi	;#
+	;sta p2006hi	;#
+	;lda ramloc+0	;#
+	;and #$3f	;#
+	;ora p2006hi	;#
+	;sta p2006hi	;#
+.endif
+
 	lda #$40	;set bit we'll check
 	ora ppustat
 	sta ppustat
@@ -1336,6 +1465,19 @@ ppu2007x:
 	bcs :+
 		jmp noi2006
 	:
+
+.ifdef PARALLELPORT
+	;lda p2006hi	;code for RAM use
+	;tax		;#
+	;and #$40	;#
+	;sta p2006hi	;#
+	;txa		;#
+	;adc #$00	;#
+	;and #$3f	;#
+	;ora p2006hi	;#
+	;sta p2006hi	;#
+.endif
+
 	lda p2006hi	;code for port chip use
 	ldx #$3f	;#
 	stx p2006hi	;# clear lower 6 bits only
@@ -1591,7 +1733,7 @@ main2:
 	txs
 
 mainx:
-	jsr read_byte		;wait for PC to send something
+	jsr read_byte2		;wait for PC to send something
 	and #$0f
 	asl a
 	tax
@@ -1608,7 +1750,7 @@ wheretab:
 	.word gbanks,go2brk,setmode,mainx	;C D E F
 
 setmode:
-	jsr read_byte
+	jsr read_byte2
 	and #$22	;only allow updating 2 bits
 	sta ramloc+0
 	lda ppustat
@@ -1629,7 +1771,7 @@ gbanks:
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
-		jsr write_byte
+		jsr write_byte2
 		lda #$04
 		clc
 		adc ramloc+1
@@ -1644,17 +1786,17 @@ gbanks:
 		sty $2006
 		lda $2007
 		lda $2007
-		jsr write_byte	;write out 32 bytes of CHR ROM
+		jsr write_byte2	;write out 32 bytes of CHR ROM
 		dey
 	bpl :-
 	jmp mainx
 
 wbyte:
-	jsr read_byte
+	jsr read_byte2
 	sta ramloc+1
-	jsr read_byte
+	jsr read_byte2
 	sta ramloc+2
-	jsr read_byte
+	jsr read_byte2
 	ldx #$8d
 	stx ramloc+0
 	ldx #$60
@@ -1695,24 +1837,24 @@ genirq:
 
 rdpc:
 	lda reg_pcl
-	jsr write_byte
+	jsr write_byte2
 	lda reg_pch
-	jsr write_byte
+	jsr write_byte2
 	jmp mainx
 
 wrpc:
-	jsr read_byte
+	jsr read_byte2
 	sta reg_pcl
-	jsr read_byte
+	jsr read_byte2
 	sta reg_pch
 	jmp mainx
 
 dump:
-	jsr read_byte
+	jsr read_byte2
 	sta ramloc+1
-	jsr read_byte
+	jsr read_byte2
 	sta ramloc+2
-	jsr read_byte
+	jsr read_byte2
 	tay
 	lda #$ad
 	sta ramloc+0
@@ -1720,7 +1862,7 @@ dump:
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
-		jsr write_byte
+		jsr write_byte2
 		inc ramloc+1
 		bne :+
 			inc ramloc+2
@@ -1733,14 +1875,14 @@ dump:
 loadregs:
 	ldy #0
 	:
-		jsr read_byte
+		jsr read_byte2
 		sta reg_a,y
 		iny
 		cpy #$07
 	bne :-
-	jsr read_byte
+	jsr read_byte2
 	sta brkpt+0
-	jsr read_byte
+	jsr read_byte2
 	sta brkpt+1
 	jmp mainx
 
@@ -1749,20 +1891,20 @@ readregs:
 	ldy #0
 	:
 		lda reg_a,y
-		jsr write_byte
+		jsr write_byte2
 		iny
 		cpy #$07
 	bne :-
 	lda brkpt+0
-	jsr write_byte
+	jsr write_byte2
 	lda brkpt+1
-	jsr write_byte
+	jsr write_byte2
 	lda cyclecount+0	;write out cycle count
-	jsr write_byte
+	jsr write_byte2
 	lda cyclecount+1
-	jsr write_byte
+	jsr write_byte2
 	lda nothreg1
-	jsr write_byte
+	jsr write_byte2
 	jmp mainx
 
 ;figure out where disassembly should start by counting bytes in front of
@@ -1843,12 +1985,12 @@ dodis:
 	eor #$ff
 	clc
 	adc #$40	;-Y+$3f
-	jsr write_byte
+	jsr write_byte2
 	:
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
-		jsr write_byte
+		jsr write_byte2
 		inc ramloc+1
 		bne :+
 			inc ramloc+2
@@ -1870,7 +2012,7 @@ dodis:
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
-		jsr write_byte	;opcode
+		jsr write_byte2	;opcode
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
@@ -1884,7 +2026,7 @@ dodis:
 		inx
 		txa
 		stx ramloc+0
-		jsr write_byte	;size
+		jsr write_byte2	;size
 		ldx ramloc+0
 		lda #$ad
 		sta ramloc+0
@@ -1895,7 +2037,7 @@ dodis:
 				sta ramloc+3
 				jsr ramloc
 				stx ramloc+0
-				jsr write_byte
+				jsr write_byte2	;byte 1/2 (if used)
 				ldx ramloc+0
 				lda #$ad
 				sta ramloc+0
@@ -1904,12 +2046,12 @@ dodis:
 					inc ramloc+2
 				:
 				dex
-			bne :--
+			bne :--			;sent all bytes
 		:
 		dey
 	bne :-----
 	lda #$69
-	jsr write_byte
+	jsr write_byte2
 	jmp mainx
 
 
@@ -1991,12 +2133,12 @@ dodis2:
 	eor #$ff
 	clc
 	adc #$40	;-Y+$3f
-	jsr write_byte
+	jsr write_byte2
 	:
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
-		jsr write_byte
+		jsr write_byte2
 		inc ramloc+1
 		bne :+
 			inc ramloc+2
@@ -2018,7 +2160,7 @@ dodis2:
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
-		jsr write_byte	;opcode
+		jsr write_byte2	;opcode
 		lda #$60
 		sta ramloc+3
 		jsr ramloc
@@ -2032,7 +2174,7 @@ dodis2:
 		inx
 		txa
 		stx ramloc+0
-		jsr write_byte	;size
+		jsr write_byte2	;size
 		ldx ramloc+0
 		lda #$ad
 		sta ramloc+0
@@ -2043,7 +2185,7 @@ dodis2:
 				sta ramloc+3
 				jsr ramloc
 				stx ramloc+0
-				jsr write_byte
+				jsr write_byte2	;byte 1/2 (if used)
 				ldx ramloc+0
 				lda #$ad
 				sta ramloc+0
@@ -2052,54 +2194,93 @@ dodis2:
 					inc ramloc+2
 				:
 				dex
-			bne :--
+			bne :--			;sent all bytes
 		:
 		dey
 	bne :-----
 	lda #$69
-	jsr write_byte
+	jsr write_byte2
 	jmp mainx
 
 ;---------------------
 ;I/O routines
 .ifdef PARALLELPORT
-read_byte:
-	lda port+$00
+read_byte2:
+	lda #$00
+	sta port+$03	;set_in
+	:
+		nop
+		nop
+		nop
+		nop
+		lda port+$00
+		nop
+		nop
+		nop
+		nop
+		cmp port+$00	;catch noise
+	bne :-
+	nop
+	nop
+	nop
+	nop
 	tax
-	eor temp_byte
+	eor emutemp
 	and #$40
-	beq read_byte
-	stx temp_byte
+	beq read_byte2	;wait for state change
+	stx emutemp
+	nop
+	nop
+	nop
+	nop
 	ldx port+$01
 	lda port+$00
 	eor #$10
-	sta port+$00
+	sta port+$00	;write "got byte"
 	txa
 	rts
 
-write_byte:
-	stx temp_x
+write_byte2:
 	sta port+$01
-	jsr set_out
-	lda port+$00
-	sta temp
-	eor #$20
-	sta port+$20
-	ldx #$00
+	lda #$ff
+	sta port+$03	;set_out
+	nop
+	nop
+	nop
+	nop
 	:
 		lda port+$00
-		eor temp
+		sta ramloc+3
+		nop
+		nop
+		nop
+		nop
+		cmp port+$00
+	bne :-
+	eor #$20
+	sta port+$00	;toggle "byte ready"
+	nop
+	nop
+	nop
+	nop
+	:
+		lda port+$00	;loading data port
+		eor ramloc+3
 		and #$80
-		beq :+
-			ldx temp_x
-			rts
-		:
-		dex
-	bne :--
-	beq :--
-	ldx temp_x
+	beq :-			;wait for state change
+		nop
+		nop
+		nop
+		nop
+		lda port+$00
+		eor ramloc+3
+		and #$80
+	beq :-			;make sure
+	lda #$00
+	sta port+$03	;direction change
 	rts
 .else
+read_byte2:
 read_byte:
 	lda #$00
 	sta port+$03	;set 6522 data port to input mode
@@ -2121,6 +2302,7 @@ read_byte:
 	txa	;put new data in a
 	rts
 
+write_byte2:
 write_byte:
 	sta port+$01	;set data bus
 	lda #$ff
@@ -2141,17 +2323,6 @@ write_byte:
 	lda #$00
 	sta port+$03	;set 6522 data port to input mode
 	rts
-.endif
-
-.ifdef PARALLELPORT
-port_00_init	:= $FE
-port_02_init	:= $3F
-port_03_init	:= $FF
-.else
-port_00_init	:= $FA
-port_02_init	:= $1F
-port_03_init	:= $00
-.endif
 
 init_port:
 	lda #$00
@@ -2161,10 +2332,10 @@ init_port:
 	sta port+$0c		;PCR register
 	sta port+$01		;set data bus
 
-	lda #port_00_init	;carten=0, wr=0			1111 1010
+	lda #$fa		;carten=0, wr=0			1111 1010
 	sta port+$00		;set control port data
 
-	lda #port_02_init	;				7654 3210	0=in  1=out
+	lda #$1f		;				7654 3210	0=in  1=out
 	sta port+$02		;set control port DIRECTION	0001 1111
 								;D7 in = /TXE
 								;D6 in = PLAY/COPY
@@ -2175,10 +2346,11 @@ init_port:
 								;D1 out = enable/disable bios
 								;D0 out = enable/disable cart
 
-	lda #port_03_init
+	lda #$00
 	sta port+$03		;set data to input mode
 	rts
 
+.endif
 
 ;---------------------------------------------------------
 ;Subroutines
@@ -2240,6 +2412,81 @@ read_pack:
 	bne :-
 	rts
 
+.ifdef PARALLELPORT
+read_byte:
+	lda port+$00
+	tax
+	eor temp_byte
+	and #$40
+	beq read_byte
+	stx temp_byte
+	ldx port+$01
+	lda port+$00
+	eor #$10
+	sta port+$00
+	txa
+	rts
+
+write_byte:
+	stx temp_x
+	sta port+$01
+	jsr set_out
+	lda port+$00
+	sta temp
+	eor #$20
+	sta port+$00
+	ldx #$00
+	:
+		lda port+$00
+		eor temp
+		and #$80
+		beq :+
+			ldx temp_x
+			rts
+		:
+		dex
+	bne :--
+	beq :--
+	ldx temp_x
+	rts
+
+init_port:
+	lda #$00
+	sta port+$0b		;ACR register timer disabled
+
+	lda #$ff
+	sta port+$0c		;PCR register
+	sta port+$01		;set data bus
+
+	lda #$fe		;carten=0, wr=0			1111 1110
+	sta port+$00		;set control port data
+
+	lda #$3f		;				7654 3210	0=in  1=out
+	sta port+$02		;set control port DIRECTION	0011 1111
+								;D7 in = write handshake
+								;D6 in = PLAY/COPY
+								;D5 out = read handshake
+								;D4 out = read handshake
+								;D3 out = lcd rs
+								;D2 out = EXP0
+								;D1 out = enable/disable bios
+								;D0 out = enable/disable cart
+
+	lda #$ff
+	sta port+$03		;set data to input mode
+	rts
+
+cart_on:
+	lda #$fe	;enabling cart D0=0
+	sta port+$00
+	rts
+
+cart_off:
+	lda #$ff	;disabling cart D0=1
+	sta port+$00
+	rts
+.endif
+
 init_ppu:
 	lda #0
 	sta $2000
@@ -2252,38 +2499,40 @@ init_ppu:
 	rts
 
 .IFDEF PARALLELPORT
-print_hex_byte:
+sho_hex:
 	pha
 	lsr a
 	lsr a
 	lsr a
 	lsr a
-	jsr print_hex_digit
+	jsr sho_nyb
 	pla
 
-print_hex_digit:
+sho_nyb:
 	and #$0f
 	tax
-	lda hex_char,x
-	;
+	lda hex_tab,x
+	jmp lcd_char
 
-hex_char:
+hex_tab:
 	.byte "0123456789ABCDEF"
 
-baton:
+baton:	
+	;rts
+
 	stx temp_x
 	inc baton_c
 	lda #3
 	and baton_c
 	tax
 	lda #$c7
-	jsr set_lcd_addr
-	lda baton_char,x
-	jsr print_char
+	jsr lcd_ins
+	lda baton_d,x
+	jsr lcd_dat
 	ldx temp_x
 	rts
 
-baton_char:
+baton_d:
 	.byte $7C, $2F, $2D, $08
 
 .ELSE
@@ -2329,30 +2578,30 @@ load_ram:
 
 .IFDEF PARALLELPORT
 
-init_lcd1:
+init_lcd:
 	lda #$38
-	jsr set_lcd_addr
+	jsr lcd_ins
 	lda #$0c
-	jmp set_lcd_addr
+	jmp lcd_ins
 
-set_char_addr:
+lcd_clr:
 	lda #0
 	sta char_ctr
 	lda #1
-	jsr set_lcd_addr
-	jsr delay
-	jsr delay
-	jsr delay
-	jmp delay
+	jsr lcd_ins
+	jsr ld_loop
+	jsr ld_loop
+	jsr ld_loop
+	jmp ld_loop	;extra delay for screen clearing
 
-put_char:
+lcd_char:
 	pha
 	inc char_ctr
 	lda char_ctr
 	cmp #9
 	bne :+
 		lda #$c0
-		jsr set_lcd_addr
+		jsr lcd_ins
 		jmp :++
 	:
 	cmp #$11
@@ -2360,66 +2609,66 @@ put_char:
 		lda #0
 		sta char_ctr
 		lda #$80
-		jsr set_lcd_addr
+		jsr lcd_ins
 	:
 	pla
 
-print_char:
-	sta port+$01
-	lda port+$00
+lcd_dat:
+	sta port+$01	;write data
+	lda port+$00	;get status
 	ora #$08
-	sta port+$00
+	sta port+$00	;turn lcd rs = 1
 	and #$fb
-	sta port+$00
+	sta port+$00	;lcd /enable = 0
 	ora #$04
-	sta port+$00
-	bne lcd_delay
+	sta port+$00	;lcd /enable = 1
+	bne l_dlay
 
-set_lcd_addr:
-	sta port+$01
-	lda port+$00
+lcd_ins:
+	sta port+$01	;write_data
+	lda port+$00	;get status
 	and #$f7
-	sta port+$00
+	sta port+$00	;lcd rs = 0
 	and #$fb
-	sta port+$00
+	sta port+$00	;lcd /enable = 0
 	ora #$04
-	sta port+$00
+	sta port+$00	;lcd /enable = 1
 
-lcd_delay:
-	lda #$20
+l_dlay:
+	lda #40
 	sec
 
-delay:
+ld_loop:
 	sbc #1
-	bcs delay
+	bcs ld_loop
 	rts
 
-print_string:
+sho_msg:
 	asl a
 	tax
-	lda strings,x
+	lda msgs,x
 	sta c
 	inx
-	lda strings,x
-	sta b
+	lda msgs,x
+	sta b		;get message pointer
 	ldy #0
 	:
 		lda (bc),y
 		bne :+
 			rts
 		:
-		cmp #$7E
+		cmp #'~'
 		bne :+
-			jsr set_char_addr
+			jsr lcd_clr
 			jmp :++
 		:
-			jsr put_char
+			jsr lcd_char
 		:
 		iny
 	bne :----
 	rts
 
-nmi:
+int_err:
 	sei
 	lda #0
 	sta $2000
@@ -2427,47 +2676,47 @@ nmi:
 	sta $4015
 	sta $4017
 	lda #2
-	jsr print_string
+	jsr sho_msg
 	:
 	jmp :-
 
-init_lcd2:
+load_chars:
 	ldx #0
 	lda #$40
-	jsr set_lcd_addr
+	jsr lcd_ins
 	:
 		lda cchar,x
-		jsr print_char
+		jsr lcd_dat
 		inx
 		cpx #8
 	bne :-
 	lda #$80
-	jsr set_lcd_addr
+	jsr lcd_ins
 	rts
 
-strings:
-	.word s_copynes, s_copyplay, s_interrupt, s_playcart
-	.word s_waithost, s_xfer, s_xferdone, s_playing
-	.word s_of
+msgs:
+	.word msg_0,msg_1,msg_2,msg_3,msg_4,msg_5,msg_6
+	.word msg_7,msg_8
 
-s_copynes:
+msg_0:		 ;0123456789ABCDEF
 	.asciiz "~CopyNES by K.H. "
-s_copyplay:
+msg_1:
 	.asciiz "~ A-Copy, B-Play "
-s_interrupt:
+msg_2:
 	.asciiz "~INTERRUPT!"
-s_playcart:
+msg_3:
 	.asciiz "~  Playing Cart"
-s_waithost:
+msg_4:		 ;0123456789ABCDEF
 	.asciiz "~Waiting for Host"
-s_xfer:
+msg_5:
 	.asciiz "~Transferring..."
-s_xferdone:
+msg_6:
 	.asciiz "~Transfer Done!"
-s_playing:
+msg_7:
 	.asciiz "~Playing "
-s_of:
+msg_8:
 	.asciiz " of "
+		 ;0123456789ABCDEF
 
 .ELSE
 
@@ -2570,10 +2819,6 @@ init_crc:
 	rts
 
 do_crc:
-;	sta load
-;	txa
-;	pha
-;	lda load
 	eor crc0	;xor with first CRC
 	tax		;to get table entry
 	lda crc_tab0,x
@@ -2587,8 +2832,6 @@ do_crc:
 	sta crc2
 	lda crc_tab3,x
 	sta crc3
-;	pla
-;	tax
 	rts
 
 finish_crc:
@@ -2784,10 +3027,15 @@ crc_tab3:
 	.byte $86,$F1,$68,$1F,$81,$F6,$6F,$18,$88,$FF,$66,$11,$8F,$F8,$61,$16
 	.byte $A0,$D7,$4E,$39,$A7,$D0,$49,$3E,$AE,$D9,$40,$37,$A9,$DE,$47,$30
 	.byte $BD,$CA,$53,$24,$BA,$CD,$54,$23,$B3,$C4,$5D,$2A,$B4,$C3,$5A,$2D
+.ifdef PARALLELPORT
+COPYNESVER	:= $03
+.else
+COPYNESVER	:= $04
+.endif
 
 identify2:
 	jsr set_out
-	lda #$04
+	lda #COPYNESVER
 	jsr write_byte
 	jmp main
 
@@ -2804,12 +3052,20 @@ identify:
 
 .segment "FOOTER"
 footer:
+.ifdef PARALLELPORT
+	.asciiz "CopyNES BIOS V3.00 (c) Kevin Horton   Built on 01.03.2006"
+.else
 	.asciiz "USB CopyNES V4.00 (c) Kevin Horton & Brian Parker 8.16.07"
+.endif
 vectors:
+.ifdef PARALLELPORT
+	.out "Parallel port bios assembly complete"
+	.word int_err
+	.word start
+	.word int_err
+.else
+	.out "USB bios assembly complete"
 	.word nmi
 	.word check_play_mode	;Start was killing ram, even for play mode. :(
-.ifdef PARALLELPORT
-	.word nmi
-.else
 	.word irq
 .endif
