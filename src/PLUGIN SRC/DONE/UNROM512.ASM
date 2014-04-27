@@ -50,9 +50,6 @@ romsize:     .equ 00eah
              jsr read_byte
              sta temp3+1      ;receive number of sectors to erase
              
-             
-             
-             
              lda #0
              sta romsiz
              sta currbank
@@ -77,13 +74,11 @@ er_start:    jsr read_byte	;Wait for confirmation to start.
              sta temp3+1	;And only receive just as many banks.
              jsr eraseflash
              jsr send_byte
-
-             lda #0
-             sta currbank
              
              lda romsize
              cmp flashsize
-             beq direct_prog
+             beq direct_prog	;Roms from 16K to 256K are programmed with a mirror programming mode.
+             					;That code would be wasting cycles for flashing a 512K rom.
              
 prog1:       ldx currbank
              stx 0c000h      ;select desired bank
@@ -162,19 +157,17 @@ skip_byte2:  inc temp1+0
              
 
 ;temp1 = address, acc =data
-dobyte:      
-             ldx #001h
+dobyte:      ldx #001h
              stx 0c000h
-             lda #$AA 
+             lda #$AA
              sta $9555      ;5555 = $AA
 
-
              sty 0c000h
-             lda #$55 
+             lda #$55
              sta $AAAA      ;2AAA = $55
- 
+
              stx 0c000h
-             ldx #$A0 
+             ldx #$A0
              stx $9555      ;5555 = $A0
 
              ldx currbank
@@ -192,38 +185,33 @@ wtloop3:     lda (temp1),y
              sta romsiz
 wr_success:  rts
              
-softwareid:  
-             ldx #001h
-             jsr selbank
+softwareid:  ldx #001h
+             stx 0c000h
              lda #0aah    ;erase sector command
              sta 09555h  ;write to 5555
 
-             ldx #000h
-             jsr selbank
+             ldy #000h
+             sty 0c000h
              lda #055h
              sta 0Aaaah  ;write to 2AAA
              
-              ldx #001h
-             jsr selbank
+             stx 0c000h
              lda #090h
              sta 09555h
              
-             lda 08001h
-             tay
-             lda 08000h
+             ldx 08000h
+             ldy 08001h
              
-             ldx #0F0h
-             stx 08000h
-             tax
+             lda #0F0h
+             sta 08000h
              
-             cmp #0BFh
+             cpx #0BFh
              bne ret_zero
-             tya
-             cmp #0B5h
+             cpy #0B5h
              beq ret_8
-             cmp #0B6h
+             cpy #0B6h
              beq ret_16
-             cmp #0B7h
+             cpy #0B7h
              beq ret_32
 ret_zero:    lda #000h
              rts
@@ -234,41 +222,32 @@ ret_16:      lda #010h
 ret_32:      lda #020h
              rts
 
-eraseflash:       
-             ldx #001h
-             jsr selbank
+eraseflash:  ldx #001h
+             stx 0c000h
              lda #0aah    ;erase sector command
              sta 09555h  ;write to 5555
 
-             ldx #000h
-             jsr selbank
+             ldy #000h
+             sty 0c000h
              lda #055h
              sta 0Aaaah  ;write to 2AAA
              
-              ldx #001h
-             jsr selbank
-            lda #080h
+             stx 0c000h
+             lda #080h
              sta 09555h  ;write to 5555
 
-             ldx #001h
-             jsr selbank
              lda #0aah
              sta 09555h   ;write to 5555
 
-             ldx #000h
-             jsr selbank
+             sty 0c000h
              lda #055h
              sta 0Aaaah   ;write to 2AAA
 
-             ldx #001h
-             jsr selbank
+             stx 0c000h
              lda #010h
              sta 09555h
              
 wtloop:      lda 09555h
-             cmp 09555h
-             bne wtloop
-             lda 09555h
              cmp 09555h
              bne wtloop
              lda 09555h
@@ -277,10 +256,6 @@ wtloop:      lda 09555h
              lda #0FFh
              rts
 er_success:  lda temp3+1
-             rts
-
-
-selbank:     stx 0c000h
              rts
 
 
