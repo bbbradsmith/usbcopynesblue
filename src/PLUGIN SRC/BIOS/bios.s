@@ -971,6 +971,8 @@ fixaddy2:
 	bmi idone	;if in ROM, we're done automatically
 	cmp #$01
 	beq stackstuff
+	cmp #$09
+	beq stackstuff	;Somebody could otherwise make life difficult. :)
 	and #$f8
 	cmp #$48
 	beq portwrite	;port chip at 4800-4fff
