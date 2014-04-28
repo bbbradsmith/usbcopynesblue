@@ -1,3 +1,4 @@
+@echo off
 cd temp
 del /q *.*
 cd ..\BIOS
