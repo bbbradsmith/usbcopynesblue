@@ -1,0 +1,86 @@
+              210 in 1 Multicart, Mapper: BMC-Generic210in1
+              ---------------------------------------------
+
+2.17.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-Generic210in1 for the UNIF 
+format.
+
+
+Yup.  Yet another multi.
+
+---
+
+
+The hardware:
+
+
+1mbyte ROM, 8K VRAM, 74273, 7432, 7402, 74153, 7474, and a 74157.
+
+-
+
+Like alot of other multicarts, this one uses the address written to to select
+the desired banks and other things.
+
+-
+
+Bank Select Register:
+
+
+It uses A0 through A7.  This means the address written to matters, while
+the actual data written does not.  
+
+15      addr      0
+-------------------
+1xxx xxGP TPPP PSMZ
+
+
+OK, this is really weeeird.  As you can see, the program bank bits are
+not all contiguous.  They are in order from lowest to highest, however.
+
+This mapper has several modes.
+
+--
+
+Z: This is the PRG ROM size bit. 0=16K, 1=32K
+
+G: This is the "default bank" bit. 0=lowest 16K, 1=highest 16K.
+
+T: This is the "type" bit.  0=UNROM emulation, 1=NROM.
+
+T = 0, Z = 0
+
+In this mode, the first 16K is selected by writing to the P bits and the
+S bit to select the bank.  The second bank is the same as the 
+first, ANDed with 038h, then OR'd with either 00h (when the G bit is 0)
+or 07h (when the G bit is 1)
+
+T = 0, Z = 1
+
+This is similar to the above, only the lower bank will be selected by
+the P bits only, and then only the lower 16K of that 32K bank will appear
+at the first 16K of PRG space.  The upper 16K operates the same as above.
+
+T = 1, Z = 0
+
+In this mode, both 16K sections of PRG will hold the same data.  Select
+a bank using the P bits and the S bit.
+
+T = 1, Z = 1
+
+This is similar to the above, only now there is 1 32K PRG bank.  Use the
+P bits only to select it.
+
+M: Mirroring.  
+
+0 selects H
+1 selects V
+
+
+That's it.
+

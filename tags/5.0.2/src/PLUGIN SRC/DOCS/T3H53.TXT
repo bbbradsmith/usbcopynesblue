@@ -1,0 +1,59 @@
+               T3H53-board - NN in 1 mapper. UNIF: BMC-T3H53
+               ---------------------------------------------
+
+1.27.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-T3H53 for the UNIF format.  
+If you must use ines, use mapper #59.  (that's 59 decimal)
+
+
+Generic NN in 1 multicart with 7-9 REAL games.
+
+---
+
+
+The hardware:
+
+1 gloptopped Mapper/ROM chip.
+
+Total PRG is 256K, and total CHR is 64K.  PRG is selected in 32K banks, and
+CHR is selected in 8K banks.
+
+-
+
+Like some other multicarts, this one uses the address written to, rather 
+than the data written.
+
+A15      bit     A0
+
+1xxx xxxS xPPP MCCC
+
+
+P bits:  Selects one of the 8 32K PRG banks.
+C bits:  Selects one of the 8 8K CHR banks.
+
+M bit:   1=H mirroring, 0=V mirroring (need to check which)
+
+x bits:  Not used
+
+S bit:   This bit is weird.
+
+0- Enable ROM at 8000-FFFFh.
+1- Enable jumpers.
+
+When the S bit is 0, the cart work as normal.  
+When the S bit is 1, you can read the 2 jumpers on the cart.
+
+Reading anywhere between 8000-FFFFh will read the jumper values- D0 and D1
+will hold their state.  Since the ROM is switched out and the jumpers are 
+switched in, you must read them from RAM.  
+
+On startup, all bits are cleared- this selects PRG bank 0, CHR bank 0, and
+ROM mode (as opposed to "jumper" mode).
+
+That's it!

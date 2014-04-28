@@ -1,0 +1,192 @@
+-------------------------------
+Namcot 106 Mapper infomation.
+-------------------------------
+by goroh
+mail: goroh_kun@geocities.co.jp
+date: 1997/5/26
+
+by ZW4
+sound fix.
+Mail: zw4@geocities.co.jp
+Date: 980905
+
+by nori
+English translation and sound stuff fix.
+mail: fammaster@mail.goo.ne.jp
+date: 2000/3/22
+
+(1) Page Size
+PRG-ROM Page_Size & Index_Size: 8k
+CHR-ROM Page_Size & Index_Size: 1k
+
+(2) PRG-ROM,CHR-ROM Page Switch Register
+
+===  Functions  ===
+$4800          Expand I/O data register
+
+$5000-$57FF R/W cloock counter lower 1byte
+ bit xxxxxxxx
+ xxxxxxxx: counter's lower 1byte
+
+$5800-$5FFF R/W clock counter higher 1byte(7bit) & counter enable/disable
+ bit exxxxxxxx
+ e: 1-counter enable  0-counter disable
+ xxxxxxx: counter's higher 1byte
+
+Note:
+clock_counter is incremented by clock, when clock_counter reach $5000=$5800=0xff,
+IRQ occur.
+Then, to reset irq signal, $5800(or $5000) values have to change, $5000=$5800 != 0xff.
+And, clock_counter's value can check by reading $5000/5800.
+
+$6000-$7FFF    mapped to WRAM(e.g.DDS2) or unused.
+
+$8000-$87FF    Select one CHR-ROM BANK or Select CHR-DRAM at $0000-$03FF.
+$8800-$8FFF    Select one CHR-ROM BANK or Select CHR-DRAM at $0400-$07FF.
+$9000-$97FF    Select one CHR-ROM BANK or Select CHR-DRAM at $0800-$0BFF.
+$9800-$9FFF    Select one CHR-ROM BANK or Select CHR-DRAM at $0C00-$0FFF.
+  --- $E800's 7bit=0 ---
+   #$00-#$DF Page_number
+   #$E0-#$FF Select CHR-DRAM
+  --- $E800's 7bit=1 ---
+   #$00-#$FF Page_number
+
+$A000-$A7FF    Select one CHR-ROM BANK or Select CHR-DRAM at $1000-$13FF.
+$A800-$AFFF    Select one CHR-ROM BANK or Select CHR-DRAM at $1400-$17FF.
+$B000-$B7FF    Select one CHR-ROM BANK or Select CHR-DRAM at $1800-$1BFF.
+$B800-$BFFF    Select one CHR-ROM BANK or Select CHR-DRAM at $1C00-$1FFF.
+  --- $E800's 8bit=0 ---
+   #$00-#$DF Page_number
+   #$E0-#$FF Select CHR-DRAM
+  --- $E800's 8bit=1 ---
+   #$00-#$FF Page_number
+
+$C000-$C7FF    Select one CHR-ROM BANK or CHR-SRAM(in FC)&Mirror at $2000-$23FF.
+$C800-$CFFF    Select one CHR-ROM BANK or CHR-SRAM(in FC)&Mirror at $2400-$27FF.
+$D000-$D7FF    Select one CHR-ROM BANK or CHR-SRAM(in FC)&Mirror at $2800-$2BFF.
+$D800-$DFFF    Select one CHR-ROM BANK or CHR-SRAM(in FC)&Mirror at $2C00-$2FFF.
+   #$00-#$DF Page_number
+   #$E0-#$FF Use CHR-SRAM(in FC system)
+          1bit: Mirror(CHR-SRAM Addr10)  1:High 0:Low
+
+$E000-$E7FF    Select one PRG-ROM BANK at $8000-$9FFF.
+   bit --pppppp
+   pppppp: Page_number
+$E800-$EFFF    Select one PRG-ROM BANK at $A000-$BFFF,Select CHR-ROM or CHR-DRAM.
+   bit BApppppp
+   pppppp: Page_number
+   A: Select at CHR_address $0000-$0FFF 0:CHR-ROM&CHR-DRAM 1:CHR-ROM 
+   B: Select at CHR_address $1000-$1FFF 0:CHR-ROM&CHR-DRAM 1:CHR-ROM 
+
+$F000-$F7FF    Select one PRG-ROM BANK at $C000-$DFFF.
+   bit --pppppp
+   pppppp: Page_number
+
+$F800          Expand I/O address register
+Detail is following.
+
+Note: PRG $E000-$FFFF is hardwired(LastPage).
+
+If CHR-ROM is larger 2M, total page number is also larger #$E0.
+Therefore CHR-ROM can dump by write to over #$E0 at $E008.
+
+
+<$4800,$F800's instruction>
+$4800 Expand I/O Data Register
+$F800 Expand I/O Address Register
+ bit Iaaaaaaa
+ aaaaaaa: Address
+ I: Auto Increment Enable/Disable 1:Enable 0:Disable
+   I=1, if $4800 is accessed (read/write), Address is automatically incremented.
+
+<How to Use Expand I/O (different each game)>
+<1> to use work-ram (e.g. MindSeeker, KaijyuMonogatari, etc)
+ In this case, Expand I/O is assigned by expand memory.
+Therefore, savedata can read/write in $4800/$F800
+
+<2> to control expand sound.(e.g. Sangokushi2,DDS2,King of Kings, etc)
+
+ExtI/O Adr. : 
+$00-$3f: Wave data
+
+* 8 Channnel sound output.
+ch1 ch2 ch3 ch4 ch5 ch6 ch7 ch8
+--- --- --- --- --- --- --- ---
+$40 $48 $50 $58 $60 $68 $70 $78 - frequency low
+$42 $4a $52 $5a $62 $6a $72 $7a - frequency mid
+$44 $4c $54 $5c $64 $6c $74 $7c - frequency high & wave-data length
+$46 $4e $56 $5e $66 $6e $76 $7e - wave-data offset address
+$47 $4f $57 $5f $67 $6f $77 $7f - volume
+
+> frequency low
+    bit LLLLLLLL
+    L: lower 8bit, frequency is constructed 18bits.
+
+> frequency mid
+    bit MMMMMMMM
+    M: middle 8bit.
+
+> frequency high & wave-data length
+    bit SSSFllHH
+
+    H: higher 2bit of frequency.
+    l: wave-data length, (8-l)*4 samples. ((8-l)*2 bytes)
+    S: 0:sound stop.
+    F: 0:increase 1oct.
+
+> wave-data offset address
+    bit AAAAAAAL
+
+    A[byte]: pointer of starting wave data.
+    L : 0: lower 4bit  1:higher 4bit
+Note: 
+* This value can set $00-$ff, It mean wavedata can set register area.($40-$7F)
+  (use DDS2 battle scene.)
+* wave is 4bits data.
+
+Example (10byte wavedata is setting at address$10)
+
+ExI/O Adr : Data
+       $10: #$10 #$32 #$54 #$76 #$98 #$BA #$DC #$FE #$DE #$BC
+
+offset register($46) : #$20 (wave data is started from $10, lower bit)
+wavedata length($44) :  ----11-- ( (8-3)*4=20 samples. )
+
+output wave
+
+F                              --
+E                            --  --
+D                          --      --
+C                        --          --
+B                      --              --
+A                    --
+9                  --
+8                --
+7              --
+6            --
+5          --
+4        --
+3      --
+2    --
+1  --
+0---------------------------------------->
+
+> volume
+    bit ????VVVV
+
+    V: volume (15:maximum Å` 0:minimum)
+    ?: unknown
+
+<about frequency>
+frequency is constructed 18bits in HHMMMMMMMMLLLLLLLL.
+
+actual frecuency is 
+      Freq * 440 * (2-F)
+ f = -------------------
+            15467
+ Freq: 18bits frequency data.
+ F : increse oct.
+
+
+
+

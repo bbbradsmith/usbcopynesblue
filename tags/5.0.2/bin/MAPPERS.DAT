@@ -1,0 +1,181 @@
+92  1   28  41  46  121 
+0   10  14  55  60  77  80  89  93  99  105 120 127 140 173 178 
+*                                       0    Common Mappers                                                           
+xxxx                       xxxx.bin     9998 User Mapper                                                              
+NES-NROM                   nrom.bin     0    Generic NROM games 32K PRG / 8K CHR max                                  
+NES-MMC1                   sxrom.bin    1    Generic MMC1 (all types)                                                 
+NES-UxROM                  unrom.bin    2    Generic UxROM                                                            
+NES-CNROM                  cnrom.bin    3    LS161, Max 32K PRG, Max 32K CHR (banked) (bus conflicts)                 
+NES-MMC3                   txrom1.bin   4    Generic MMC3 (all types)                                                 
+NES-MMC5                   exrom.bin    5    Generic MMC5 (all types)                                                 
+NES-AxROM                  axrom.bin    7    Generic AxROM (all types)                                                
+MAPPER11                   cdreams.bin  11   Generic mapper 11 (Colordreams/AGCI)                                     
+*                                       2    Test & Dev Use                                                           
+DEV-TEST                   test.bin     0    Test plugin for dev/REing use (NROM)                                     
+XXX-mirror                 mirror.bin   0    Mirroring test                                                           
+XXX-QUIET-MMC5             mmc5plug.bin 0    QuieTest(tm) 2000 MMC5 tester                                            
+*                                       0    Nintendo: Less Common Mappers & Full Board Names                         
+NES-AMROM                  axrom.bin    7    LS161, Max 128K PRG, VRAM (bus conflicts)                                
+NES-ANROM                  axrom.bin    7    LS02/LS161, Max 128K PRG, VRAM                                           
+NES-AOROM                  axrom.bin    7    LS161, Max 256K PRG, VRAM (bus conflicts)                                
+NES-BNROM                  bnrom.bin    34    LS161, Max 128K PRG, VRAM (bus conflicts)                                
+NES-BTR                    fme7.bin     69   FME-7, Max 512K PRG, 256K CHR                                            
+NES-CPROM                  cprom.bin    13   LS08, LS161, LS04, Max 32K PRG, 16K VRAM                                 
+NES-ELROM                  exrom.bin    5    MMC5, Max 1024K PRG, Max 256K CHR                                        
+NES-ETROM                  exrom.bin    5    MMC5, Max 1024K PRG, Max 256K CHR, 16K WRAM                              
+NES-EWROM                  exrom.bin    5    MMC5, Max 1024K PRG, Max 256K CHR, 32K WRAM                              
+NES-GNROM                  gnrom.bin    66   NES-GNROM, max. 128K PRG, 32K CHR, LS161                                 
+NES-HKROM                  hkrom.bin    4    MMC6, Max 512K PRG, Max 256K CHR, 1K WRAM at 7000-7FFF                   
+NES-JLROM                  fme7.bin     69   JLROM, uses FME-07                                                       
+NES-MHROM                  mhrom.bin    66   gloptops, LS161, 64K PRG, 16K CHR (SMB/DH)                               
+NES-NROM-128               nrom.bin     0    16K PRG, 8K CHR                                                          
+NES-NROM-256               nrom.bin     0    32K PRG, 8K CHR                                                          
+NES-PNROM                  pxrom.bin    2    MMC2, Punch Out!!                                                        
+NES-SAROM                  sxrom.bin    1    MMC1, Max 128K PRG, Max 64K CHR, 8K WRAM                                 
+NES-SBROM                  sxrom.bin    1    MMC1, Max 128K PRG, Max 64K CHR                                          
+NES-SCROM                  sxrom.bin    1    MMC1, Max 128K PRG, Max 128K CHR                                         
+NES-SEROM                  sxrom.bin    1    MMC1, Max 32K PRG, Max 64K CHR                                           
+NES-SGROM                  sxrom.bin    1    MMC1, Max 256K PRG, 8K VRAM                                              
+NES-SKROM                  sxrom.bin    1    MMC1, Max 256K PRG, 128K CHR, 8K WRAM                                    
+NES-SLROM                  sxrom.bin    1    MMC1, Max 256K PRG, Max 128K CHR                                         
+NES-SL1ROM                 sxrom.bin    1    MMC1, Max 128K PRG, Max 128K CHR (Uses LS32 for CHR ROM enabling)        
+NES-SNROM                  sxrom.bin    1    MMC1, Max 256K PRG, VRAM, WRAM                                           
+NES-SOROM                  sxrom.bin    1    MMC1, Max 256K PRG, VRAM, 16K of WRAM                                    
+NES-QJ                     qj.bin       47   World Cup Soccer / Super Spike V.B., 256K PRG/CHR                        
+NES-RROM-128               nrom.bin     0    16K PRG, 8K CHR (early)                                                  
+NES-TFROM                  txrom1.bin   4    MMC3, Max 128K PRG, 64K CHR                                              
+NES-TGROM                  txrom1.bin   4    MMC3, Max 512K PRG, VRAM                                                 
+NES-TKROM                  txrom1.bin   4    MMC3, Max 512K PRG, 256K CHR, 8K WRAM + batt                             
+NES-TLROM                  txrom1.bin   4    MMC3, Max 512K PRG, 256K CHR                                             
+NES-TQROM                  tqrom.bin    119  MMC3, Max 512K PRG, RAM/ROM CHR                                          
+NES-TR1ROM                 txrom1.bin   4    MMC3, Max 512K PRG, 64K CHR, 4 screen                                    
+NES-TSROM                  txrom1.bin   4    MMC3, Max 512K PRG, 256K CHR, 8K WRAM                                    
+NES-UNROM                  unrom.bin    2    LS32/LS161, Max 128K PRG, VRAM, 16K pages  (bus conflicts)               
+NES-UOROM                  uorom.bin    2    LS32/LS161, Max 256K PRG, VRAM, 16K pages  (bus conflicts)               
+351908                     sxrom.bin    1    MMC1, Max 128K PRG, Max 128K CHR (Uses LS32 for CHR ROM enabling, Konami)
+351320                     unrom.bin    2    LS32/LS161, max 128K PRG, VRAM, 16K pages (UNROM, Konami)                
+NES-EVENT                  nwc.bin      132  Nintendo World Championship Cart                                         
+*                                       0    WRAM Readers (for reading saved games from carts)                        
+NES-SXROM                  sxromw.bin   9999 SxROM MMC1 WRAM reader                                                   
+NES-TXROM                  txromw.bin   9999 TxROM MMC3 WRAM reader                                                   
+NES-EXROM                  exromw.bin   9999 ExROM MMC5 WRAM reader                                                   
+NES-HKROM                  hkromw.bin   9999 HKROM MMC6 WRAM reader                                                   
+*                                       0    Nintendo: Famicom                                                        
+HVC-3405                   nam118a.bin  88   Namcot 108, normal fixed mirroring                                       
+HVC-3417                   nam109.bin   88   Namcot 109, no PRG bankswitching (Skykid)                                
+HVC-3413                   nam118a.bin  88   Namcot 109, normal fixed mirroring                                       
+HVC-3414                   nam118a.bin  88   Namcot 118, normal fixed mirroring                                       
+HVC-3425                   nam118a.bin  95   Namcot 118, automirroring (Dragon Buster)                                
+HVC-ARKANOID2              ark2.bin     70   Arkanoid 2, 64K PRG, 128K CHR                                            
+HVC-JF-14                  bio2.bin     140  Jaleco JF-14 boards 128/128                                              
+HVC-JF-09                  jf09.bin     87   Jaleco JF-09 boards 32K PRG / 32K CHR                                    
+LR0G009                    vrc4.bin     23   VRC2 Type B, Konami                                                      
+350685                     vrc3.bin     73   VRC3, 64K-256K PRG, 8K VRAM                                              
+351949A                    vrc6.bin     26   VRC6: Reverse addr. 64K-256K PRG, 64K-256K CHR                           
+????                       vrc6.bin     24   VRC6: Normal addr. 64K-256K PRG, 64K-256K CHR (CV3j)                     
+????                       namco106.bin 19   Namcot 106: Max 512K PRG, 256K CHR. not finished                         
+????                       vrc7.bin     85   VRC7: Max 512K PRG, 256K CHR, 8K WRAM. not finished                      
+SSS-NROM-MENU              nrom.bin     143  Famicombox menu ROM                                                      
+sunsoft4                   sunsft4.bin  68   Sunsoft mapper #4                                                        
+*                                       0    3rd Party: Legit Multicarts                                              
+MLT-Caltron6in1            caltron.bin  41   Caltron 6-in-1, 256K PRG, 128K CHR                                       
+MLT-Act52                  a52.bin      228  Action 52, 1536K PRG, 512K CHR                                           
+*                                       0    3rd Party: Tengen                                                        
+UNL-Ten800003              nrom.bin     0    No Mapper (Tengen)                                                       
+UNL-Ten800008              800008.bin   3    LS161, Max 64K PRG, Max 64K CHR (Tengen, Tetris)                         
+UNL-Ten800002              mimic1.bin   64   Mimic-1, Max 128K PRG, Max 64K CHR (Tengen)                              
+UNL-Ten800004              mimic1.bin   64   Mimic-1, Max 128K PRG, Max 64K CHR + 4 Scrn Mir. (Tengen)                
+UNL-Ten800030              mimic1.bin   64   Mimic-1, Max 128K PRG, Max 64K CHR (Tengen)                              
+UNL-Ten800032              rambo1.bin   64   Rambo-1, Max 256K PRG, Max 128K CHR (Tengen)                             
+UNL-Ten800037              rambo1.bin   64   Rambo-1, Max 256K PRG, Max 256K CHR (Tengen)                             
+UNL-Ten800042              800042.bin   68   copy of sunsoft mapper                                                   
+*                                       0    3rd Party: AVE                                                           
+UNL-AVENina-06             nina0x.bin   79   LS138, LS174, 16K-64K PRG, 16K-64K CHR                                   
+UNL-AVENina-03             nina0x.bin   79   LS138, LS175, 16K/32K PRG, 16K/32K CHR                                   
+UNL-AVENina-01             nina001.bin  34   Misc. TTL Chips, 64K PRG, 64K CHR, 8K WRAM                               
+*                                       0    3rd Party: Camerica                                                      
+UNL-CamAladdinQuatro       cameric2.bin 2    CCU_V2.00, Max 256K PRG, VRAM (Camerica's Aladdin)                       
+UNL-CamAladdinNormal       camerica.bin 2    CCU_V2.00, Max 256K PRG, VRAM (Camerica's Aladdin)                       
+UNL-CamBF9093              camerica.bin 2    BF9093 carts (Camerica)                                                  
+UNL-CamBF9093A             cameric2.bin 2    BF9093 carts for Quattro games (Camerica)                                
+UNL-CamBF9097              camerica.bin 2    BF9097 carts (Camerica)                                                  
+*                                       0    3rd Party: Misc.                                                         
+UNL-ActCheetah             cheetah.bin  228  Cheetahmen 2, 256K PRG, 128K CHR                                         
+UNL-CDreams                cdreams.bin  11   C.Dreams - LS377, Max 128K PRG, Max 128K CHR                             
+47516                      cdreams.bin  11   AGCI - LS377, Max 64K PRG, Max 64K CHR                                   
+50282                      cdreams.bin  11   AGCI - LS377, Max 64K PRG, Max 64K CHR board rev                         
+R982-073                   racer.bin    168  Racermate exercise bike mapper                                           
+*                                       0    3rd Party: Sachen Junk                                                   
+UNL-Sachen-TC-A001         nrom.bin     143  Sachen's pathetic copy protection                                        
+UNL-Sachen-74LS374N        74ls374n.bin 243  74LS374N Sachen mappers                                                  
+UNL-Sachen-8259A           sachen2.bin  141  8259A Style A max 256K/256K                                              
+UNL-Sachen-8259B           8259b.bin    138  8259A Style B max 256KP/128KC                                            
+UNL-Sachen-8259C           8259c.bin    139  8259A Style C (final combat/hell ft)                                     
+UNL-Sachen-8259D           8259d.bin    137  8259A style D (great wall)                                               
+UNL-Sachen-SA-72008VX      sachen7.bin  150  Sachen 72008VC (jovial race)                                             
+UNL-SA-0036                sachen9.bin  149  Sachen SA-0036 boards                                                    
+UNL-SA-0037                sachen8.bin  148  Sachen SA-0037 boards                                                    
+UNL-SA-72007               sachen4.bin  145  Sachen SA-72007 boards                                                   
+UNL-SA-72008               sachen3.bin  144  Sachen SA-72008 boards                                                   
+UNL-SA-016-1M              sachen5.bin  146  Sachen SA-016-1M boards                                                  
+UNL-TC-U01-1.5M            sachen6.bin  147  Sachen TC-U01-1.5M boards                                                
+UNL-JoyVan                 jovial.bin   131  Joy Van carts                                                            
+*                                       0    'Unlicensed' Games                                                       
+UNL-GIRLFGHT               girlfght.bin 116  Girl Fighting AV huang-1 mapper                                          
+UNL-H2288                  ewj2.bin     123  Earth Worm Jim, MMC3-alike w/ copy prot.                                 
+UNL-8237                   pokeahin.bin 114  Pocahontas 2                                                             
+UNL-Cony1                  cony1.bin    83   Cony Mapper with 1K CHR banks                                            
+UNL-Cony2                  cony2.bin    82   Cony Mapper with 2K CHR banks                                            
+UNL-UxROM-512              u5rom.bin    2    Sealie Computing UNROM-512 (Mapper will override to 30 when req.)        
+*                                       0    Single Game Bootlegs                                                     
+BTL-MONTY                  monty.bin    125  Monty on the Run FDS conversion                                          
+BTL-DD2                    dd2.bin      127  Double Dragon 2 using lots of 4*4 reg files                              
+BTL-KS202                  smb2jc.bin   142  KS202 bootlegs, SMB2j                                                    
+BTL-NROM                   nromx.bin    0    16K/32K PRG ROM only, VRAM for CHR                                       
+BTL-NROM                   nrom.bin     0    NROM pir8                                                                
+BTL-MARIO1-MALEE2          mario15.bin  9999 Mario 1 with extensive mods, not NROM                                    
+BTL-SMB3                   pir8smb3.bin 56   Pirate SMB3, Non-MMC3                                                    
+BTL-TLROM                  txrom1.bin   4    MMC3 pirate, no WRAM                                                     
+BTL-SMB2jB                 smb2ja.bin   50   SMB2j Revision 'B', 128K PRG                                             
+BTL-BioMiracle             bio.bin      42   Special Mapper: #42 Bio Miracle Pirate 128K PRG                          
+BTL-SDK                    sdk.bin      182  Super Donkey Kong: 128K PRG, 128K CHR                                    
+BTL-JT09091                tekken.bin   90   mapper 90: 128K PRG, 512K CHR                                            
+*                                       0    Bootleg Multicarts                                                       
+BMC-PowerJoy008            powerj.bin   126  Power Joy cart thingy                                                    
+BMC-family                 family.bin   134  Family Kid pirate mapper                                                 
+BMC-CM017                  cm017.bin    131  CM017 multicart, 512K/512K                                               
+BMC-NS03-7in1              7in1x.bin    130  NS 03 7 in 1 multicart, discrete                                         
+BMC-NS03                   ns03.bin     154  NS03 7 in 1 discrete. 512K/512K                                          
+BMC-K3966-SS               k3966.bin    153  Generic 3 in 1, MMC3-based. 512K/512K                                    
+BMC-830821C                hik.bin      128  1994 Super HIK 4 in 1 512K PRG, VRAM                                     
+BMC-WS                     95in1.bin    152  WS multi's 128K PRG 64K CHR single glop                                  
+BMC-SV01                   117in1.bin   129  SV01 multi's 128K PRG 64K CHR single glop                                
+BMC-T3H53                  103in1.bin   59   T3H53 multi's 128K PRG 64K CHR single glop                               
+BMC-Ghostbusters63in1      63in1.bin    130  Ghostbusters 63 in 1                                                     
+BMC-Generic210in1          210in1.bin   9999 Generic 210 in 1                                                         
+BMC-Generic15in1           15in1.bin    9999 15 in 1                                                                  
+BMC-Generic255in1          255in1.bin   63   255 in 1, 3Mbyte PRG                                                     
+BMC-Super700in1            700in1.bin   62   Super 700 in 1                                                           
+BMC-Generic20in1A          20in1a.bin   61   20 in 1, Generic A                                                       
+BMC-Generic20in1           20in1.bin    231  20 in 1, Generic                                                         
+BMC-Reset4in1              r4in1.bin    60   4 in 1 Multi uses reset                                                  
+BMC-StudyGame32in1         study.bin    58   Study & Game 32 in 1                                                     
+BMC-1995SuperHik4in1       hik4in1b.bin 55   1995 Super HIK 4 in 1                                                    
+BMC-NovelDiamond9999999in1 999in1.bin   54   Pirate 9999999 in 1                                                      
+BMC-Supervision16in1       16in1a.bin   53   UNIF: Supervision 16 in 1                                                
+BMC-Mario7in1              mario.bin    52   Mario 7 in 1, 1Mbyte PRG, 1Mbyte CHR                                     
+BMC-1993SuperHiK4in1       4in1.bin     49   4 in 1, 512K PRG / 512K CHR                                              
+BMC-1992Ballgames11in1     11in1.bin    51   11 in 1 Ball Games, 512K PRG                                             
+BMC-Generic115in1          115in1.bin   255  115 in 1, 2Mbyte PRG, 1Mbyte CHR                                         
+BMC-Generic52in1           52in1.bin    225  52 in 1, 1Mbyte PRG, 512K CHR                                            
+BMC-Super1Min1             1min1.bin    45   1000000 in 1 multi, 512K PRG, 512K CHR                                   
+BMC-Generic42in1           42in1.bin    226  42 in 1, 1Mbyte PRG, 8K VRAM                                             
+BMC-Generic76in1           76in1.bin    226  76 in 1, 2Mbyte PRG, 8K VRAM                                             
+BMC-1991SuperHiK7in1       7in1.bin     44   7 in 1: 1Mbyte PRG, 1Mbyte CHR, MMC3                                     
+BMC-GoldenGame150in1       150in1.bin   235  'Golden Game' 150 in 1                                                   
+*                                       1    WRAM Writer Plugins (CopyNESW only)                                      
+WRAM-MMC1                  sxram.bin    9997 WRAM Writer for MMC1 (SxROM)                                             
+WRAM-MMC3                  txram.bin    9997 WRAM writer for MMC3 (TxROM)                                             
+WRAM-MMC5                  exram.bin    9997 WRAM Writer for MMC5 (ExROM)                                             
+WRAM-MMC6                  hkram.bin    9997 WRAM writer for MMC6 (HkROM)                                             
+*                                       0    end                                                                      

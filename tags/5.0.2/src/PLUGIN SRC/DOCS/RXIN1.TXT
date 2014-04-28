@@ -1,0 +1,36 @@
+      X in 1 multicart that uses reset to select, Mapper: BMC-ResetXin1
+      -----------------------------------------------------------------
+
+2.3.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+NOTE: This mapper may be used on any cart with 16K PRG / 8K CHR banks,
+and an increment-on-reset counter.  
+
+This mapper has been assigned the designation BMC-ResetXin1 for the UNIF 
+format. "X" is the number of games. If you must use ines, use mapper #60.  
+(that's 60 decimal)
+
+
+Nothing special.  2 ROMs and a counter.
+
+---
+
+
+There are no registers
+
+-
+
+Bank Select:
+
+Every time reset is pressed, the counter increments.  A 4 in 1 for example
+would have 2 bank select bits.  These would run to the upper 2 address lines
+of the ROM.
+
+
+That's it.
+
