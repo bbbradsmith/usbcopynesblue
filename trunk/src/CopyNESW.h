@@ -9,8 +9,10 @@ typedef	struct	Plugin
 {
 	char *name;
 	char *file;
+	char *nsffile;
 	int num;
 	char *desc;
+	int load_nsf;
 }	TPlugin, *PPlugin;
 
 typedef	struct	Category
