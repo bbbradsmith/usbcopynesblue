@@ -1,3 +1,4 @@
+.out ""
 .ifdef PARALLELPORT
 	.out "Assembling Parallel port version of the bios"
 .else
@@ -120,7 +121,7 @@ crc3		:= $83
 s_init		:= $01fc
 s_play		:= $01fe
 
-;was $4800 on parallel copynes
+;was $4800, some mappers use this location.
 port		:= $4a00
 
 topostack	:= $ec
@@ -211,14 +212,12 @@ p2006hi		:=port+$0e   ;use bits 0-6 (2006 high)
 .segment "MAIN"
 
 	rts
-start:		;TODO - since the code has been changed to check for playmode first
-	sei	;remove the playmode related stuff from here, and finsish copymode
-	cld	;initialization.
-	ldx #$fb
-	txs
 
-	jmp load_ram
-back_here:
+start:
+	sei
+	cld
+	ldx #$f8
+	txs
 .ifdef PARALLELPORT
 	jsr set_in	;input mode
 
@@ -228,33 +227,67 @@ back_here:
 
 	lda #$20
 	bit port+$01
-	beq got_4016
-
-try_2:
-	lda #$02
-	sta type_4016
-	sta $4016
-
-got_4016:
+	beq :+
+		lda #$02
+		sta type_4016
+		sta $4016
+	:
+.endif
 	jsr init_port
 	lda port+$00
 	sta temp_byte
+.ifdef PARALLELPORT
 	jsr init_lcd
 	jsr load_chars
 	jsr init_ppu
 	jsr lcd_clr
+	lda #0		;message 0: "welcome message"
+	jsr sho_msg
 .else
-
-got_4016:
-	jsr init_port
-	lda controlbus
-	sta temp_byte
 	jsr init_ppu
 .endif
 
+	ldx #7
+	:
+		lda ram_dat,x
+		sta $1f8,x
+		dex
+	bpl :-
+
+	lda port+$00
+	and #$40
+	beq :+
+.ifdef PARALLELPORT
+		lda #3		;message 3: "Playing Game"
+		jsr sho_msg
+.endif
+		jmp $1f8
+	:
+	
+	ldx #$fb
+	txs
+	ldx #0
+	txa
+	:
+		cmp #<(temp_byte)	;don't clobber temp_byte
+		beq :+
+		cmp #<(char_ctr)	;don't clobber char_ctr
+		beq :+
+			sta 0, x
+		:
+	.BYTE	$9D, $FC, $00	;absolute write
+		sta $200, x
+		sta $300, x
+		sta $400, x
+		sta $500, x
+		sta $600, x
+		sta $700, x
+		dex
+	bne :--
+
+
 	ldx #0
 	ldy #0
-
 	:
 		lda #$4c
 		sta $200,x
@@ -270,31 +303,12 @@ got_4016:
 		cmp #$ff
 	bne :-
 
-.ifdef PARALLELPORT
-	lda #0		;message 0: "welcome message"
-	jsr sho_msg
-
-	bit port+$00	;load control port
-	bvc main	;if bit clear, we're going to copy
-
-	lda #3		;message 3: "Playing Game"
-	jsr sho_msg
-	jmp $0700
-
 	main:
+.ifdef PARALLELPORT
 		jsr set_out
 		jsr lcd_clr
 		lda #4
 		jsr sho_msg	;message 4: "Waiting for Host"
-.else
-
-	lda port+$00	;load control port
-	and #$40	;D6 = play/copy mode
-	beq main	;if bit6=0 COPY mode
-		;jump to play code
-		jmp $0700
-
-	main:
 .endif
 		jsr set_in	;set 6522 input mode
 
@@ -659,31 +673,6 @@ work_bank:
 	sta $5ff8
 	sta temp2	;start loading at proper bank if non-banked
 	rts
-
-.ifndef PARALLELPORT
-check_play_mode:
-	sei
-	cld
-	ldx #$f8
-	txs
-	jsr init_port
-	lda port+$00
-	sta temp_byte
-	jsr init_ppu
-	ldx #7
-
-	:
-		lda ram_dat,x
-		sta $1f8,x
-		dex
-	bpl :-
-	lda port+$00
-	and #$40
-	beq :+
-		jmp $1f8
-	:
-	jmp start
-.endif
 
 ;--------------------------------------------------------------------------
 ;Main bulk of the emulator code goes here
@@ -2533,7 +2522,7 @@ baton:
 	rts
 
 baton_d:
-	.byte $7C, $2F, $2D, $08
+	.byte $7C, $2F, $2D, $08	;"|/-\"
 
 .ELSE
 baton:
@@ -2549,32 +2538,6 @@ set_out:
 	lda #$ff	;set data port to all outputs
 	sta port+$03
 	rts
-	
-
-load_ram:
-	ldx #0
-	txa
-
-	:
-		sta 0, x
-	.BYTE	$9D, $FC, $00	;absolute write
-		sta $200, x
-		sta $300, x
-		sta $400, x
-		sta $500, x
-		sta $600, x
-		sta $700, x
-		dex
-	bne :-
-
-	ldx #$07
-	:
-		lda ram_dat, x
-		sta $700, x
-		dex
-	bpl :-
-
-	jmp back_here
 
 .IFDEF PARALLELPORT
 
@@ -2806,9 +2769,17 @@ vec_tab:
 	.word finish_crc
 	.word $ffff
 
-;Guessing this is a remnant of the LCD code that was not removed.
+.ifdef PARALLELPORT
 cchar:
-	.byte $00, $10, $08, $04, $02, $01, $00, $00
+	.byte $00	;        ;
+	.byte $10	;   #    ;
+	.byte $08	;    #   ;
+	.byte $04	;     #  ;
+	.byte $02	;      # ;
+	.byte $01	;       #;
+	.byte $00	;        ;
+	.byte $00	;        ;
+.endif
 
 init_crc:
 	lda #$ff
@@ -3051,21 +3022,19 @@ identify:
 	jmp main
 
 .segment "FOOTER"
+
+.ifdef PARALLELPORT
 footer:
-.ifdef PARALLELPORT
-	.asciiz "CopyNES BIOS V3.00 (c) Kevin Horton   Built on 01.03.2006"
-.else
-	.asciiz "USB CopyNES V4.00 (c) Kevin Horton & Brian Parker 8.16.07"
-.endif
+	.asciiz "CopyNES BIOS V3.01 (c) Kevin Horton   Built on 04.27.2014"
 vectors:
-.ifdef PARALLELPORT
-	.out "Parallel port bios assembly complete"
 	.word int_err
 	.word start
 	.word int_err
 .else
-	.out "USB bios assembly complete"
+footer:
+	.asciiz "USB CopyNES V4.01 (c) Kevin Horton & Brian Parker 4.27.14"
+vectors:
 	.word nmi
-	.word check_play_mode	;Start was killing ram, even for play mode. :(
+	.word start
 	.word irq
 .endif
