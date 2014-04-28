@@ -2,13 +2,14 @@
 #define	CMD_NAME	"RAM Cart"
 
 
-BOOL	NRAMcart (char* plugin, char* filedata)
+BOOL	NRAMcart (PPlugin plugin, char* filedata)
 {
 	int i, j, PRGsize;
 	BYTE PRGamt;
 	BYTE header[16];
 	BYTE mapper;
 	char* data;
+	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
 	memcpy(header,filedata,16);
 	if (header[4] == 2)
@@ -34,21 +35,24 @@ BOOL	NRAMcart (char* plugin, char* filedata)
 	else	StatusText("8KB CHR ROM data located...");
 
 	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
-	if ((mapper != 0) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+	if(!plugin->load_nsf)
 	{
-		StatusText("Load aborted.");
-		return FALSE;
-	}
+		if ((mapper != 0) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+		{
+			StatusText("Load aborted.");
+			return FALSE;
+		}
 
-	if (header[6] & 1)
-		MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
-	else
-		MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
+		if (header[6] & 1)
+			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
+		else
+			MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
+	}
 
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (!LoadPlugin(pluginfile))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -109,13 +113,14 @@ BOOL	NRAMcart (char* plugin, char* filedata)
 }
 
 
-BOOL	CNRAMcart (char* plugin, char* filedata)
+BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 {
 	int i, j;
 	BYTE header[16];
 	BYTE mapper;
 	int maxchr = 4;
 	char* data;
+	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
 	memcpy(header,filedata,16);
 	if ((header[4]) && (header[4] <= 2))
@@ -139,19 +144,22 @@ BOOL	CNRAMcart (char* plugin, char* filedata)
 	}
 	else	StatusText("%iKB CHR ROM data located...", header[5] * 8);
 
-	if ((mapper != 0) && (mapper != 3) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+	if(!plugin->load_nsf)
 	{
-		StatusText("Load aborted.");
-		return FALSE;
+		if ((mapper != 0) && (mapper != 3) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+		{
+			StatusText("Load aborted.");
+			return FALSE;
+		}
+		if (header[6] & 1)
+			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
+		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 	}
-	if (header[6] & 1)
-		MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
-	else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (!LoadPlugin(pluginfile))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -220,13 +228,14 @@ BOOL	CNRAMcart (char* plugin, char* filedata)
 }
 
 
-BOOL	UFROMcart (char* plugin, char* filedata)
+BOOL	UFROMcart (PPlugin plugin, char* filedata)
 {
 	int i, j;
 	BYTE header[16];
 	BYTE mapper;
 	BYTE banks;
 	char* data;
+	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
 	memcpy(header,filedata,16);
 	if ((header[4] == 1) || (header[4] == 2) || (header[4] == 4) || (header[4] == 8) || (header[4] == 16))
@@ -242,19 +251,22 @@ BOOL	UFROMcart (char* plugin, char* filedata)
 	if (header[5] > 0)
 		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
 
-	if ((mapper != 2) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+	if(!plugin->load_nsf)
 	{
-		StatusText("Load aborted.");
-		return FALSE;
+		if ((mapper != 2) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+		{
+			StatusText("Load aborted.");
+			return FALSE;
+		}
+		if (header[6] & 1)
+			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
+		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 	}
-	if (header[6] & 1)
-		MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
-	else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (!LoadPlugin(pluginfile))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -320,7 +332,7 @@ BOOL	UFROMcart (char* plugin, char* filedata)
 }
 
 
-BOOL	PowerPakLitecart (char* plugin, char* filedata)
+BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 {
 	int i, j;
 	BYTE header[16];
@@ -329,11 +341,13 @@ BOOL	PowerPakLitecart (char* plugin, char* filedata)
 	int maxprg = 0;
 	BYTE config = 0;
 	char* data;
+	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
 	memcpy(header,filedata,16);
 
 	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
-	if ((mapper != 0) && (mapper != 1) && (mapper != 2) && (mapper != 3) && 
+	
+	if ((plugin->load_nsf != 1) && (mapper != 0) && (mapper != 1) && (mapper != 2) && (mapper != 3) && 
 		(mapper != 7) && (mapper != 11) && (mapper != 34) && (mapper != 66) && 
 		(MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
 	{
@@ -406,7 +420,7 @@ BOOL	PowerPakLitecart (char* plugin, char* filedata)
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (!LoadPlugin(pluginfile))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -508,7 +522,7 @@ BOOL	PowerPakLitecart (char* plugin, char* filedata)
 }
 
 
-BOOL	PowerPakcart (char* plugin, char* filedata)
+BOOL	PowerPakcart (PPlugin plugin, char* filedata)
 {
 	int i, j;
 	BYTE header[16];
@@ -540,7 +554,7 @@ BOOL	PowerPakcart (char* plugin, char* filedata)
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (!LoadPlugin(plugin->file))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -605,7 +619,7 @@ BOOL	PowerPakcart (char* plugin, char* filedata)
 }
 
 
-BOOL	Glidercart (char* plugin, char* filedata)
+BOOL	Glidercart (PPlugin plugin, char* filedata)
 {
 	int i, j;
 	BYTE header[16];
@@ -623,7 +637,7 @@ BOOL	Glidercart (char* plugin, char* filedata)
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (!LoadPlugin(plugin->file))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -687,7 +701,7 @@ BOOL	Glidercart (char* plugin, char* filedata)
 	return TRUE;
 }
 
-BOOL	UNROM512cart (char* plugin, char* filedata)
+BOOL	UNROM512cart (PPlugin plugin, char* filedata)
 {
 	int i, j;
 	BYTE header[16];
@@ -695,6 +709,7 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 	BYTE bank, banks;
 	char string[256];
 	char* data;
+	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
 	memcpy(header,filedata,16);
 	if ((header[4] == 1) || (header[4] == 2) || (header[4] == 4) || (header[4] == 8) || (header[4] == 16) || (header[4] == 32))
@@ -710,22 +725,25 @@ BOOL	UNROM512cart (char* plugin, char* filedata)
 	if (header[5] > 0)
 		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
 
-	if (!((mapper == 30) || (mapper == 2)) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+	if(!plugin->load_nsf)
 	{
-		StatusText("Load aborted.");
-		return FALSE;
-	}
+		if (!((mapper == 30) || (mapper == 2)) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+		{
+			StatusText("Load aborted.");
+			return FALSE;
+		}
 
-	if (header[6] & 8)
-		MessageBox(topHWnd,"Please set your cartridge to ONE Screen mirroring.\n(ONE jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
-	else if (header[6] & 1)
-		MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring. \n(HORIZ jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
-	else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.\n(VERT jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
+		if (header[6] & 8)
+			MessageBox(topHWnd,"Please set your cartridge to ONE Screen mirroring.\n(ONE jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
+		else if (header[6] & 1)
+			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring. \n(HORIZ jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
+		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.\n(VERT jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
+	}
 
 	StatusText("Resetting USB CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin))
+	if (!LoadPlugin(pluginfile))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -838,6 +856,7 @@ BOOL	CMD_RAMCART (void)
 	plugin = PromptPlugin(PLUG_UPLOAD);
 	if (plugin == NULL)
 		return FALSE;
+	plugin->load_nsf = 0;
 
 	// select NES file
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
@@ -900,19 +919,19 @@ BOOL	CMD_RAMCART (void)
 	result = FALSE;
 
 	if (plugin->num == 0)
-		result = NRAMcart(plugin->file, filedata);
+		result = NRAMcart(plugin, filedata);
 	else if (plugin->num == 1)
-		result = CNRAMcart(plugin->file, filedata);
+		result = CNRAMcart(plugin, filedata);
 	else if (plugin->num == 2)
-		result = UFROMcart(plugin->file, filedata);
+		result = UFROMcart(plugin, filedata);
 	else if (plugin->num == 3)
-		result = PowerPakLitecart(plugin->file, filedata);
+		result = PowerPakLitecart(plugin, filedata);
 	else if (plugin->num == 4)
-		result = PowerPakcart(plugin->file, filedata);
+		result = PowerPakcart(plugin, filedata);
 	else if (plugin->num == 5)
-		result = Glidercart(plugin->file, filedata);
+		result = Glidercart(plugin, filedata);
 	else if (plugin->num == 6)
-		result = UNROM512cart(plugin->file, filedata);
+		result = UNROM512cart(plugin, filedata);
 	else	
 		result = FALSE;
 
@@ -933,7 +952,7 @@ BOOL	CMD_RAMCART (void)
 	return result;
 }
 
-BOOL	RAMCartLoad (char* filedata, long int filesize)
+BOOL	RAMCartLoad (char* filedata, long int filesize, int load_type)
 {
 	PPlugin plugin;
 	BYTE header[16];
@@ -944,6 +963,13 @@ BOOL	RAMCartLoad (char* filedata, long int filesize)
 	if (plugin == NULL)
 		return FALSE;
 
+	if((load_type == 1) && (plugin->nsffile == NULL))
+	{
+		StatusText("Selected plugin does not support loading NSF!");
+		return FALSE;
+	}
+	plugin->load_nsf = (load_type == 1);
+	
 	if (filesize < 16)
 	{
 		StatusText("NES file is too small to contain iNES header!");
@@ -967,19 +993,19 @@ BOOL	RAMCartLoad (char* filedata, long int filesize)
 	result = FALSE;
 
 	if (plugin->num == 0)
-		result = NRAMcart(plugin->file, filedata);
+		result = NRAMcart(plugin, filedata);
 	else if (plugin->num == 1)
-		result = CNRAMcart(plugin->file, filedata);
+		result = CNRAMcart(plugin, filedata);
 	else if (plugin->num == 2)
-		result = UFROMcart(plugin->file, filedata);
+		result = UFROMcart(plugin, filedata);
 	else if (plugin->num == 3)
-		result = PowerPakLitecart(plugin->file, filedata);
+		result = PowerPakLitecart(plugin, filedata);
 	else if (plugin->num == 4)
-		result = PowerPakcart(plugin->file, filedata);
+		result = PowerPakcart(plugin, filedata);
 	else if (plugin->num == 5)
-		result = Glidercart(plugin->file, filedata);
+		result = Glidercart(plugin, filedata);
 	else if (plugin->num == 6)
-		result = UNROM512cart(plugin->file, filedata);
+		result = UNROM512cart(plugin, filedata);
 	else	
 		result = FALSE;
 

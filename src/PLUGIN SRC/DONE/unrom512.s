@@ -50,6 +50,11 @@ romsize:     .res 1
 	lda romsize
 	cmp flashsize
 	beq direct_prog
+.ifdef NSFCART
+	cmp #$02
+	bne :+
+	jmp nsf_cart
+.endif
 
 	:
 		ldx currbank
@@ -126,6 +131,41 @@ direct_prog:
 	lda flasherror
 	jsr send_byte
 	rts
+
+.ifdef NSFCART
+nsf_cart:
+	:
+		ldx currbank
+		stx $c000
+		lda #$80
+		sta temp1+1
+		lda #0
+		sta temp1+0
+		:
+			jsr read_byte
+			cmp #$FF
+			beq :+
+				sta temp2
+				jsr dobyte
+			:
+			inc temp1+0
+		bne :--
+			inc temp1+1
+			lda #$c0
+			cmp temp1+1
+		bne :--
+		lda #$1f
+		sta currbank
+		dec temp3+1
+	bne :---
+
+	lda #0
+	sta $c000
+
+	lda flasherror
+	jsr send_byte
+	rts
+.endif
 
 dobyte:
 	ldx #1

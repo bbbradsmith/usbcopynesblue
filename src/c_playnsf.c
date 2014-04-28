@@ -5,7 +5,7 @@
 
 // defined in c_ramcart.c
 // used to load 32k NSF as an NROM
-extern	BOOL	RAMCartLoad (char* filedata, long int filesize);
+extern	BOOL	RAMCartLoad (char* filedata, long int filesize, int load_type);
 
 static	char	NSF_name[33], NSF_artist[33], NSF_copyright[33];
 static	BYTE	NSF_banks[8]; 
@@ -164,7 +164,7 @@ BOOL	LoadNSF (char *filename)
 	}
 
 	// send to ramcart
-	if (RAMCartLoad(nesdata, 16+(64*1024)))
+	if (RAMCartLoad(nesdata, 16+(64*1024),1))
 	{
 		ramcart = TRUE;
 
