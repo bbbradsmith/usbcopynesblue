@@ -677,7 +677,9 @@ work_bank:
 ;--------------------------------------------------------------------------
 ;Main bulk of the emulator code goes here
 ;--------------------------------------------------------------------------
-.segment "EMULATOR"
+;The first 256 bytes of the emulator code needs to be aligned to a page
+;boundary.
+.align 256
 
 	jmp main2
 
@@ -2815,12 +2817,29 @@ finish_crc:
 	bpl :-
 	rts
 
+identify2:
+	jsr set_out
+	lda #COPYNESVER
+	jsr write_byte
+	jmp main
+
+identify:
+	ldy #$00
+	jsr set_out
+	:
+		lda footer_start,y
+		jsr write_byte
+		iny
+		cpy #(footer_end-footer_start)
+	bne :-
+	jmp main
+
 ;----------------------------------------------------------------
 ;make sure these tables are page-aligned
 
 ;make sure it takes up a page on its own to prevent page cross slowdown
 ;size of each instruction, in bytes
-.segment "PRG_DATA"
+.align 256
 
 insize:
 	.byte 1,1,0,0,0,1,1,0,0,1,0,0,0,2,2,0
@@ -2998,42 +3017,29 @@ crc_tab3:
 	.byte $86,$F1,$68,$1F,$81,$F6,$6F,$18,$88,$FF,$66,$11,$8F,$F8,$61,$16
 	.byte $A0,$D7,$4E,$39,$A7,$D0,$49,$3E,$AE,$D9,$40,$37,$A9,$DE,$47,$30
 	.byte $BD,$CA,$53,$24,$BA,$CD,$54,$23,$B3,$C4,$5D,$2A,$B4,$C3,$5A,$2D
-.ifdef PARALLELPORT
-COPYNESVER	:= $03
-.else
-COPYNESVER	:= $04
-.endif
-
-identify2:
-	jsr set_out
-	lda #COPYNESVER
-	jsr write_byte
-	jmp main
-
-identify:
-	ldy #$00
-	jsr set_out
-	:
-		lda footer,y
-		jsr write_byte
-		iny
-		cpy #(vectors-footer)
-	bne :-
-	jmp main
 
 .segment "FOOTER"
 
+
 .ifdef PARALLELPORT
-footer:
-	.asciiz "CopyNES BIOS V3.01 (c) Kevin Horton   Built on 04.27.2014"
-vectors:
+COPYNESVER	:= $03
+footer_start:
+	.byte "CopyNES BIOS V3.01 (c) Kevin Horton    Built on 04.27.2014"
+footer_end:
+.else
+COPYNESVER	:= $04
+footer_start:
+	.byte "USB CopyNES BIOS V4.01 (c) Kevin Horton & Brian Parker    Built on 04.27.2014"
+footer_end:
+.endif
+
+
+.segment "VECTORS"
+.ifdef PARALLELPORT
 	.word int_err
 	.word start
 	.word int_err
 .else
-footer:
-	.asciiz "USB CopyNES V4.01 (c) Kevin Horton & Brian Parker 4.27.14"
-vectors:
 	.word nmi
 	.word start
 	.word irq
