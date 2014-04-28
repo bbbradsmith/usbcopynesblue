@@ -9,14 +9,17 @@ char	ROMstring[256];
 char    RxBuffer[64];
 char    TxBuffer[64];
 
+BOOL usb_timeout_error = FALSE;
+
 
 //CHANGE ME add ReadBlock
 
 
 
 BOOL	ReadByteEx (BYTE *data, BOOL warn)   //read byte from copynes, return good/bad flag
-{  
+{    
   DWORD BytesReceived = 0;
+  if(usb_timeout_error) return FALSE;
   
   FT_SetTimeouts(ftHandleA,10000,0);
   ftStatus = FT_Read(ftHandleA,RxBuffer,1,&BytesReceived);
@@ -34,6 +37,7 @@ BOOL	ReadByteEx (BYTE *data, BOOL warn)   //read byte from copynes, return good/
       // FT_Read Timeout 
       if (warn)
         MessageBox(topHWnd, "USB Error: Read Timeout", "ReadByteEx", MB_OK | MB_ICONERROR);
+	  usb_timeout_error = TRUE;
       return FALSE;  
     } 
   } 
@@ -41,6 +45,7 @@ BOOL	ReadByteEx (BYTE *data, BOOL warn)   //read byte from copynes, return good/
   { 
     // FT_Read Failed 
     //if (warn)
+	  usb_timeout_error = TRUE;
       MessageBox(topHWnd, "USB Error: Read Failed", "ReadByteEx", MB_OK | MB_ICONERROR);
     return FALSE;  
   } 
@@ -52,6 +57,7 @@ BOOL	ReadByteEx (BYTE *data, BOOL warn)   //read byte from copynes, return good/
 BOOL	WriteByteEx (BYTE data, BOOL warn)  //write byte to copynes, return good/bad flag
 {
   DWORD BytesWritten = 0;
+  if(usb_timeout_error) return FALSE;
 
   FT_SetTimeouts(ftHandleA,10000,0);
   
@@ -69,6 +75,7 @@ BOOL	WriteByteEx (BYTE data, BOOL warn)  //write byte to copynes, return good/ba
     else 
     { 
       // FT_Write Timeout 
+		usb_timeout_error = TRUE;
       if (warn)
         MessageBox(topHWnd, "USB Error: Write Timeout", "WriteByteEx", MB_OK | MB_ICONERROR);
       return FALSE;  
@@ -78,6 +85,7 @@ BOOL	WriteByteEx (BYTE data, BOOL warn)  //write byte to copynes, return good/ba
   { 
     // FT_Write Failed 
     //if (warn)
+	  usb_timeout_error = TRUE;
       	StatusText("FT STATUS = %i", ftStatus);
              MessageBox(topHWnd, "USB Error: Write Failed", "WriteByteEx", MB_OK | MB_ICONERROR);
 
@@ -95,6 +103,7 @@ BOOL	WriteByteEx (BYTE data, BOOL warn)  //write byte to copynes, return good/ba
 BOOL WriteBlock (char* blockdata, int size)
 {
   DWORD BytesWritten = 0;
+  if(usb_timeout_error) return FALSE;
 
   FT_SetTimeouts(ftHandleA,10000,0);
   
@@ -110,6 +119,7 @@ BOOL WriteBlock (char* blockdata, int size)
     else 
     { 
       // FT_Write Timeout 
+		usb_timeout_error = TRUE;
       MessageBox(topHWnd, "USB Error: Write Timeout", "WriteBlock", MB_OK | MB_ICONERROR);
       return FALSE;  
     } 
@@ -117,6 +127,7 @@ BOOL WriteBlock (char* blockdata, int size)
   else 
   { 
     // FT_Write Failed 
+	  usb_timeout_error = TRUE;
           	StatusText("FT STATUS = %i", ftStatus);
     MessageBox(topHWnd, "USB Error: Write Failed", "WriteBlock", MB_OK | MB_ICONERROR);
     return FALSE;  
@@ -149,6 +160,7 @@ BOOL ReadByteReady (void)    //check if byte is waiting in queue
   DWORD EventDWord = 0;
   DWORD RxBytes = 0;
   DWORD TxBytes = 0;
+  if(usb_timeout_error) return FALSE;
   
 
   FT_GetStatus(ftHandleA,&RxBytes,&TxBytes,&EventDWord);
@@ -164,6 +176,7 @@ BOOL ReadByteReady (void)    //check if byte is waiting in queue
 
 BOOL	OpenPort (void)
 {
+	usb_timeout_error = FALSE;
   ftStatus = FT_OpenEx("USB CopyNES A",FT_OPEN_BY_DESCRIPTION,&ftHandleA);   //open data bus
   if (ftStatus == FT_OK) 
   { 
@@ -199,6 +212,7 @@ BOOL	OpenPort (void)
 void	InitPort (void)
 {
   DWORD modemWord = 0;
+  usb_timeout_error = FALSE;
 
   ftStatus = FT_GetModemStatus (ftHandleB, &modemWord);
   if (ftStatus == FT_OK) 
@@ -255,6 +269,7 @@ void	ClosePort (void)
 {
   FT_Close(ftHandleA);
   FT_Close(ftHandleB);
+  usb_timeout_error = FALSE;
 }
 
 
@@ -262,7 +277,7 @@ void	ClosePort (void)
 
 void	ResetNES (int rtype)
 {
-      
+    usb_timeout_error = FALSE;  
 	if (rtype & RESET_PLAYMODE)
     {
       //clr /RTS=1
