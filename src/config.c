@@ -341,7 +341,7 @@ BOOL	Startup	(void)
   	Plugins[i]->list[5] = malloc(sizeof(TPlugin));
 	Plugins[i]->list[5]->name = strdup("Glider Flasher");
 	Plugins[i]->list[5]->file = strdup("glider.bin");
-	Plugins[i]->list[5]->nsffile = NULL;
+	Plugins[i]->list[5]->nsffile = strdup("glidernsf.bin");
 	Plugins[i]->list[5]->num = 5;
 	Plugins[i]->list[5]->desc = strdup("Glider House Flasher");
 

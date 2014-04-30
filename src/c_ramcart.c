@@ -631,6 +631,7 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 	BYTE mapper;
 	BYTE banks;
 	char* data;
+	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
 	memcpy(header,filedata,16);
 
@@ -644,7 +645,7 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin->file))
+	if (!LoadPlugin(pluginfile))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;

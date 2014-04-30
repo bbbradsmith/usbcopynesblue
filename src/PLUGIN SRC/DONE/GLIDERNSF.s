@@ -110,10 +110,8 @@ romsize:	.res 1
 			lda #$c0
 			cmp temp1+1
 		bne :--			;program all 16K
-		inc currbank
-		inc currbank
-		inc currbank
-		inc currbank
+		lda #$1C
+		sta currbank
 		dec temp3+1
 		dec temp3+1
 		dec temp3+1
@@ -124,6 +122,8 @@ romsize:	.res 1
 	sta port+$03      ;set to output mode
 	lda ferror
 	jsr send_byte
+	ldx #$00
+	jsr selbank
 	rts
 	
 	
@@ -191,13 +191,10 @@ pgm_done:    rts
 
 
 erasesector:
-	lda #$08
-	cmp romsize
-	bne :+
-		lda currbank
-		beq :+
-		rts		;We were asked to erase the entire rom, so we did so.
-	:			;and are now skipping the operation on the remaining banks.
+	lda currbank
+	beq :+
+		rts
+	:
 	ldx #$04
 	jsr selbank
 	lda #$aa    ;erase sector command
@@ -223,21 +220,6 @@ erasesector:
 	lda #$55
 	sta $aaaa   ;write to 2AAA
 
-	lda #$08
-	cmp romsize
-	beq :++
-		ldx currbank
-		jsr selbank
-		lda #$30	;If asked to erase less than rom size, secotr erase each bank
-		sta $8000   ;write to 5555
-		:
-			lda $8000
-			eor $8000
-		bne :-
-		lda #$f0
-		sta (temp1),y  ;reset to read mode
-		rts
-	:
 	ldx #$04
 	jsr selbank
 	lda #$10		;otherwise, chip erase the entire chip at once.
