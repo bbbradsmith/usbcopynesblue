@@ -1,3 +1,6 @@
+.export port
+port		:= $4A00
+
 .export crc0
 crc0		:= $80
 

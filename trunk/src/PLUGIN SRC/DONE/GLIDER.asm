@@ -27,7 +27,7 @@ temp3:       .equ 00e4h
 temp3_lo:    .equ 00e4h
 temp3_hi:    .equ 00e5h
 temp4:       .equ 00e6h
-romsiz:      .equ 00e7h
+ferror:      .equ 00e7h
 currbank:    .equ 00e8h
 
              ;plugin header that describes what it does
@@ -48,7 +48,7 @@ currbank:    .equ 00e8h
              sta temp3+1      ;receive number of sectors to erase
              
              lda #0
-             sta romsiz
+             sta ferror
              sta currbank
              
              lda #0ffh
@@ -93,7 +93,7 @@ prog2:       jsr read_byte
              
              lda #0ffh
              sta 4803h      ;set to output mode
-             lda romsiz
+             lda ferror
              jsr send_byte
              rts
              
@@ -146,7 +146,7 @@ wtloop2:     lda (temp1),y
              beq pgm_done
              lda #0f0h
              sta (temp1),y 
-             sta romsiz       ;we're fucked
+             sta ferror       ;we're fucked
 
 pgm_done:    rts 
 
