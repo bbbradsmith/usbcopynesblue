@@ -49,7 +49,8 @@ BOOL	NRAMcart (PPlugin plugin, char* filedata)
 			MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 	}
 
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(pluginfile))
@@ -156,7 +157,8 @@ BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 	}
 
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(pluginfile))
@@ -263,7 +265,8 @@ BOOL	UFROMcart (PPlugin plugin, char* filedata)
 		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 	}
 
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(pluginfile))
@@ -417,7 +420,8 @@ BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 	else
 		StatusText("%iKB CHR ROM data located...", header[5] * 8);
 
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(pluginfile))
@@ -551,7 +555,8 @@ BOOL	PowerPakcart (PPlugin plugin, char* filedata)
 		return FALSE;
 	}
 
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(plugin->file))
@@ -635,7 +640,8 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 	if (header[5] > 0)
 		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
 
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(plugin->file))
@@ -739,8 +745,8 @@ BOOL	UNROM512cart (PPlugin plugin, char* filedata)
 			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring. \n(HORIZ jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
 		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.\n(VERT jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
 	}
-
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin(pluginfile))

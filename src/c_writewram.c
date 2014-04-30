@@ -16,7 +16,8 @@ BOOL	CMD_WRITEWRAM (void)
 	if (!PromptFile(topHWnd,"SaveRAM files (*.SAV)\0*.sav\0\0",filename,NULL,Path_WRAM,"Select an SRAM file","sav",FALSE))
 		return FALSE;
 	OpenStatus(topHWnd);
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 
 	StatusText("Loading plugin...");

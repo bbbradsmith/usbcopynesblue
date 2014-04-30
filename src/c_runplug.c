@@ -8,7 +8,8 @@ BOOL	CMD_RUNPLUG (void)
 	if (plugin == NULL)
 		return FALSE;
 	OpenStatus(topHWnd);
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 
 	StatusText("Loading plugin...");

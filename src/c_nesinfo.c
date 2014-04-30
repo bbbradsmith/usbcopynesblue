@@ -6,14 +6,24 @@ BOOL	CMD_NESINFO (void)
 	char Version[256];
 	int i;
 	OpenStatus(topHWnd);
+	InitPort();
 	if (HWVer == 1)
 	{
-		StatusText("USB CopyNES did not return a version reply");
-		StatusOK();
-		return FALSE;
+		if (ParPort == -1)
+		{
+			StatusText("CopyNES did not return a version reply!");
+			StatusOK();
+			return FALSE;
+		}
+		else
+		{
+			StatusText("CopyNES did not return a version reply, assuming version 1");
+			StatusOK();
+			return TRUE;
+		}
 	}
 	StatusText("Retrieving internal version string...");
-	if (!WriteByteEx(0xA1,FALSE))
+	if (!WriteByteEx(0xA1,3,FALSE))
 	{
 		StatusText("Failed to request version string!");
 		StatusOK();
@@ -22,7 +32,7 @@ BOOL	CMD_NESINFO (void)
 
 	for (i = 0; i < 256; i++)
 	{
-		if (!ReadByteEx(&Version[i],FALSE))
+		if (!ReadByteEx(&Version[i],1,FALSE))
 		{
 			StatusText("Error reading version string!");
 			StatusOK();

@@ -3,6 +3,7 @@
 
 BOOL	CMD_PLAYCART (void)
 {
+	InitPort();
 	ResetNES(RESET_PLAYMODE);
 	MessageBox(topHWnd,"Playing game - press OK to terminate",MSGBOX_TITLE,MB_OK);
 	ResetNES(RESET_COPYMODE);

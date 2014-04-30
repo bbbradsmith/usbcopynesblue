@@ -116,10 +116,39 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_BANKWATCH),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),FALSE);
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
-
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),FALSE);
+		
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),FALSE);
 		// disable all "online" options
+	}
+	else if (HWVer == 1)
+	{	// disable MicroBug
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MAKENES),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MAKEUNIF),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_SPLITNES),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_SPLITUNIF),TRUE);
+
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_BREAKBANK),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_DISASM),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_OPTIONS),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_NESINFO),TRUE);
+
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYCART),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RAMCART),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYNSF),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_REGPLAY),TRUE);
+
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_DUMPCART),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_WRITEWRAM),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RUNPLUG),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_FIXGAR),TRUE);
+
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_BANKWATCH),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),FALSE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
+
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),TRUE);
 	}
 	else
 	{	// enable everything
@@ -149,11 +178,13 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
 
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),TRUE);
-		
-		if (HWVer < 4)
-			MessageBox(topHWnd,"Unrecognized USB CopyNES BIOS version detected!", "USB CopyNES", MB_OK | MB_ICONERROR);
+
+		if ((ParPort != -1) && (HWVer > 3))
+			MessageBox(topHWnd,"Unrecognized CopyNES BIOS version detected!\nPlease check for an updated version of the client software!", "CopyNES Blue", MB_OK | MB_ICONERROR);
+		if ((ParPort == -1) && (HWVer < 4))
+			MessageBox(topHWnd,"Unrecognized USB CopyNES BIOS version detected!\nPlease check for an updated version of the client software!", "CopyNES Blue", MB_OK | MB_ICONERROR);
 		if (HWVer == 255)
-			MessageBox(topHWnd,"USB CopyNES connect failed!  Try reconnecting.", "USB CopyNES", MB_OK | MB_ICONERROR);          
+			MessageBox(topHWnd,"USB CopyNES connect failed!  Try reconnecting.", "CopyNES Blue", MB_OK | MB_ICONERROR);          
 	}
 }
 

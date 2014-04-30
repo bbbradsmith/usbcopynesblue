@@ -2,7 +2,7 @@
 #include <shlobj.h>
 
 int	HWVer;
-
+int	ParPort, ParAddr, ParECP;
 BOOL	SaveCRC, SaveFiles, MakeUnif;
 char	Path_MAIN[MAX_PATH], Path_PRG[MAX_PATH], Path_CHR[MAX_PATH], Path_WRAM[MAX_PATH],
 	Path_NES[MAX_PATH], Path_CRC[MAX_PATH], Path_NSF[MAX_PATH], Path_PLUG[MAX_PATH];
@@ -57,8 +57,7 @@ void	GetProgPath (void)
 
 void	GetConfig (void)
 {
-	char Config[MAX_PATH], tmpdir[MAX_PATH];
-	//char tmpstr[16];
+	char Config[MAX_PATH], tmpdir[MAX_PATH], tmpstr[16];
 	strcpy(Config,Path_MAIN);
 	strcat(Config,"USB CopyNES.ini");
 	SaveCRC = GetPrivateProfileInt("USB CopyNES","SaveCRC",0,Config);
@@ -78,10 +77,36 @@ void	GetConfig (void)
 	strcpy(Path_CRC,addSlash(_fullpath(strcpy(tmpdir,Path_MAIN),Path_CRC,MAX_PATH)));
 	strcpy(Path_NSF,addSlash(_fullpath(strcpy(tmpdir,Path_MAIN),Path_NSF,MAX_PATH)));
 	strcpy(Path_PLUG,addSlash(_fullpath(strcpy(tmpdir,Path_MAIN),Path_PLUG,MAX_PATH)));
-  
+	ParPort = GetPrivateProfileInt("USB CopyNES","ParPort",0,Config);
+	GetPrivateProfileString("USB CopyNES","ParAddr","0",tmpstr,16,Config);
+	sscanf(tmpstr,"%X",&ParAddr);
+	GetPrivateProfileString("USB CopyNES","ParECP","0",tmpstr,16,Config);
+	sscanf(tmpstr,"%X",&ParECP);
+	if ((ParPort > 0) && (ParAddr == 0))
+	{
+		// update old config data
+		if (ParPort == 1)
+			ParAddr = 0x378;
+		if (ParPort == 2)
+			ParAddr = 0x278;
+		if (ParPort == 3)
+			ParAddr = 0x3BC;
+		if ((ParPort == 4) || (ParPort == 9))
+			ParAddr = 0xD800;
+		if (ParPort == 5)
+			ParAddr = 0xE000;
+		if (ParPort == 6)
+			ParAddr = 0xE800;
+		if (ParPort > 4)
+			ParPort = 4;
+		WriteConfig();
+	}
+	if ((ParAddr > 0) && (ParECP == 0))
+	{
+		ParECP = 0x400;
+		WriteConfig();
+	}
 }
-
-
 void	WriteConfig (void)
 {
 	char Config[MAX_PATH], tmpdir[MAX_PATH], tmpstr[16];
@@ -100,32 +125,59 @@ void	WriteConfig (void)
 	WritePrivateProfileString("USB CopyNES","CRCPath",_relpath(strcpy(tmpdir,Path_CRC),Path_MAIN),Config);
 	WritePrivateProfileString("USB CopyNES","NSFPath",_relpath(strcpy(tmpdir,Path_NSF),Path_MAIN),Config);
 	WritePrivateProfileString("USB CopyNES","PluginPath",_relpath(strcpy(tmpdir,Path_PLUG),Path_MAIN),Config);
+	sprintf(tmpstr,"%i",ParPort);
+	WritePrivateProfileString("USB CopyNES","ParPort",tmpstr,Config);
+	sprintf(tmpstr,"%X",ParAddr);
+	WritePrivateProfileString("USB CopyNES","ParAddr",tmpstr,Config);
+	sprintf(tmpstr,"%X",ParECP);
+	WritePrivateProfileString("USB CopyNES","ParECP",tmpstr,Config);
 }
 
 int	FindVersion (void)
 {
 	BYTE i;
     OpenStatus(topHWnd);
-	StatusText("Querying USB CopyNES BIOS version...");
-	if (!WriteByteEx(0xA2,FALSE))
+	StatusText("Querying CopyNES BIOS version...");
+	if (!WriteByteEx(0xA2,3,FALSE))
 	{
 		StatusText("Failed to send version request!");
-		StatusText("Make sure your USB CopyNES is plugged in and turned on!");
+		StatusText("Make sure your CopyNES is plugged in and turned on!");
 		StatusOK();
 		return 0;	// write failed, device not present
 	}
 	StatusText("Waiting for reply...");
-	if (!ReadByteEx(&i,FALSE))
+	if (!ReadByteEx(&i,3,FALSE))
 	{
-		StatusText("Version reply not received!");
-		StatusText("Make sure your USB CopyNES is plugged in and turned on!");
+		if (ParPort == -1)
+		{
+			StatusText("Version reply not received!");
+		    StatusText("Make sure your CopyNES is plugged in and turned on!");
+			StatusOK();
+			return 0;	// write failed, device not present
+		}
+		else
+		{
+			StatusText("Version reply not received! Assuming version 1 BIOS.");
+			Sleep(SLEEP_LONG);
+			CloseStatus();
+			InitPort();
+			ResetNES(RESET_COPYMODE);
+			return 1;
+		}
+	}
+	if ((i == 0xA2) && (ParPort != -1))
+	{
+		StatusText("Your parallel port does not support bidirectional communication!");
+		StatusText("Please correct your BIOS settings and try again.");
 		StatusOK();
 		return 0;	// read failed, device not present
 	}
-	StatusText("USB CopyNES identified as version %i.",i);
+	StatusText("CopyNES identified as version %i.",i);
 	Sleep(SLEEP_LONG);
 	CloseStatus();
 	// technically, these shouldn't be needed
+	if (ParPort != -1)
+		InitPort();
 	ResetNES(RESET_COPYMODE);
 	return i;
 }
@@ -301,15 +353,17 @@ BOOL	Startup	(void)
 	Plugins[i]->list[6]->desc = strdup("Sealie Computing UNROM512 Flasher");
 	// END RAMCART
 
-    if (OpenPort())
-    {
-	  ResetNES(RESET_COPYMODE);
-      Sleep(SLEEP_LONG);
-	  ResetNES(RESET_COPYMODE);	  
-   	  HWVer = FindVersion();
-    }
-    else
-      HWVer = 0;
+	if (!OpenPort(ParPort, ParAddr, ParECP))
+	{
+		HWVer = 0;
+		return TRUE;
+	}
+	if (ParPort != -1)
+		InitPort();
+	ResetNES(RESET_COPYMODE);
+	Sleep(SLEEP_LONG);
+	ResetNES(RESET_COPYMODE);
+	HWVer = FindVersion();
 	return TRUE;
 }
 

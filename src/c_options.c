@@ -2,6 +2,13 @@
 #include <shlobj.h>
 #define	CMD_NAME	"Options"
 
+// This MUST match the "USB" setting below
+#define PORT_USB 5
+
+int ParPort = -1;
+int ParAddr;
+int ParECP;
+
 static	void	PromptForDirectory (HWND hDlg, const char *pathvar, int dlgitem)
 {
 	BROWSEINFO dirprompt;
@@ -30,8 +37,8 @@ static	void	PromptForDirectory (HWND hDlg, const char *pathvar, int dlgitem)
 }
 static	LRESULT CALLBACK DLG_Options(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	//char tmpstr[16];
-	//int newPort, newAddr;
+	char tmpstr[16];
+	int newPort, newAddr, newECP;
 	switch (message)
 	{
 	case WM_INITDIALOG:
@@ -45,6 +52,28 @@ static	LRESULT CALLBACK DLG_Options(HWND hDlg, UINT message, WPARAM wParam, LPAR
 		CheckDlgButton(hDlg,IDC_CONFIG_SAVECRC,(SaveCRC == 1) ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_CONFIG_SAVEPARTS,(SaveFiles == 1) ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hDlg,IDC_CONFIG_MAKEUNIF,(MakeUnif == 1) ? BST_CHECKED : BST_UNCHECKED);
+		SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_ADDSTRING,0,(LPARAM)"Offline");
+		SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_ADDSTRING,0,(LPARAM)"LPT1");
+		SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_ADDSTRING,0,(LPARAM)"LPT2");
+		SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_ADDSTRING,0,(LPARAM)"LPT3");
+		SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_ADDSTRING,0,(LPARAM)"Other");
+		SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_ADDSTRING,0,(LPARAM)"USB");
+		if (ParPort == -1)
+		{
+			EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ADDR), FALSE);
+			EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ECP), FALSE);
+			SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_SETCURSEL,PORT_USB,0);
+		}
+		else
+		{
+			EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ADDR), TRUE);
+			EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ECP), TRUE);
+			SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_SETCURSEL,ParPort,0);
+			sprintf(tmpstr,"%X",ParAddr);
+			SetDlgItemText(hDlg,IDC_CONFIG_ADDR,tmpstr);
+			sprintf(tmpstr,"%X",ParECP);
+			SetDlgItemText(hDlg,IDC_CONFIG_ECP,tmpstr);
+		}
 		return TRUE;			break;
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
@@ -56,6 +85,46 @@ static	LRESULT CALLBACK DLG_Options(HWND hDlg, UINT message, WPARAM wParam, LPAR
 		case IDC_CONFIG_CRCBUTTON:	PromptForDirectory(hDlg,Path_CRC,IDC_CONFIG_CRCDIR);	break;
 		case IDC_CONFIG_NSFBUTTON:	PromptForDirectory(hDlg,Path_NSF,IDC_CONFIG_NSFDIR);	break;
 		case IDC_CONFIG_PLUGBUTTON:	PromptForDirectory(hDlg,Path_PLUG,IDC_CONFIG_PLUGDIR);	break;
+		case IDC_CONFIG_PORT:
+			newPort = SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_GETCURSEL,0,0);
+			newAddr = 0;
+			newECP = 0;
+			if (newPort == PORT_USB)
+			{
+				EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ADDR), FALSE);
+				EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ECP), FALSE);
+			}
+			else
+			{
+				EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ADDR), TRUE);
+				EnableWindow(GetDlgItem(hDlg,IDC_CONFIG_ECP), TRUE);
+			}
+			if (newPort == 1)
+			{
+				newAddr = 0x378;
+				newECP = 0x400;
+			}
+			if (newPort == 2)
+			{
+				newAddr = 0x278;
+				newECP = 0x400;
+			}
+			if (newPort == 3)
+			{
+				newAddr = 0x3BC;
+				newECP = 0x400;
+			}
+			if (newAddr)
+			{
+				sprintf(tmpstr,"%X",newAddr);
+				SetDlgItemText(hDlg,IDC_CONFIG_ADDR,tmpstr);
+			}
+			if (newECP)
+			{
+				sprintf(tmpstr,"%X",newECP);
+				SetDlgItemText(hDlg,IDC_CONFIG_ECP,tmpstr);
+			}
+			break;
 		case IDOK:
 			GetDlgItemText(hDlg,IDC_CONFIG_PRGDIR,Path_PRG,MAX_PATH);	addSlash(Path_PRG);
 			GetDlgItemText(hDlg,IDC_CONFIG_CHRDIR,Path_CHR,MAX_PATH);	addSlash(Path_CHR);
@@ -67,7 +136,36 @@ static	LRESULT CALLBACK DLG_Options(HWND hDlg, UINT message, WPARAM wParam, LPAR
 			SaveCRC = (IsDlgButtonChecked(hDlg,IDC_CONFIG_SAVECRC) == BST_CHECKED) ? 1 : 0;
 			SaveFiles = (IsDlgButtonChecked(hDlg,IDC_CONFIG_SAVEPARTS) == BST_CHECKED) ? 1 : 0;
 			MakeUnif = (IsDlgButtonChecked(hDlg,IDC_CONFIG_MAKEUNIF) == BST_CHECKED) ? 1 : 0;
-      			// fall through
+
+			newPort = SendDlgItemMessage(hDlg,IDC_CONFIG_PORT,CB_GETCURSEL,0,0);
+
+			if (newPort == PORT_USB)
+				newPort = -1;
+			GetDlgItemText(hDlg,IDC_CONFIG_ADDR,tmpstr,16);
+			sscanf(tmpstr,"%X",&newAddr);
+			GetDlgItemText(hDlg,IDC_CONFIG_ECP,tmpstr,16);
+			sscanf(tmpstr,"%X",&newECP);
+			if ((newPort != ParPort) || (newAddr != ParAddr) || (newECP != ParECP))
+			{
+				extern void EnableMenus (HWND);
+				extern int FindVersion (void);
+				ClosePort();
+				ParPort = newPort;
+				ParAddr = newAddr;
+				ParECP = newECP;
+				if (OpenPort(ParPort, ParAddr, ParECP))
+				{
+					if (ParPort != -1)
+						InitPort();
+					ResetNES(RESET_COPYMODE);
+					HWVer = FindVersion();
+				}
+				else	HWVer = 0;
+				EnableMenus(topHWnd);
+			}
+
+			WriteConfig();
+			// fall through
 		case IDCANCEL:	EndDialog(hDlg,-1);	break;
 		}				break;
 	case WM_CLOSE:

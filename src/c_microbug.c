@@ -73,18 +73,18 @@ void	ShowRegs (void)
 
 	a &= WriteByte(0x02);	// read registers
 
-	a &= ReadByteEx(&RegA,FALSE);
-	a &= ReadByteEx(&RegX,FALSE);
-	a &= ReadByteEx(&RegY,FALSE);
-	a &= ReadByteEx(&RegP,FALSE);
-	a &= ReadByteEx(&RegSP,FALSE);
-	a &= ReadByteEx((BYTE *)&RegPC+0,FALSE);
-	a &= ReadByteEx((BYTE *)&RegPC+1,FALSE);
-	a &= ReadByteEx((BYTE *)&RegBreak+0,FALSE);
-	a &= ReadByteEx((BYTE *)&RegBreak+1,FALSE);
-	a &= ReadByteEx((BYTE *)&cycles+0,FALSE);
-	a &= ReadByteEx((BYTE *)&cycles+1,FALSE);
-	a &= ReadByteEx(&mode,FALSE);
+	a &= ReadByteEx(&RegA,10,FALSE);
+	a &= ReadByteEx(&RegX,10,FALSE);
+	a &= ReadByteEx(&RegY,10,FALSE);
+	a &= ReadByteEx(&RegP,10,FALSE);
+	a &= ReadByteEx(&RegSP,10,FALSE);
+	a &= ReadByteEx((BYTE *)&RegPC+0,10,FALSE);
+	a &= ReadByteEx((BYTE *)&RegPC+1,10,FALSE);
+	a &= ReadByteEx((BYTE *)&RegBreak+0,10,FALSE);
+	a &= ReadByteEx((BYTE *)&RegBreak+1,10,FALSE);
+	a &= ReadByteEx((BYTE *)&cycles+0,10,FALSE);
+	a &= ReadByteEx((BYTE *)&cycles+1,10,FALSE);
+	a &= ReadByteEx(&mode,10,FALSE);
 	if (!a)
 	{
 		MessageBox(BugWnd,"Timeout while retrieving registers!",CMD_NAME,MB_OK | MB_ICONERROR);
@@ -136,7 +136,7 @@ void	DoBanks (void)
 	{
 		WriteByte(0x0C);
 		for (i = 0; i < 64; i++)
-			if (!ReadByteEx(&banks[i], FALSE))
+			if (!ReadByteEx(&banks[i],10, FALSE))
 				break;
 		if (i != 64)
 			return;
@@ -331,7 +331,7 @@ void	Update (void)
 
 	SendDlgItemMessage(BugWnd, IDC_MICRO_DISASM, LB_SETCURSEL, 8, 0);	// put selection at cursor
 
-	ReadByteEx(&len2,FALSE);
+	ReadByteEx(&len2,10,FALSE);
 
 	WriteByte(0x06);		// restore PC
 	WriteByte((BYTE)(BackPC & 0xFF));

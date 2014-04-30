@@ -41,6 +41,8 @@ LRESULT CALLBACK DLG_PlayNSF(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				NSF_cursong = 1;
 			SetDlgItemInt(hDlg,IDC_NSF_CURSONG,NSF_cursong,FALSE);
 		case IDC_NSF_REPLAY:
+			if (ParPort != -1)
+				InitPort();
 			ResetNES(RESET_COPYMODE);
 			if (!WriteByte(0x9F))	// Play NSF
 			{
@@ -185,8 +187,8 @@ BOOL	LoadNSF (char *filename)
 		StatusText("Failed or skipped.");
 	free(nesdata);
 	// ===========================
-
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 
 	StatusText("Setting USB CopyNES to NSF player mode...");
