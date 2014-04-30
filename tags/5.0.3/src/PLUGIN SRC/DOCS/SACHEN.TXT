@@ -1,0 +1,96 @@
+                 Sachen Carts, Mapper: UNL-Sachen-74LS374N
+                 -----------------------------------------
+
+1.25.2002
+Version 3.0
+
+Update 2.0: added extra PRG bank bit
+Update 3.0: fuck.  Bank bits backwards on CHR!
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation UNL-Sachen-74LS374N for 
+the UNIF format. If you must use ines, use mapper #243.  (that's 243 decimal)
+
+
+---
+
+
+The hardware:
+
+THIS is interesting.  The board has 2 64K EPROMs and a "74LS374N" chip.
+The "LS374" is really a custom mapper chip, and is not the more well known
+74LS374 octal latch.  
+
+
+-
+
+This cart is sorta similar to the MMC3.  There are two registers, and you
+write a control word first, followed by a data byte.
+
+-
+
+The cart uses 4100h for the control register, and 4101h for the data
+register.
+
+Only A0, A8, A14, and A15 are used in address decoding, so anything in the
+range of 4100h-41FFh, 4300h-43FFh, ... , 7F00h-7FFFh will access the
+registers.
+
+
+---
+
+Note: this may change a bit if/when I get more carts to test. 
+
+Control word:
+
+0 - Reset
+1 - Nothing
+2 - Nothing
+3 - Nothing
+4 - Select lower bit of CHR bank
+5 - Select 32K PRG bank
+6 - Select upper 2 bits of CHR bank
+7 - Mirroring ?
+
+-
+
+0 - Reset
+
+Resets PRG bank to 0, and CHR bank to 3
+
+-
+
+4 - Select UPPER bit of CHR bank.
+
+D0 selects the upper 1 bit of the CHR bank.
+
+-
+
+5 - Select 32K PRG bank
+
+D0 thru D2 of the written byte is used.
+
+Selects a single 32K PRG bank.
+
+-
+
+6 - Selects LOWER 2 bits of CHR bank.
+
+D0 and D1 selects the lower 2 bits of the CHR bank.
+
+-
+
+7 - Mirroring ?
+
+D0 selects the mirroring.
+
+0 = H
+1 = V
+
+
+
+
+

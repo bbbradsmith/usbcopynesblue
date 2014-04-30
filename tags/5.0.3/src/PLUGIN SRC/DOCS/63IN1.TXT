@@ -1,0 +1,68 @@
+             63 in 1 Multicart, Mapper: BMC-Ghostbusters63in1
+             ------------------------------------------------
+
+2.18.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-Ghostbusters63in1 for the 
+UNIF format. 
+
+
+Whee, yet another multi.
+---
+
+
+The hardware:
+
+3 512k ROMs, 8K VRAM, 74273, 7402, 7474, 74153, and a 75139.
+
+-
+
+Unlike most multi's, this one uses the data written.
+
+-
+
+There are two writeable registers.
+
+Register 1 appears at 8000h, 8002h, ... FFFEh.
+Register 2 appears at 8001h, 8003h, ... FFFFh.
+
+--
+
+Register 1:
+
+7  bit  0
+---------
+RMSP PPPB
+
+
+Register 2:
+
+7  bit  0
+---------
+xxxx xxLR
+
+--
+
+P: The desired 32K PRG ROM bank.
+
+S: Selects the PRG ROM size.  0 = 32K, 1 = 16K.
+
+B: When in 16K mode, this selects the desired 16K bank.  In 32K mode,
+   this bit is not used.
+
+M: Selects mirroring.  0 = H, 1 = V. (check)
+
+L: VRAM lock.  When low, VRAM writing is enabled.  when high, VRAM 
+   writing is inhibited.
+
+R: ROM number.  Selects the desired 512K ROM.  On this cart, ROMs
+   0,2, and 3 are implemented.  If ROM 1 is selected, open bus is
+   returned.
+
+That's it.
+

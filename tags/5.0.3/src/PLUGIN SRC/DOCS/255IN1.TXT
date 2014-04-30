@@ -1,0 +1,81 @@
+             255 in 1 Multicart, Mapper: BMC-HelloKitty255in1
+             ------------------------------------------------
+
+2.17.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-HelloKitty255in1 for 
+the UNIF format.  If you must use ines, use mapper #63 (that's 63 decimal).
+
+This multi was somewhat odd.  It has a picture of Hello Kitty on it, and
+not much else.  No text or anything else to speak of.
+
+---
+
+
+The hardware:
+
+2 74174's, 7408, 7432, 74139, 74153, 3 1Mbyte ROMs, 8K VRAM.
+
+
+-
+
+Like alot of other multicarts, this one uses the address written to to select
+the desired banks and other things.
+
+-
+
+Bank Select Register:
+
+
+It uses A1 through A7.  This means the address written to matters, while
+the actual data written does not.  
+
+15      addr      0
+-------------------
+1xxx FRBB PPPP PVSM
+
+P: Select a 32K PRG ROM bank in the currently selected 1Mbyte ROM bank.
+
+S: PRG ROM bank size.  
+
+1 selects 32K mode
+0 selects 16K mode
+
+V: PRG ROM 16K bank.
+
+0 selects the lower 16K, and 1 selects the upper 16K.
+
+When in 32K mode, this bit is not used.
+
+B: Selects which ROM to use.  Only roms 0,1, and 2 are supported.
+
+This selects which 1Mbyte bank will be used.
+
+F: "force bank" enable.
+
+0 - disable bank forcing
+1 - enable bank forcing
+
+This is sorta odd.  When bank forcing is on, the last *8K* of the PRG
+space is switched over to ROM 0.  The 32K PRG ROM bank does not
+change.  I believe this was done to allow loading of graphics data into
+VRAM without having to swap all the PRG ROM out.  
+
+R: VRAM write control. 
+
+0 - enable writing to VRAM
+1 - disable writing to VRAM
+
+M: Mirroring.  T
+
+0 is V mirroring
+1 is H mirroring
+
+
+That's it.
+

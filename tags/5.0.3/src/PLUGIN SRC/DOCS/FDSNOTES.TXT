@@ -1,0 +1,63 @@
+4020w: Timer IRQ Control Register 0
+  timer latch LSB
+4021w: Timer IRQ Control Register 1
+  timer latch MSB, copy latch to cycle counter
+4022w: Timer IRQ Control Register 2
+  bit 1: irq enable (resume countdown)
+4023w: Timer IRQ Control Register 3
+4024w: disk write
+4025w: Control Register
+  bit 0: 1=motor on
+  bit 1: 0=reset head
+  bit 2: 0=write 1=read
+  bit 3: mirror (0:LHLH 1:LLHH)
+  bit 4: ?
+  bit 5: ?
+  bit 6: 1=commence disk op (r/w)
+  bit 7: 1=irq enable
+4026w: expansion port
+  bits 0-6: expansion out
+
+$4025 sequence for reading:
+
+0010x110 init
+0010x111 motor on
+0010x101 .
+0110x101 read start mark
+1110x101 irq enable
+1110x101 read end mark (readdata, 4030 bit ?=?)
+1111x101 . (readdata, 4030 bit ?=?)
+0010x100 .
+
+$4025 sequence for writing:
+
+0010x110 init
+0010x111 motor on
+0010x101 .
+0010x001 write start mark & start write (delay, writedata $00)
+0110x001 .
+1110x001 irq enable (writedata $80)
+1110x001 . write end mark (writedata, 4030 bit 6=0)
+1111x001 . (delay)
+0010x100 .
+
+*******************************************
+
+4030r: Disk Status Register 0
+  bit 0: Timer IRQ Occur 0:No 1:Yes
+  bit 4: Block Mark Exist 0:Yes 1:No
+  bit 6: Data Exist 0:Yes 1:No
+4031r: disk read
+   Data transferred from Disk
+   When the data read from the disk is definite, an interrupt occurs, so read
+   this address within the interrupt routine.
+4032r: Disk Status Register 1
+  bit 0: 1=disk not inserted
+  bit 1: 1=disk not ready
+  bit 2: 1=write protected
+4033r: expansion port+power
+  bits 0-6: expansion read
+  bit 7: 0=low power
+
+4040-407F: Wave Table Data
+4080-40??: sound control

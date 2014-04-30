@@ -1,0 +1,48 @@
+       Super Mario Bros. 1 w/ extensive mods.  BTL-MARIO1-MALEE2
+       ---------------------------------------------------------
+
+1.24.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BTL-MARIO1-MALEE2 for the UNIF 
+format.  ines format CANNOT properly "hold" this ROM image without some
+bastard hacks to it.
+
+
+What a weird cart.  It is normal old SMB1, but with lots of hacks and such.
+Here's what the back of the cart says:
+
+NCN-35 STRONG CARTRIDGE. FLYING MALEE. "MALEE 2"
+
+1. To select stage: Press "B" button directly after turn on machine.
+2. To fly malee: Press "Select" button at all time.
+3. Press: "A,B,R,U,L,D,B,A" buttons in order.
+   To become hero: press "START" button again.
+   To change music: press "R" button again.
+   To stop music: press "L" button again.
+   To increase enemy speed: press "U" button again.
+   to decrease enemy speed: press "D" button again.
+
+There are still 1-UPs and more secret technics left.
+
+---
+
+
+The hardware:
+
+A 32K PRG ROM, 2 more K of ROM, 2K of WRAM, and 8K of CHR ROM.
+
+The 2K ROM (P1) is mapped in at 6000h-6FFFh
+The 2K RAM is mapped in at 7000h-7FFFh
+The 32K ROM (P0) is mapped in at 8000h-FFFFh
+and the 8K CHR ROM is mapped into PPU space like normal.
+
+That's it.  There is no banking involved.
+
+
+-
+

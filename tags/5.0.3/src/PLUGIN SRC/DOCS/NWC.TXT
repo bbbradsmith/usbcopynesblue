@@ -1,0 +1,160 @@
+              _______ __         __                  __        
+             |    |  |__|.-----.|  |_.-----.-----.--|  |.-----.
+             |       |  ||     ||   _|  -__|     |  _  ||  _  |
+             |__|____|__||__|__||____|_____|__|__|_____||_____|
+                                                  
+                     ________              __     __ 
+                    |  |  |  |.-----.----.|  |.--|  |
+                    |  |  |  ||  _  |   _||  ||  _  |
+                    |________||_____|__|  |__||_____|
+                                 
+  ______ __                          __                     __     __        
+ |      |  |--.---.-.--------.-----.|__|.-----.-----.-----.|  |--.|__|.-----.
+ |   ---|     |  _  |        |  _  ||  ||  _  |     |__ --||     ||  ||  _  |
+ |______|__|__|___._|__|__|__|   __||__||_____|__|__|_____||__|__||__||   __|
+                             |__|                                     |__|   
+
+
+          ._*--------------------------------------------------*_.
+
+
+
+
+           ____  _   _  ____     ___    __    __  __  ____  ___ 
+          (_  _)( )_( )( ___)   / __)  /__\  (  \/  )( ___)/ __)
+            )(   ) _ (  )__)   ( (_-. /(__)\  )    (  )__) \__ \
+           (__) (_) (_)(____)   \___/(__)(__)(_/\/\_)(____)(___/
+
+
+
+ o-o                        o   o                   o--o              o 
+|                           |\ /|         o         |   |             | 
+ o-o  o  o o-o  o-o o-o     | O |  oo o-o   o-o     O--o  o-o o-o o-o o 
+    | |  | |  | |-' |       |   | | | |   | | |     |   | |   | |  \    
+o--o  o--o O-o  o-o o       o   o o-o-o   | o-o     o--o  o   o-o o-o O 
+           |                                                            
+           o                                                            
+o--o         o     o--o                   o 
+|   |        |     |   |                  | 
+O-Oo   oo  o-O     O-Oo   oo  o-o o-o o-o o 
+|  \  | | |  |     |  \  | | |    |-' |     
+o   o o-o- o-o     o   o o-o- o-o o-o o   O 
+                                            
+                                            
+o-O-o      o            o 
+  |        |      o     | 
+  |   o-o -o- o-o   o-o o 
+  |   |-'  |  |   |  \    
+  o   o-o  o  o   | o-o O 
+
+
+
+          ._*--------------------------------------------------*_.
+
+
+There should be a .NES file in this zip.  It uses mapper 105.
+
+Here is how you work it.  To start a game, press A+start on controller 2.
+Then use controller 1 to play.  Reset the NES to play again.
+
+The dip switch (see below) sets the times for the game to last.
+
+switch|time (mins)
+------------------
+OOOO - 5.001
+OOOC - 5.316
+OOCO - 5.629
+OOCC - 5.942
+OCOO - 6.254
+OCOC - 6.567
+OCCO - 6.880
+OCCC - 7.193
+COOO - 7.505
+COOC - 7.818
+COCO - 8.131
+COCC - 8.444
+CCOO - 8.756
+CCOC - 9.070
+CCCO - 9.318
+CCCC - 9.695
+
+          ._*--------------------------------------------------*_.
+
+
+This here cart contains 13 chips.   The board was marked NES-EVENT-02.
+
+There be 2 128K EPROMS.  One is connected up to the MMC1's program
+bank switch pins like normal, and when enabled the cart acts like a 
+regular old MMC1 with 128K of PRG ROM.
+
+The cart contains 8K of RAM sitting at $6000-$7FFF and 8K of CHR RAM as well.
+
+Now the "fun" part.
+
+The CHR bits of the MMC1 control the second 128K EPROM's address lines.
+
+They use the register at $A000-$BFFF to set these bits.  The register at
+$C000-$DFFF is not used.
+
+Bit 0 is not used (which would've been for 4K CHR banks)
+Bit 1 and 2 select which 32K PRG bank to use
+Bit 3 :
+
+ 0 - select the lower 128K which is the CHR-bank controlled ROM
+ 1 - select the upper 128K which is the PRG-bank controlled ROM
+
+Bit 4 : Initialize cart and start/stop timer
+
+On startup, the first 128K is switched in, and the first 32K of this ROM
+is switched in no matter what.  To "clear" this condition, you must write
+a 0, then 1 to bit 4 of the CHR bank.  this will clock a flipflop, which 
+will then release control of bits 1 through 3.  
+
+After this initialization,  it has the following properties:
+
+0 - allow timer to run
+1 - reset and clear the timer
+
+Timer:
+
+The timer is a HUGE 29 bit counter, that runs off of M2.  It increments 1 for
+every M2 cycle.  When the proper bits are all 1, an IRQ is fired off.
+
+
+      29          Counter Bits             0
+       -------------------------------------
+       H4 321x xxxx xxxx xxxx xxxx xxxx xxxx
+
+The "H" bit must be 1 for the counter to fire an interrupt.
+
+Bits 1-4 run through the dipswitch.  When the dipswitch is closed, the bit
+is used in the timing.  When th dipswitch is open, it is pulled high by
+a resistor and is therefore disabled.
+
+Normally, all of the switches are closed.  
+This gives a time of 5.00362 minutes.
+
+
+
+
+\______ \   ____   ____    /  _ \   \______ \  __ __  _____ ______  
+ |    |  \ /  _ \_/ ___\   >  _ </\  |    |  \|  |  \/     \\____ \ 
+ |    `   (  <_> )  \___  /  <_\ \/  |    `   \  |  /  Y Y  \  |_> >
+/_______  /\____/ \___  > \_____\ \ /_______  /____/|__|_|  /   __/ 
+        \/            \/         \/         \/            \/|__|    
+         
+         ._*----------------------BY--------------------------*_.
+   
+         ___           ___                                     ___     
+        /\__\         /\  \                     _____         /\  \    
+       /:/ _/_        \:\  \       ___         /::\  \       /::\  \   
+      /:/ /\  \        \:\  \     /\__\       /:/\:\  \     /:/\:\  \  
+     /:/ /::\  \   ___  \:\  \   /:/__/      /:/  \:\__\   /:/  \:\  \ 
+    /:/__\/\:\__\ /\  \  \:\__\ /::\  \     /:/__/ \:|__| /:/__/ \:\__\
+    \:\  \ /:/  / \:\  \ /:/  / \/\:\  \__  \:\  \ /:/  / \:\  \ /:/  /
+     \:\  /:/  /   \:\  /:/  /   ~~\:\/\__\  \:\  /:/  /   \:\  /:/  / 
+      \:\/:/  /     \:\/:/  /       \::/  /   \:\/:/  /     \:\/:/  /  
+       \::/  /       \::/  /        /:/  /     \::/  /       \::/  /   
+        \/__/         \/__/         \/__/       \/__/         \/__/    
+
+._*EOF*_.
