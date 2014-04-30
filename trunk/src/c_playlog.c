@@ -18,7 +18,6 @@ unsigned int get_percent(FILE *f, unsigned int start)
 BOOL    LogPlay (char *filename)
 {
 	char line[256];
-	unsigned char * log;
 	unsigned int log_pos;
 	unsigned int loop_start=0;
 	unsigned int dpcm=0;
@@ -34,7 +33,6 @@ BOOL    LogPlay (char *filename)
 	{
 		StatusText("Could not open file.");
 		StatusOK();
-		free(log);
 		return FALSE;
 	}
 

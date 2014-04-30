@@ -6,7 +6,8 @@ BOOL	RegPlayNES (char *filename)
 	int FrameNum = 0, NumFrames = 0;
 	FILE *REGDATA;
 	OpenStatus(topHWnd);
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin("rdump1.bin"))
@@ -72,7 +73,8 @@ BOOL	RegPlayVRC7 (char *filename)
 	int FrameNum = 0, NumFrames = 0;
 	FILE *REGDATA;
 	OpenStatus(topHWnd);
-	StatusText("Resetting USB CopyNES...");
+	InitPort();
+	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
 	if (!LoadPlugin("rdump2.bin"))

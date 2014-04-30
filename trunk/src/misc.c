@@ -55,7 +55,7 @@ void	WriteUNIF (char *basename, char *board, int battery, int mirror, int foursc
 		year = mytime->tm_year + 1900;
 		dumpinfo[102] = (year & 0x00FF);
 		dumpinfo[103] = (year & 0xFF00) >> 8;
-		strcpy(&dumpinfo[104],"USB CopyNES Blue v5.0.3");
+		sprintf(&dumpinfo[104],"%sCopyNES Blue v5.0.3", (ParPort == -1) ? "USB " : "");
 		UNIFchunk(UNIF,"DINF",dumpinfo,204);
 	}
 
@@ -196,7 +196,7 @@ void	WriteUNIF (char *basename, char *board, int battery, int mirror, int foursc
 	fclose(PRG);
 	if (CHR)
 		fclose(CHR);
-	MessageBox(topHWnd,".UNIF created successfully!","USB CopyNES",MB_OK);
+	MessageBox(topHWnd,".UNIF created successfully!","CopyNES Blue",MB_OK);
 }
 void	WriteNES (char *basename, int mapper, int battery, int mirror, int fourscrn, int nes2, int wram, int vram, int submapper, int tv)
 {
@@ -277,6 +277,6 @@ void	WriteNES (char *basename, int mapper, int battery, int mirror, int fourscrn
 		fclose(CHR);
 	fclose(NES);
 
-	MessageBox(topHWnd,".NES created successfully!","USB CopyNES",MB_OK);
+	MessageBox(topHWnd,".NES created successfully!","CopyNES Blue",MB_OK);
 }
 

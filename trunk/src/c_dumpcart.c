@@ -68,7 +68,7 @@ BOOL	CMD_DUMPCART (void)
 	{	// for the first 'header' byte, wait longer than usual
 		// since the plugin might be busy doing size detection, which can take a while
 		int s;
-		if (!ReadByteEx((BYTE *)&nblks,TRUE) || !ReadByte((BYTE *)&nblks+1))
+		if (!ReadByteEx((BYTE *)&nblks,10,TRUE) || !ReadByte((BYTE *)&nblks+1))
 		{
 			CloseStatus();
 			return FALSE;

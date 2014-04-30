@@ -10,9 +10,10 @@ BOOL	CMD_RECONNECT (void)
 	//OpenStatus(topHWnd);
 	ClosePort();
 	//StatusText("Reconnecting USB...");
-	if (OpenPort())
+	if (OpenPort(ParPort, ParAddr, ParECP))
 	{
-		//StatusText("Resetting USB CopyNES...");
+		if (ParPort != -1)
+			InitPort();
 		ResetNES(RESET_COPYMODE);
 		//StatusText("Retrieving internal version string...");  	  
 		HWVer = FindVersion();

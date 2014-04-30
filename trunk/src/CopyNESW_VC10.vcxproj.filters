@@ -87,9 +87,6 @@
     <ClCompile Include="crc32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="io.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="misc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,6 +94,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

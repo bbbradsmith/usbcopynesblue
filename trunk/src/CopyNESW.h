@@ -1,6 +1,9 @@
 #ifndef COPYNESW_H
 #define COPYNESW_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern	HINSTANCE hInst;
 extern	HWND	topHWnd;
 
@@ -50,6 +53,7 @@ UINT32	GetCRC	(FILE *File);
 
 /* Config */
 extern	int	HWVer;
+extern	int	ParPort, ParAddr, ParECP;
 extern	BOOL	SaveCRC, SaveFiles, MakeUnif;
 extern	char	Path_MAIN[MAX_PATH], Path_PRG[MAX_PATH], Path_CHR[MAX_PATH], Path_WRAM[MAX_PATH],
 	Path_NES[MAX_PATH], Path_CRC[MAX_PATH], Path_NSF[MAX_PATH], Path_PLUG[MAX_PATH];
@@ -63,21 +67,33 @@ void	WriteConfig (void);
 #define	RESET_ALTPORT	2
 #define	RESET_NORESET	4
 extern	char	ROMstring[256];
-BOOL    OpenPort (void);
-void	InitPort	(void);
+
+
+BOOL	OpenPort	(int, int, int);
+void InitPort	(void);
 void	ClosePort (void);
 void	ResetNES	(int);
 BOOL	ReadByte	(BYTE *);
 BOOL	WriteByte	(BYTE);
-BOOL WriteBlock (char*, int);
+BOOL WriteBlock (BYTE*, int);
 BOOL	ReadByteSilent	(BYTE *);
 BOOL	WriteByteSilent	(BYTE);
-BOOL	ReadByteEx	(BYTE *,BOOL);
-BOOL	WriteByteEx	(BYTE,BOOL);
+BOOL	ReadByteEx (BYTE *, int, BOOL);
+BOOL	WriteByteEx (BYTE, int, BOOL);
 BOOL    ReadByteReady (void);
 BOOL	WriteCommand	(BYTE,BYTE,BYTE,BYTE,BYTE);
 BOOL	LoadPlugin	(char *);
 BOOL	RunCode		(void);
+static int SystemVersion(void);
+static BOOL	OpenUSB (void);
+static	void	CloseUSB (void);
+unsigned char	prData (void);
+void	pwData (unsigned char);
+unsigned char	prStatus (void);
+void	pwControl (unsigned char);
+unsigned char	prECP (void);
+void	pwECP (unsigned char);
+
 
 /* Miscellaneous functions */
 #define	SLEEP_SHORT	100
@@ -88,5 +104,9 @@ void	WriteNES	(char *,int,int,int,int,int,int,int,int,int);
 void	DoEvents	();
 
 #define	MSGBOX_TITLE	"USB CopyNES - " CMD_NAME
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* COPYNESW_H */

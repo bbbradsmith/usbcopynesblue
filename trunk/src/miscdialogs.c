@@ -347,7 +347,7 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 static char custplug_name[1024] = "CUSTOM";
 static char custplug_file[1024] = "custom.bin";
 static char custplug_desc[1024] = "User-Defined Mapper";
-static TPlugin custplug = {custplug_name, custplug_file, 9998, custplug_desc};
+static TPlugin custplug = {custplug_name, custplug_file, custplug_file, 9998, custplug_desc};
 
 PPlugin	PromptPlugin (int Type)
 {
