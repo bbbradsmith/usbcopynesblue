@@ -195,6 +195,21 @@ static	void	trim (char *str)
 	}
 }
 
+TPlugin *MakePlugin(char *name, char *file, char *nsffile, int number, char *description)
+{
+	TPlugin *plugin = (TPlugin*)malloc(sizeof(TPlugin));
+	if(plugin == NULL)
+		return NULL;
+
+	plugin->name = name;
+	plugin->file = file;
+	plugin->nsffile = nsffile;
+	plugin->num = number;
+	plugin->desc = description;
+
+	return plugin;
+}
+
 BOOL	Startup	(void)
 {
 	char mapfile[MAX_PATH];
@@ -303,54 +318,13 @@ BOOL	Startup	(void)
 	Plugins[i]->type = PLUG_UPLOAD;
 	Plugins[i]->desc = strdup("RAM/Flash cartridge programmer");
 
-	Plugins[i]->list[0] = malloc(sizeof(TPlugin));
-	Plugins[i]->list[0]->name = strdup("NRAM");
-	Plugins[i]->list[0]->file = strdup("ram.bin");
-	Plugins[i]->list[0]->nsffile = strdup("ram.bin");
-	Plugins[i]->list[0]->num = 0;
-	Plugins[i]->list[0]->desc = strdup("NROM cart with 32K PRG RAM and 8K CHR RAM");
-
-	Plugins[i]->list[1] = malloc(sizeof(TPlugin));
-	Plugins[i]->list[1]->name = strdup("CNRAM");
-	Plugins[i]->list[1]->file = strdup("cnram.bin");
-	Plugins[i]->list[1]->nsffile = strdup("cnram.bin");
-	Plugins[i]->list[1]->num = 1;
-	Plugins[i]->list[1]->desc = strdup("CNROM cart with 32K PRG RAM and 32KB CHR RAM");
-
-	Plugins[i]->list[2] = malloc(sizeof(TPlugin));
-	Plugins[i]->list[2]->name = strdup("UfROM");
-	Plugins[i]->list[2]->file = strdup("uxram.bin");
-	Plugins[i]->list[2]->nsffile = strdup("uxram.bin");
-	Plugins[i]->list[2]->num = 2;
-	Plugins[i]->list[2]->desc = strdup("Membler's flash cart for UNROM");
-
-	Plugins[i]->list[3] = malloc(sizeof(TPlugin));
-	Plugins[i]->list[3]->name = strdup("PowerPak Lite");
-	Plugins[i]->list[3]->file = strdup("pplite.bin");
-	Plugins[i]->list[3]->nsffile = strdup("pplite.bin");
-	Plugins[i]->list[3]->num = 3;
-	Plugins[i]->list[3]->desc = strdup("PowerPak Lite RAM Cart loader");
-    
-	Plugins[i]->list[4] = malloc(sizeof(TPlugin));
-	Plugins[i]->list[4]->name = strdup("PowerPak Boot");
-	Plugins[i]->list[4]->file = strdup("pp.bin");
-	Plugins[i]->list[4]->nsffile = NULL;
-	Plugins[i]->list[4]->num = 4;
-	Plugins[i]->list[4]->desc = strdup("PowerPak Boot Flasher");
-  
-  	Plugins[i]->list[5] = malloc(sizeof(TPlugin));
-	Plugins[i]->list[5]->name = strdup("Glider Flasher");
-	Plugins[i]->list[5]->file = strdup("glider.bin");
-	Plugins[i]->list[5]->nsffile = strdup("glidernsf.bin");
-	Plugins[i]->list[5]->num = 5;
-	Plugins[i]->list[5]->desc = strdup("Glider House Flasher");
-
-	Plugins[i]->list[6] = malloc(sizeof(TPlugin));
-	Plugins[i]->list[6]->name = strdup("UNROM512 Flasher");
-	Plugins[i]->list[6]->file = strdup("unrom512.bin");
-	Plugins[i]->list[6]->nsffile = strdup("unrom512nsf.bin");
-	Plugins[i]->list[6]->num = 6;
-	Plugins[i]->list[6]->desc = strdup("Sealie Computing UNROM512 Flasher");
+	Plugins[i]->list[0] = MakePlugin("NRAM","ram.bin","ram.bin",0,"NROM cart with 32K PRG RAM and 8K CHR RAM");
+	Plugins[i]->list[1] = MakePlugin("CNRAM","cnram.bin","cnram.bin",1,"CNROM cart with 32K PRG RAM and 32KB CHR RAM");
+	Plugins[i]->list[2] = MakePlugin("UfROM","uxram.bin","uxram.bin",2,"Membler's flash cart for UNROM");
+	Plugins[i]->list[3] = MakePlugin("PowerPak Lite","pplite.bin","pplite.bin",3,"PowerPak Lite RAM Cart Loader");
+	Plugins[i]->list[4] = MakePlugin("PowerPak Boot","pp.bin",NULL,4,"PowerPak Boot Flasher");
+	Plugins[i]->list[5] = MakePlugin("Glider Flasher","glider.bin","glidernsf.bin",5,"Glider House Flasher");
+	Plugins[i]->list[6] = MakePlugin("URROM512 Flasher","unrom512.bin","unrom512nsf.bin",6,"Sealie Computing UNROM512 Flasher");
 	// END RAMCART
 
 	if (!OpenPort(ParPort, ParAddr, ParECP))
@@ -381,6 +355,8 @@ void	Shutdown (void)
 			{
 				free(Plugins[i]->list[j]->desc);
 				free(Plugins[i]->list[j]->file);
+				if(Plugins[i]->list[j]->nsffile)
+					free(Plugins[i]->list[j]->nsffile);
 				free(Plugins[i]->list[j]->name);
 				free(Plugins[i]->list[j]);
 			}
