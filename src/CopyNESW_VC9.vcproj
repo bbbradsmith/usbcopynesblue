@@ -479,7 +479,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\io.c"
+				RelativePath=".\io.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
