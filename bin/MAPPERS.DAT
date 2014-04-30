@@ -1,5 +1,5 @@
 92  1   28  41  46  121 
-0   10  14  55  60  77  80  89  93  99  105 120 127 140 173 178 
+0   10  14  55  60  77  80  89  93  99  105 120 128 141 174 179 
 *                                       0    Common Mappers                                                           
 xxxx                       xxxx.bin     9998 User Mapper                                                              
 NES-NROM                   nrom.bin     0    Generic NROM games 32K PRG / 8K CHR max                                  
@@ -127,6 +127,7 @@ UNL-8237                   pokeahin.bin 114  Pocahontas 2
 UNL-Cony1                  cony1.bin    83   Cony Mapper with 1K CHR banks                                            
 UNL-Cony2                  cony2.bin    82   Cony Mapper with 2K CHR banks                                            
 UNL-UxROM-512              u5rom.bin    2    Sealie Computing UNROM-512 (Mapper will override to 30 when req.)        
+UNL-RET-CUFROM             retcufrm.bin 29   Sealie Computing RET-CUFROM 128K PRG ROM, VRAM for CHR, 8K WRAM          
 *                                       0    Single Game Bootlegs                                                     
 BTL-MONTY                  monty.bin    125  Monty on the Run FDS conversion                                          
 BTL-DD2                    dd2.bin      127  Double Dragon 2 using lots of 4*4 reg files                              

@@ -630,6 +630,7 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 	memcpy(header,filedata,16);
 
 	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
+	banks = header[4];
 
 	if (header[5] > 0)
 		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
@@ -647,9 +648,9 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 	Sleep(SLEEP_SHORT);
 
 	StatusText("Erasing Flash ROM...");
-	if (!ReadByte(&banks))
+	if (!WriteByte(banks))
 	{
-		StatusText("Failed to read.");
+		StatusText("Failed to write");
 		return FALSE;
 	}
 	for (i = 0; i < banks; i++)
@@ -667,11 +668,10 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 	StatusText("...done!");
 
 	StatusText("Sending PRG data...");
-	
-	for (i=0; i<4; i++)
+	data = filedata + 16; // PRG
+	for (i=0; i<banks; i++)
 	{
-		data = filedata + 16; // PRG
-		for (j=0; j<64; j++)
+		for (j=0; j<16; j++)
 		{
 			if (!WriteBlock(data, 1024))
 			{
@@ -679,7 +679,7 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 				return FALSE;
 			}
 			data += 1024;
-			StatusPercent(((i*64 + j) * 100) / 256);   
+			StatusPercent(((i*16 + j) * 100) / (16 * banks));   
 			DoEvents();
 		} 
 	}
