@@ -1,5 +1,5 @@
-USBCopyNESBlue v5.0.1
-Released by Brad Smith, 5/10/2013
+USBCopyNESBlue v5.0.4
+Released by Brad Smith, ?????
 
 This is a fork of the USBCopyNES client originally released by
 Brian Parker (RetroUSB). This was in turn based on CopyNESW by
@@ -22,6 +22,22 @@ Known Bugs:
 
 
 Changes:
+
+v5.0.4 - ?????
+ - Glider cart now usable as an NSF cart.
+ - Parallel port support added. (there may still be bugs with that.)
+ - Mapper.dat format updated. (Now easier to add a plugin.)
+
+v5.0.3 - 4/30/2013
+ - Fixed bugs with Glider flasher
+ - Created RET-CUFROM plugin (dumps Glider)
+
+v5.0.2 - 4/29/2013
+ - Lots of bug fixes
+ - Added NES 2.0 support
+ - Updated U5ROM plugin to handle carts that do more than oversized UxROM, like flash saving, etc... (Mapper 30
+ - Added UNROM-512 flasher unde RAM-Cart
+ - Created NSF log player (created with NSFPlay)
 
 v5.0.1 - 5/10/2013
  - NSF player now works with common RAM carts. (Cancel RAM cart plugin dialog for old NSF cart behaviour.)

@@ -1,5 +1,28 @@
-92  1   28  41  46  121 
-0   10  14  55  60  77  80  89  93  99  105 120 128 141 174 179 
+1   28  41  46  121 
+**********************************************************************************************************************
+**********************************************************************************************************************
+**** MAPPERS.DAT format                                                                                           ****
+****   The first line is a list of 5 integers that indicates the columns                                          ****
+****     - Mapper name. If a * is there, this is a column header. If **** is present, the line is a comment.      ****
+****     - plugin filename.                                                                                       ****
+****     - Mapper number. (From 0-4095), submapper 0 is automatically assumed unless the plugin says otherwise.   ****
+****     - Description of mapper                                                                                  ****
+****     - Size of line, including \n                                                                             ****
+****  Each category header should have: (aligned to the specified columns)                                        ****
+****    * instead of plugin name                                                                                  ****
+****    empty filename (spaces)                                                                                   ****
+****    0 as mapper number                                                                                        ****
+****    title of category instead of plugin description                                                           ****
+****  Each plugin entry in a category should have: (aligned to the specified columns)                             ****
+****    plugin name                                                                                               ****
+****    filename                                                                                                  ****
+****    mapper number                                                                                             ****
+****    description                                                                                               ****
+****                                                                                                              ****
+**** In category mode, mapper 0 is standard dumping plugins, 1 is development plugins, 2 is WRAM writer plugins   ****
+**** In standard plugin listing, 9997 for WRAM writer, 9998 for User selected, 9999 for UNIF only                 ****
+**********************************************************************************************************************
+**********************************************************************************************************************
 *                                       0    Common Mappers                                                           
 xxxx                       xxxx.bin     9998 User Mapper                                                              
 NES-NROM                   nrom.bin     0    Generic NROM games 32K PRG / 8K CHR max                                  
@@ -18,7 +41,7 @@ XXX-QUIET-MMC5             mmc5plug.bin 0    QuieTest(tm) 2000 MMC5 tester
 NES-AMROM                  axrom.bin    7    LS161, Max 128K PRG, VRAM (bus conflicts)                                
 NES-ANROM                  axrom.bin    7    LS02/LS161, Max 128K PRG, VRAM                                           
 NES-AOROM                  axrom.bin    7    LS161, Max 256K PRG, VRAM (bus conflicts)                                
-NES-BNROM                  bnrom.bin    34    LS161, Max 128K PRG, VRAM (bus conflicts)                                
+NES-BNROM                  bnrom.bin    34   LS161, Max 128K PRG, VRAM (bus conflicts)                                
 NES-BTR                    fme7.bin     69   FME-7, Max 512K PRG, 256K CHR                                            
 NES-CPROM                  cprom.bin    13   LS08, LS161, LS04, Max 32K PRG, 16K VRAM                                 
 NES-ELROM                  exrom.bin    5    MMC5, Max 1024K PRG, Max 256K CHR                                        
