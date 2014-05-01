@@ -240,7 +240,7 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 	case WM_INITDIALOG:
 		Type = (int)lParam;
 
-		for (i = 0; Plugins[i] != NULL; i++)
+		for (i = 0; i <= numcats; i++)
 		{
 			if (Plugins[i]->type == Type)
 				SendDlgItemMessage(hDlg,IDC_PLUGIN_CATEGORY,LB_ADDSTRING,0,(LPARAM)(LPCTSTR)Plugins[i]->desc);
@@ -251,10 +251,10 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 			i = 0;
 		else
 		{
-			for (i = 0; Plugins[i] != NULL; i++)
+			for (i = 0; i <= numcats; i++)
 				if (Plugins[i]->type == Type)
 					break;
-			if (Plugins[i] == NULL)
+			if (i > numcats)
 			{
 				MessageBox(hDlg, "Unable to locate category - please update MAPPERS.DAT!", "Plugin", MB_OK | MB_ICONERROR);
 				EndDialog(hDlg,(INT_PTR)NULL);
@@ -277,7 +277,7 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 
 		SendDlgItemMessage(hDlg,IDC_PLUGIN_CATEGORY,LB_SETCURSEL,curcat,0);
 
-		for (i = 0; category->list[i] != NULL; i++)
+		for (i = 0; i <= category->listlen; i++)
 			SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_ADDSTRING,0,(LPARAM)(LPCTSTR)category->list[i]->name);
 
 		SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_SETCURSEL,curplug,0);
@@ -298,7 +298,7 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 				while (Plugins[i]->type != PLUG_STD)
 				{	// switch to next category
 					i++;
-					if (Plugins[i] == NULL)
+					if (i>numcats)
 						i = 0;
 				}
 				curcat = i;
@@ -306,7 +306,7 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 				SendDlgItemMessage(hDlg,IDC_PLUGIN_CATEGORY,LB_SETCURSEL,curcat,0);	// update selection, in case it changed
 				SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_RESETCONTENT,0,0);
 				category = Plugins[curcat];
-				for (i = 0; category->list[i] != NULL; i++)
+				for (i = 0; i <= category->listlen; i++)
 					SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_ADDSTRING,0,(LPARAM)(LPCTSTR)category->list[i]->name);
 				SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_SETCURSEL,curplug,0);
 				sprintf(desc, "%s (%i)", category->list[curplug]->desc, category->list[curplug]->num);

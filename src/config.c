@@ -183,7 +183,7 @@ int	FindVersion (void)
 }
 
 PCategory *Plugins = NULL;
-int numcats = 0;
+int numcats = -1;
 
 static	void	trim (char *str)
 {
@@ -196,18 +196,35 @@ static	void	trim (char *str)
 	}
 }
 
+BOOL IsValidPlugin(char *name)
+{
+	FILE* PLUGIN;
+	int size;
+	char filename[MAX_PATH];
+	strcpy(filename,Path_PLUG);
+	strcat(filename,name);
+	if ((PLUGIN = fopen(filename,"rb")) == NULL)
+		return FALSE;
+	fseek(PLUGIN,0,SEEK_END);
+	size=ftell(PLUGIN);
+	fclose(PLUGIN);
+	return size>=1152;
+}
+
+
+int usedcategoryleft = 0;
 BOOL MakeCategory(char *description, int type)
 {
 	numcats++;
-	Plugins = realloc(Plugins, (numcats+1) * sizeof(PCategory));	// allocate another slot
-	memset(&Plugins[numcats], 0, sizeof(PCategory));		// clear the new one at the end
+	if(numcats)
+		Plugins = (PCategory*)realloc(Plugins, (numcats+1) * sizeof(PCategory));	// allocate another slot
+	else
+		Plugins = (PCategory*)malloc(sizeof(PCategory));
 	
-	Plugins[numcats-1] = (PCategory)malloc(sizeof(TCategory));
-	Plugins[numcats-1]->listlen = 0;
-	Plugins[numcats-1]->list = (PPlugin *)malloc(sizeof(PPlugin));
-	memset(Plugins[numcats-1]->list, 0, sizeof(PPlugin));
-	Plugins[numcats-1]->type = type;
-	Plugins[numcats-1]->desc = strdup(description);
+	Plugins[numcats] = (PCategory)malloc(sizeof(TCategory));
+	Plugins[numcats]->listlen = -1;
+	Plugins[numcats]->type = type;
+	Plugins[numcats]->desc = strdup(description);
 	
 	return TRUE;
 }
@@ -216,12 +233,7 @@ BOOL MakeCategory(char *description, int type)
 
 BOOL MakePlugin(int category, char *name, char *file, char *nsffile, int number, char *description)
 {
-	FILE *PLUGIN;
 	TPlugin *plugin;
-
-	char filename[MAX_PATH];
-	strcpy(filename,Path_PLUG);
-	strcat(filename,file);
 
 	plugin = (TPlugin*)malloc(sizeof(TPlugin));
 	if(plugin == NULL)
@@ -229,47 +241,41 @@ BOOL MakePlugin(int category, char *name, char *file, char *nsffile, int number,
 	
 	if(number != 9998)
 	{
-		if ((PLUGIN = fopen(filename,"rb")) == NULL)
+		if (!IsValidPlugin(file))
 		{
 			if(nsffile == NULL)
 			{
 				free(plugin);
 				return FALSE;
 			}
-			strcpy(filename,Path_PLUG);
-			strcat(filename,nsffile);
-			if ((PLUGIN = fopen(filename,"rb")) == NULL)
-			{
-				free(plugin);
-				return FALSE;
-			}
 			else
 			{
-				fclose(PLUGIN);
-				plugin->file = strdup(nsffile);
+				if(!IsValidPlugin(nsffile))
+				{
+					free(plugin);
+					return FALSE;
+				}
+				else
+				{
+					plugin->file = strdup(nsffile);
+				}
 			}
 		}
 		else
 		{
 			plugin->file = strdup(file);
-			fclose(PLUGIN);
 		}
 	}
 	else
-		plugin->file = strdup("xxxx.bin");
+		plugin->file = strdup(file);
 
 	plugin->name = strdup(name);
 	if(nsffile != NULL)
 	{
-		strcpy(filename,Path_PLUG);
-		strcat(filename,nsffile);
-		if((PLUGIN = fopen(filename,"rb")) == NULL)
-			plugin->nsffile = NULL;
-		else
-		{
+		if(IsValidPlugin(nsffile))
 			plugin->nsffile = strdup(nsffile);
-			fclose(PLUGIN);
-		}
+		else
+			plugin->nsffile = NULL;
 	}
 	else
 		plugin->nsffile = NULL;
@@ -277,9 +283,11 @@ BOOL MakePlugin(int category, char *name, char *file, char *nsffile, int number,
 	plugin->desc = strdup(description);
 
 	Plugins[category]->listlen++;
-	Plugins[category]->list = realloc(Plugins[category]->list, (Plugins[category]->listlen+1) * sizeof(TPlugin));
-	Plugins[category]->list[Plugins[category]->listlen-1] = plugin;
-	memset(&Plugins[category]->list[Plugins[category]->listlen], 0, sizeof(PPlugin));
+	if(Plugins[category]->listlen)
+		Plugins[category]->list = (PPlugin*)realloc(Plugins[category]->list, (Plugins[category]->listlen+1) * sizeof(TPlugin));
+	else
+		Plugins[category]->list = (PPlugin*)malloc(sizeof(TPlugin));
+	Plugins[category]->list[Plugins[category]->listlen] = plugin;
 
 	return TRUE;
 }
@@ -289,8 +297,6 @@ BOOL	Startup	(void)
 	char mapfile[MAX_PATH];
 	FILE *PlugList;
 	char *Data, *C1, *C2, *C3, *C4;
-	int i, j;
-
 	int col0, col1, col2, col3, col4;
 
 
@@ -308,14 +314,11 @@ BOOL	Startup	(void)
 	// step 1 - Read the column information
 	fscanf(PlugList,"%i %i %i %i %i\n", &col0, &col1, &col2, &col3, &col4);
 	col0--; col1--; col2--; col3--; col4--;
-	C1 = malloc(col1 - col0 + 1);	C1[col1 - col0] = 0;
-	C2 = malloc(col2 - col1 + 1);	C2[col2 - col1] = 0;
-	C3 = malloc(col3 - col2 + 1);	C3[col3 - col2] = 0;
-	C4 = malloc(col4 - col3 + 1);	C4[col4 - col3] = 0;
-	Data = malloc(col4);
-
-	Plugins = malloc(sizeof(PCategory));
-	memset(Plugins, 0, sizeof(PCategory));
+	C1 = (char*)malloc(col1 - col0 + 1);	C1[col1 - col0] = 0;
+	C2 = (char*)malloc(col2 - col1 + 1);	C2[col2 - col1] = 0;
+	C3 = (char*)malloc(col3 - col2 + 1);	C3[col3 - col2] = 0;
+	C4 = (char*)malloc(col4 - col3 + 1);	C4[col4 - col3] = 0;
+	Data = (char*)malloc(col4);
 
 	// step 2 - read in the list
 	while (!feof(PlugList))
@@ -339,7 +342,7 @@ BOOL	Startup	(void)
 		}
 		else
 		{
-			MakePlugin(numcats-1,C1,C2,NULL,atoi(C3),C4);
+			MakePlugin(numcats,C1,C2,NULL,atoi(C3),C4);
 		}
 	}
 
@@ -352,13 +355,13 @@ BOOL	Startup	(void)
 
 	// RAMCART - create new category for upload plugins
 	MakeCategory("RAM/Flash cartridge programmer",PLUG_UPLOAD);
-	MakePlugin(numcats-1,	"NRAM",					"ram.bin",		"ram.bin",			0,	"NROM cart with 32K PRG RAM and 8K CHR RAM");
-	MakePlugin(numcats-1,	"CNRAM",				"cnram.bin",	"cnram.bin",		1,	"CNROM cart with 32K PRG RAM and 32KB CHR RAM");
-	MakePlugin(numcats-1,	"UfROM",				"uxram.bin",	"uxram.bin",		2,	"Membler's flash cart for UNROM");
-	MakePlugin(numcats-1,	"PowerPak Lite",		"pplite.bin",	"pplite.bin",		3,	"PowerPak Lite RAM Cart Loader");
-	MakePlugin(numcats-1,	"PowerPak Boot",		"pp.bin",		NULL,				4,	"PowerPak Boot Flasher");
-	MakePlugin(numcats-1,	"Glider Flasher",		"glider.bin",	"glidernsf.bin",	5,	"Glider House Flasher");
-	MakePlugin(numcats-1,	"URROM512 Flasher",		"unrom512.bin",	"unrom512nsf.bin",	6,	"Sealie Computing UNROM512 Flasher");
+	MakePlugin(numcats,	"NRAM",					"ram.bin",		"ram.bin",			0,	"NROM cart with 32K PRG RAM and 8K CHR RAM");
+	MakePlugin(numcats,	"CNRAM",				"cnram.bin",	"cnram.bin",		1,	"CNROM cart with 32K PRG RAM and 32KB CHR RAM");
+	MakePlugin(numcats,	"UfROM",				"uxram.bin",	"uxram.bin",		2,	"Membler's flash cart for UNROM");
+	MakePlugin(numcats,	"PowerPak Lite",		"pplite.bin",	"pplite.bin",		3,	"PowerPak Lite RAM Cart Loader");
+	MakePlugin(numcats,	"PowerPak Boot",		"pp.bin",		NULL,				4,	"PowerPak Boot Flasher");
+	MakePlugin(numcats,	"Glider Flasher",		"glider.bin",	"glidernsf.bin",	5,	"Glider House Flasher");
+	MakePlugin(numcats,	"URROM512 Flasher",		"unrom512.bin",	"unrom512nsf.bin",	6,	"Sealie Computing UNROM512 Flasher");
 	// END RAMCART
 
 	if (!OpenPort(ParPort, ParAddr, ParECP))
@@ -383,9 +386,9 @@ void	Shutdown (void)
 	
 	if (Plugins)
 	{
-		for (i = 0; i < numcats; i++)
+		for (i = 0; i <= numcats; i++)
 		{
-			for (j = 0; j < Plugins[i]->listlen; j++)
+			for (j = 0; j <= Plugins[i]->listlen; j++)
 			{
 				if(Plugins[i]->list[j]->desc) free(Plugins[i]->list[j]->desc);
 				if(Plugins[i]->list[j]->file) free(Plugins[i]->list[j]->file);

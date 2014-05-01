@@ -136,7 +136,7 @@ void	DoBanks (void)
 	{
 		WriteByte(0x0C);
 		for (i = 0; i < 64; i++)
-			if (!ReadByteEx(&banks[i],10, FALSE))
+			if (!ReadByteEx(&banks[i], 1, FALSE))
 				break;
 		if (i != 64)
 			return;

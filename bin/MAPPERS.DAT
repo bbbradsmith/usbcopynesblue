@@ -24,7 +24,7 @@
 **********************************************************************************************************************
 **********************************************************************************************************************
 *                                       0    Common Mappers                                                           
-xxxx                       xxxx.bin     9998 User Mapper                                                              
+Load Custom Plugin         xxxx.bin     9998 User Mapper                                                              
 NES-NROM                   nrom.bin     0    Generic NROM games 32K PRG / 8K CHR max                                  
 NES-MMC1                   sxrom.bin    1    Generic MMC1 (all types)                                                 
 NES-UxROM                  unrom.bin    2    Generic UxROM                                                            
