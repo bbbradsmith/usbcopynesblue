@@ -21,10 +21,12 @@ typedef	struct	Plugin
 typedef	struct	Category
 {
 	PPlugin *list;
+	int listlen;
 	int type;
 	char *desc;
 }	TCategory, *PCategory;
 extern	PCategory *Plugins;
+extern int numcats;
 
 /* Misc Dialogs */
 extern	HWND	DlgStatus;
