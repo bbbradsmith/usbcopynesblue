@@ -177,8 +177,7 @@ pgm_done:    rts
 
 
 erasesector:
-	lda #$08
-	cmp romsize
+	lda romsize
 	bne :+
 		lda currbank
 		beq :+
@@ -190,20 +189,6 @@ erasesector:
 	flashwrite #$04, $9555, $80
 	flashwrite #$04, $9555, $AA
 	flashwrite #$00, $AAAA, $55
-
-	ldx #$08
-	cpx romsize
-	beq :++
-		flashwrite currbank, $8000, $30
-		:
-			lda $8000
-			eor $8000
-		bne :-
-		lda #$f0
-		sta (temp1),y  ;reset to read mode
-		rts
-	:
-
 	flashwrite #$04, $9555, $10	;otherwise, chip erase the entire chip at once.
 	:
 		lda $9555
