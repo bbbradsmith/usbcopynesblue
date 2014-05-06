@@ -148,7 +148,7 @@ BOOL    LogPlay (char *filename)
 BOOL    CMD_PLAYLOG (void)
 {
 	char filename[MAX_PATH];
-	if (!PromptFile(topHWnd,"Register dumps (*.TXT;*.LOG)\0*.txt;*.log;*.*\0\0",filename,NULL,NULL,"Select a file...",NULL,FALSE))
+	if (!PromptFile(topHWnd,"Register dumps (*.TXT;*.LOG)\0*.txt;*.log\0All Files (*.*)\0*.*\0\0",filename,NULL,NULL,"Select a file...",NULL,FALSE))
 		return FALSE;
 
 	return LogPlay(filename);
