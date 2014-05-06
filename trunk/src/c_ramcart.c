@@ -1,54 +1,74 @@
 #include "StdAfx.h"
 #define	CMD_NAME	"RAM Cart"
 
+BYTE header[16];
+int mapper;
+int PRG, CHR;
 
-BOOL	NRAMcart (PPlugin plugin, char* filedata)
+BOOL IsPowerOfTwo(int num)
 {
-	int i, j, PRGsize;
-	BYTE PRGamt;
-	BYTE header[16];
-	BYTE mapper;
-	char* data;
-	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
-
-	memcpy(header,filedata,16);
-	if (header[4] == 2)
+	int i;
+	i=num;
+	while(i)
 	{
-		PRGamt = 0;
-		PRGsize = 32768;
-		StatusText("32KB PRG ROM data located...");
+		if((i&1) && (i&0xFFE))
+			return FALSE;
+		i>>=1;
 	}
-	else if (header[4] == 1)
+	return TRUE;
+}
+
+
+BOOL AssertPRG(int min, int max)
+{
+
+	if((PRG >= min) && (PRG <= max) && IsPowerOfTwo(PRG))
 	{
-		PRGamt = 1;
-		PRGsize = 16384;
-		StatusText("16KB PRG ROM data located...");
+		StatusText("%iKB PRG ROM data located...",PRG*16);
+		return TRUE;
+	}
+	StatusText("Invalid PRG size, must be an even size between %iKB and %iKB!",min*16,max*16);
+	return FALSE;
+}
+
+BOOL AssertCHR(int max)
+{
+	if (header[5] > max)
+	{
+		if(max > 0)
+			StatusText("More than %iKB of CHR ROM data was detected, sending first %iKB only...",max*8,max*8);
+		else
+			StatusText("%iKB of CHR ROM data was detected, ignoring...", CHR * 8);
 	}
 	else
 	{
-		StatusText("Invalid PRG size, must be 16KB or 32KB!");
-		return FALSE;
-	}
-
-	if (header[5] > 1)
-		StatusText("More than 8KB of CHR ROM data was detected, sending first 8KB only...");
-	else	StatusText("8KB CHR ROM data located...");
-
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
-	if(!plugin->load_nsf)
-	{
-		if ((mapper != 0) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+		if(!IsPowerOfTwo(CHR))
 		{
-			StatusText("Load aborted.");
+			StatusText("Invalid CHR ROM size (%iKB)!", CHR * 8);
 			return FALSE;
 		}
-
-		if (header[6] & 1)
-			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
-		else
-			MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
+		StatusText("%iKB CHR ROM data located...",CHR*8);
 	}
+	return TRUE;
+}
 
+BOOL AssertMapper(int *mappers, int count)
+{
+	int i;
+	for(i=0;i<count;i++)
+		if(mappers[i] == mapper)
+			return TRUE;
+	if((MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+	{
+		StatusText("Load aborted.");
+		return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL LoadPPlugin(PPlugin plugin)
+{
+	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 	InitPort();
 	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
@@ -61,6 +81,57 @@ BOOL	NRAMcart (PPlugin plugin, char* filedata)
 	StatusText("Initializing plugin...");
 	RunCode();
 	Sleep(SLEEP_SHORT);
+	return TRUE;
+}
+
+BOOL SendData(int amt, char *data)
+{
+	int j;
+	for (j = 0; j < amt; j++)
+	{
+		if (!WriteBlock(data, 1024))
+		{
+			StatusText("Failed to send.");
+			return FALSE;
+		}
+		data += 1024;
+		StatusPercent((j * 100) / amt);
+		DoEvents();
+	}
+	StatusPercent(100);
+	StatusText("...done!");
+
+	return TRUE;
+}
+
+
+BOOL	NRAMcart (PPlugin plugin, char* filedata)
+{
+	int PRGsize;
+	BYTE PRGamt;
+	char* data;
+	int mappers[] = {0};
+
+	if(!AssertPRG(1,2)) return FALSE;
+
+	PRGamt = PRG-1;
+	PRGsize = PRG*16384;
+
+	if(AssertCHR(1)) return FALSE;
+	if(!plugin->load_nsf)
+	{
+		if(!AssertMapper(mappers,sizeof(mappers)))
+			return FALSE;
+
+		if (header[6] & 1)
+			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
+		else
+			MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
+	}
+
+	if(!LoadPPlugin(plugin))
+		return FALSE;
+
 	if (!WriteByte(PRGamt))
 	{
 		StatusText("Failed to send.");
@@ -74,41 +145,12 @@ BOOL	NRAMcart (PPlugin plugin, char* filedata)
 		return FALSE;
 	}
 	data = filedata + 16; // PRG
-	for (i = 0; i < header[4]; i++)
-	{
-		for (j = 0; j < 16; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send.");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));
-			DoEvents();
-		}
-	}
-	StatusPercent(100);
-	StatusText("...done!");
+	SendData(header[4]*16,data);
+	
 	
 	StatusText("Sending CHR data...");
 	data = filedata + 16 + (header[4] * 16384); // CHR
-	for (i = 0; i < header[5]; i++)
-	{
-		for (j = 0; j < 8; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send.");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
-			DoEvents();
-		}
-	}
-	StatusPercent(100);
-	StatusText("...done!");
+	SendData(header[5]*8,data);
 
 	return TRUE;
 }
@@ -116,59 +158,31 @@ BOOL	NRAMcart (PPlugin plugin, char* filedata)
 
 BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 {
-	int i, j;
-	BYTE header[16];
-	BYTE mapper;
 	int maxchr = 4;
+	int mappers[] = { 0, 3 };
 	char* data;
 	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
-	memcpy(header,filedata,16);
-	if ((header[4]) && (header[4] <= 2))
-		StatusText("%iKB PRG ROM data located...", header[4] * 16);
-	else
-	{
-		StatusText("Invalid PRG size, must be 16KB or 32KB!");
+	if(!AssertPRG(1,2))
 		return FALSE;
-	}
 
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
 	if (mapper == 0)
 		maxchr = 1;
 
-	if (header[5] > maxchr)
-		StatusText("More than %iKB of CHR ROM data was detected, sending first %iKB only...", maxchr * 8, maxchr * 8);
-	else if (header[5] == 3)
-	{
-		StatusText("Invalid CHR ROM size (%iKB)!", maxchr * 8);
-		return FALSE;
-	}
-	else	StatusText("%iKB CHR ROM data located...", header[5] * 8);
+	if(!AssertCHR(maxchr)) return FALSE;
+	
 
 	if(!plugin->load_nsf)
 	{
-		if ((mapper != 0) && (mapper != 3) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
-		{
-			StatusText("Load aborted.");
+		if(!AssertMapper(mappers,sizeof(mappers)))
 			return FALSE;
-		}
 		if (header[6] & 1)
 			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
 		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 	}
 
-	InitPort();
-	StatusText("Resetting CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin(pluginfile))
-	{
-		StatusText("Plugin load failed!");
+	if(!LoadPPlugin(plugin))
 		return FALSE;
-	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
 
 	StatusText("Sending CHR data...");
 	data = filedata + 16 + (header[4] * 16384); // CHR
@@ -177,22 +191,7 @@ BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 		StatusText("Failed to send!");
 		return FALSE;
 	}
-	for (i = 0; i < header[5]; i++)
-	{
-		for (j = 0; j < 8; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send!");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
-			DoEvents();
-		}
-	}
-	StatusPercent(100);
-	StatusText("...done!");
+	SendData(header[5]*8,data);
 
 	StatusText("Sending PRG data...");
 	if (!WriteByte(header[4]))
@@ -201,22 +200,7 @@ BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 		return FALSE;
 	}
 	data = filedata + 16; // PRG
-	for (i = 0; i < header[4]; i++)
-	{
-		for (j = 0; j < 16; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send!");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));
-			DoEvents();
-		}
-	}
-	StatusPercent(100);
-	StatusText("...done!");
+	SendData(header[4]*16,data);
 	
 	StatusText("Write protect your cartridge, then press OK to run program...");
 	StatusButton();
@@ -232,51 +216,22 @@ BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 
 BOOL	UFROMcart (PPlugin plugin, char* filedata)
 {
-	int i, j;
-	BYTE header[16];
-	BYTE mapper;
+	int i;
 	BYTE banks;
 	char* data;
-	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
-
-	memcpy(header,filedata,16);
-	if ((header[4] == 1) || (header[4] == 2) || (header[4] == 4) || (header[4] == 8) || (header[4] == 16))
-		StatusText("%iKB PRG ROM data located...", header[4] * 16);
-	else
-	{
-		StatusText("Invalid PRG size, must be an even amount between 16KB and 256KB!");
-		return FALSE;
-	}
-
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
-
-	if (header[5] > 0)
-		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
+	int mappers[] = { 2 };
+	
+	if(!AssertPRG(1,16)) return FALSE;
+	if(!AssertCHR(0)) return FALSE;
 
 	if(!plugin->load_nsf)
 	{
-		if ((mapper != 2) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
-		{
-			StatusText("Load aborted.");
-			return FALSE;
-		}
+		if(!AssertMapper(mappers,sizeof(mappers))) return FALSE;
 		if (header[6] & 1)
 			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
 		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
 	}
-
-	InitPort();
-	StatusText("Resetting CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin(pluginfile))
-	{
-		StatusText("Plugin load failed!");
-		return FALSE;
-	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
+	if(!LoadPPlugin(plugin)) return FALSE;
 
 	StatusText("Erasing Flash ROM...");
 	if (!ReadByte(&banks))
@@ -299,23 +254,10 @@ BOOL	UFROMcart (PPlugin plugin, char* filedata)
 	StatusText("...done!");
 
 	StatusText("Sending data...");
-	for (banks = 0; banks < 16; )
+	for (banks = 0; banks < 16; banks += PRG )
 	{
 		data = filedata + 16; // PRG
-		for (i = 0; i < header[4]; i++, banks++)
-		{
-			for (j = 0; j < 16; j++)
-			{
-				if (!WriteBlock(data, 1024))
-				{
-					StatusText("Failed to send!");
-					return FALSE;
-				}
-				data += 1024;
-				StatusPercent(((banks * 16 + j) * 100) / 256);
-				DoEvents();
-			}
-		}
+		SendData(PRG*16,data);
 	}
 	StatusPercent(100);
 	StatusText("...done!");
@@ -337,101 +279,76 @@ BOOL	UFROMcart (PPlugin plugin, char* filedata)
 
 BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 {
-	int i, j;
-	BYTE header[16];
-	BYTE mapper;
 	int maxchr = 4;
 	int maxprg = 0;
 	BYTE config = 0;
 	char* data;
-	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
-
-	memcpy(header,filedata,16);
-
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
+	int mappers[] = { 0, 1, 2, 3, 7, 11, 34, 68 };
 	
-	if ((plugin->load_nsf != 1) && (mapper != 0) && (mapper != 1) && (mapper != 2) && (mapper != 3) && 
-		(mapper != 7) && (mapper != 11) && (mapper != 34) && (mapper != 66) && 
-		(MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
+
+	if(plugin->load_nsf != 1)
 	{
-		StatusText("Load aborted.");
-		return FALSE;
+		if(!AssertMapper(mappers,sizeof(mappers)))
+			return FALSE;
 	}
 
-	if (mapper == 0)
+	config = (header[4] - 1) * 16;
+	switch(mapper)
 	{
-		maxchr = 1;          //nrom  =   8KB chr
-		maxprg = 2;          //nrom  =  32KB prg
+	case 0:
+	default:
+		config = config + 0;
+		maxchr = 1;			//nrom  =    8KB chr
+		maxprg = 2;			//nrom  =   32KB prg
 		StatusText("NROM (iNES 0)");
-	}
-	else if (mapper == 1)
-	{
-		maxchr = 16;         //mmc1  = 128KB chr
-		maxprg = 16;         //mmc1  = 256KB prg
+		break;
+	case 1:
+		config = config + 1; 
+		maxchr = 16;		//mmc1  =  128KB chr
+		maxprg = 16;		//mmc1  =  256KB prg
 		StatusText("MMC1 (iNES 1)");
-	}
- 	else if (mapper == 2)
- 	{
-		maxchr = 0;          //urom  =   0KB chr
-		maxprg = 16;         //urom  = 256KB prg
+		break;
+	case 2:
+		config = config + 2;
+		maxchr = 0;			//urom  =    0KB chr
+		maxprg = 16;		//urom  =  256KB prg
 		StatusText("U*NROM (iNES 2)");
-	}
-	else if (mapper == 3)
-	{
+		break;
+	case 3:
+		config = config + 3;  
 		maxchr = 4;          //cnrom =  32KB chr
 		maxprg = 2;          //cnrom =  32KB prg
 		StatusText("CNROM (iNES 3)");
-	}
-	else if (mapper == 7)
-	{
+		break;
+	case 7:
+		config = config + 4; 
 		maxchr = 0;          //arom  =   0KB chr	  
 		maxprg = 16;         //arom  = 256KB prg  
 		StatusText("A*ROM (iNES 7)");
-	}
-	else if (mapper == 11)
-	{
+		break;
+	case 11:
+		config = config + 5; 
 		maxchr = 16;         //color = 128KB chr	  
 		maxprg = 8;          //color = 128KB prg  
 		StatusText("ColorDreams (iNES 11)");
-	}
-	else if (mapper == 34)
-	{
+		break;
+	case 34:
+		config = config + 6; 
 		maxchr = 0;          //bnrom =   0KB chr
 		maxprg = 8;          //bnrom = 128KB prg
 		StatusText("BNROM (iNES 34)");
-	}
-	else if (mapper == 66)
-	{
+		break;
+	case 66:
+		config = config + 7;  
 		maxchr = 4;          //gnrom =  32KB chr    
 		maxprg = 8;          //gnrom = 128KB prg   
 		StatusText("GNROM (iNES 66)");
+		break;
 	}
 
-	if (header[4] > maxprg)
-	{
-		StatusText("Invalid PRG size, more than %iKB of PRG ROM data was detected!", maxprg * 8);
-		return FALSE;
-	}
-	else
-		StatusText("%iKB PRG ROM data located...", header[4] * 16);
-	
-	if (header[5] > maxchr)
-		StatusText("More than %iKB of CHR ROM data was detected, sending first %iKB only...", maxchr * 8, maxchr * 8);
-	else
-		StatusText("%iKB CHR ROM data located...", header[5] * 8);
-
-	InitPort();
-	StatusText("Resetting CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin(pluginfile))
-	{
-		StatusText("Plugin load failed!");
-		return FALSE;
-	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
+	if(!AssertPRG(1,maxprg)) return FALSE;
+	if(!AssertCHR(maxchr)) return FALSE;
+	if(!LoadPPlugin(plugin)) return FALSE;
 	
 	StatusText("Sending PRG data...");
 	if (!WriteByte(header[4]))
@@ -440,23 +357,7 @@ BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 		return FALSE;
 	}
 	data = filedata + 16; // PRG
-	for (i=0; i<header[4]; i++)
-	{
-		for (j=0; j<16; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send.");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i * 16 + j) * 100) / (header[4] * 16));     
-			DoEvents();
-		}
-	}
-	
-	StatusPercent(100);
-	StatusText("...done!");	
+	SendData(header[4]*16,data);
 
 	StatusText("Sending CHR data...");
 	data = filedata + 16 + (header[4] * 16384); // CHR
@@ -465,37 +366,10 @@ BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 		StatusText("Failed to send.");
 		return FALSE;
 	}
-	for (i = 0; i < header[5]; i++)
-	{
-		for (j = 0; j < 8; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send.");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i * 8 + j) * 100) / (header[5] * 8));
-			DoEvents();
-		}
-	}
-	StatusPercent(100);
-	StatusText("...done!");
-
+	SendData(header[5]*8,data);
 
 	///SEND CONFIG PRG BYTE
-	config = (header[4] - 1) * 16;
-	if (mapper == 0) config = config + 0;
-	if (mapper == 1) config = config + 1;  
-	if (mapper == 2) config = config + 2;
-	if (mapper == 3) config = config + 3;  
-	if (mapper == 7) config = config + 4;  
-	if (mapper == 11) config = config + 5;  
-	if (mapper == 34) config = config + 6;  
-	if (mapper == 66) config = config + 7;  
-
 	StatusText("config 1 = %i", config); 
-
 	if (!WriteByte(config))
 	{
 		StatusText("Failed to send.");
@@ -528,45 +402,20 @@ BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 
 BOOL	PowerPakcart (PPlugin plugin, char* filedata)
 {
-	int i, j;
-	BYTE header[16];
-	BYTE mapper;
+	int i;
 	BYTE banks;
 	char* data;
+	int mappers[] = {2};
 
-	memcpy(header,filedata,16);
-
-	if (header[4] == 4)
-		StatusText("%iKB PRG ROM data located...", header[4] * 16);
-	else
-	{
-		StatusText("Invalid PRG size, must be 64KB PRG!");
+	if(!AssertPRG(4,4))
 		return FALSE;
-	}
+	AssertCHR(0);
 
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
-
-	if (header[5] > 0)
-		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
-
-	if ((mapper != 2) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
-	{
-		StatusText("Load aborted.");
+	if(!AssertMapper(mappers,sizeof(mappers)))
 		return FALSE;
-	}
 
-	InitPort();
-	StatusText("Resetting CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin(plugin->file))
-	{
-		StatusText("Plugin load failed!");
+	if(!LoadPPlugin(plugin))
 		return FALSE;
-	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
 
 	StatusText("Erasing Flash ROM...");
 	if (!ReadByte(&banks))
@@ -592,18 +441,9 @@ BOOL	PowerPakcart (PPlugin plugin, char* filedata)
 	
 	for (i=0; i<4; i++)
 	{
+		StatusText("Sending %i of 4.....",i+1);
 		data = filedata + 16; // PRG
-		for (j=0; j<64; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send.");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i*64 + j) * 100) / 256);   
-			DoEvents();
-		}
+		SendData(64,data);
 	}
 	
 	StatusPercent(100);
@@ -626,33 +466,23 @@ BOOL	PowerPakcart (PPlugin plugin, char* filedata)
 
 BOOL	Glidercart (PPlugin plugin, char* filedata)
 {
-	int i, j;
-	BYTE header[16];
-	BYTE mapper;
+	int i;
 	BYTE banks;
 	char* data;
-	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
+	int mappers[] = { 13, 29 };	//13 is the mapper number on the upgrade files present on retrozone.
+								//29 is the mapper number assigned to glider, at the time it was dumped.
 
-	memcpy(header,filedata,16);
+	if(!AssertPRG(1,8))
+		return FALSE;
+	AssertCHR(0);
+	if(plugin->load_nsf != 1)
+		if(!AssertMapper(mappers,sizeof(mappers)))
+			return FALSE;
 
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
 	banks = header[4];
 
-	if (header[5] > 0)
-		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
-
-	InitPort();
-	StatusText("Resetting CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin(pluginfile))
-	{
-		StatusText("Plugin load failed!");
+	if(!LoadPPlugin(plugin))
 		return FALSE;
-	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
 
 	StatusText("Erasing Flash ROM...");
 	if (!WriteByte(banks))
@@ -676,23 +506,7 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 
 	StatusText("Sending PRG data...");
 	data = filedata + 16; // PRG
-	for (i=0; i<banks; i++)
-	{
-		for (j=0; j<16; j++)
-		{
-			if (!WriteBlock(data, 1024))
-			{
-				StatusText("Failed to send.");
-				return FALSE;
-			}
-			data += 1024;
-			StatusPercent(((i*16 + j) * 100) / (16 * banks));   
-			DoEvents();
-		} 
-	}
-	
-	StatusPercent(100);
-	StatusText("...done!");	
+	SendData(banks*16,data);
 
 	if (!ReadByte(&banks))
 	{
@@ -710,35 +524,21 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 
 BOOL	UNROM512cart (PPlugin plugin, char* filedata)
 {
-	int i, j;
-	BYTE header[16];
-	BYTE mapper, a;
+	BYTE a;
 	BYTE bank, banks;
 	char string[256];
 	char* data;
-	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
+	int mappers[] = { 2, 30 };
 
-	memcpy(header,filedata,16);
-	if ((header[4] == 1) || (header[4] == 2) || (header[4] == 4) || (header[4] == 8) || (header[4] == 16) || (header[4] == 32))
-		StatusText("%iKB PRG ROM data located...", header[4] * 16);
-	else
-	{
-		StatusText("Invalid PRG size, must be an even amount between 16KB and 512KB!");
+	if(!AssertPRG(1,32))
 		return FALSE;
-	}
+	AssertCHR(0);
 
-	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
-
-	if (header[5] > 0)
-		StatusText("%iKB of CHR ROM data was detected, ignoring...", header[5] * 8);
 
 	if(!plugin->load_nsf)
 	{
-		if (!((mapper == 30) || (mapper == 2)) && (MessageBox(topHWnd,"Incorrect iNES mapper detected! Load anyways?",MSGBOX_TITLE,MB_YESNO | MB_ICONQUESTION) == IDNO))
-		{
-			StatusText("Load aborted.");
+		if(!AssertMapper(mappers,sizeof(mappers)))
 			return FALSE;
-		}
 
 		if (header[6] & 8)
 			MessageBox(topHWnd,"Please set your cartridge to ONE Screen mirroring.\n(ONE jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
@@ -746,18 +546,8 @@ BOOL	UNROM512cart (PPlugin plugin, char* filedata)
 			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring. \n(HORIZ jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
 		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.\n(VERT jumper on sealie unrom512 board)",MSGBOX_TITLE,MB_OK);
 	}
-	InitPort();
-	StatusText("Resetting CopyNES...");
-	ResetNES(RESET_COPYMODE);
-	StatusText("Loading plugin...");
-	if (!LoadPlugin(pluginfile))
-	{
-		StatusText("Plugin load failed!");
+	if(!LoadPPlugin(plugin))
 		return FALSE;
-	}
-	StatusText("Initializing plugin...");
-	RunCode();
-	Sleep(SLEEP_SHORT);
 
 	StatusText("Erasing Flash ROM...");
 	banks=32;
@@ -812,27 +602,9 @@ BOOL	UNROM512cart (PPlugin plugin, char* filedata)
 	StatusText("...done!");
 
 	StatusText("Sending data...");
-	//for (bank = 0; bank < banks; )
-	//{
 	bank=0;
-		data = filedata + 16; // PRG
-		for (i = 0; i < header[4]; i++, bank++)
-		{
-			for (j = 0; j < 16; j++)
-			{
-				if (!WriteBlock(data, 1024))
-				{
-					StatusText("Failed to send!");
-					return FALSE;
-				}
-				data += 1024;
-				StatusPercent(((bank * 16 + j) * 100) / (header[4]*16));
-				DoEvents();
-			}
-		}
-	//}
-	StatusPercent(100);
-	StatusText("...done!");
+	data = filedata + 16; // PRG
+	SendData(PRG*16,data);
 
 	if (!ReadByte(&banks))
 	{
@@ -856,7 +628,6 @@ BOOL	CMD_RAMCART (void)
 	FILE *NES;
 	long filesize;
 	char *filedata;
-	BYTE header[16];
 	BOOL result;
 
 	// select board name
@@ -923,6 +694,16 @@ BOOL	CMD_RAMCART (void)
 		return FALSE;
 	}
 
+	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
+	PRG = header[4];
+	CHR = header[5];
+	if((header[7] & 0x0C) == 0x08)
+	{
+		PRG |= ((header[9] & 0x0F) << 8);
+		CHR |= ((header[9] & 0xF0) << 4);
+		mapper |= ((header[8] & 0x0F) << 8);
+	}
+
 	result = FALSE;
 
 	if (plugin->num == 0)
@@ -962,7 +743,6 @@ BOOL	CMD_RAMCART (void)
 BOOL	RAMCartLoad (char* filedata, long int filesize, int load_type)
 {
 	PPlugin plugin;
-	BYTE header[16];
 	BOOL result;
 
 	// select board name
@@ -995,6 +775,16 @@ BOOL	RAMCartLoad (char* filedata, long int filesize, int load_type)
 	{
 		StatusText("NES file is too small to contain specified PRG/CHR data!");
 		return FALSE;
+	}
+
+	mapper = ((header[6] & 0xF0) >> 4) | (header[7] & 0xF0);
+	PRG = header[4];
+	CHR = header[5];
+	if((header[7] & 0x0C) == 0x08)
+	{
+		PRG |= ((header[9] & 0x0F) << 8);
+		CHR |= ((header[9] & 0xF0) << 4);
+		mapper |= ((header[8] & 0x0F) << 8);
 	}
 
 	result = FALSE;
