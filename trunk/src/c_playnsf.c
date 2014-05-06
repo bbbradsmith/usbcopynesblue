@@ -166,7 +166,7 @@ BOOL	LoadNSF (char *filename)
 	}
 
 	// send to ramcart
-	if (RAMCartLoad(nesdata, 16+(64*1024),1))
+	if (RAMCartLoad(nesdata, 16+(64*1024),PLUG_NSF))
 	{
 		ramcart = TRUE;
 

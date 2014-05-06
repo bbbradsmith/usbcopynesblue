@@ -12,7 +12,6 @@ typedef	struct	Plugin
 {
 	char *name;
 	char *file;
-	char *nsffile;
 	int num;
 	char *desc;
 	int load_nsf;
@@ -47,7 +46,8 @@ PPlugin	PromptPlugin (int Type);
 #define	PLUG_STD	0
 #define	PLUG_WRAM	1
 #define	PLUG_UTIL	2
-#define	PLUG_UPLOAD	-1
+#define	PLUG_UPLOAD	3
+#define PLUG_NSF	4
 
 /* CRC32 */
 void	InitCRC	(void);
