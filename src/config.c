@@ -231,7 +231,7 @@ BOOL MakeCategory(char *description, int type)
 
 
 
-BOOL MakePlugin(int category, char *name, char *file, char *nsffile, int number, char *description)
+BOOL MakePlugin(int category, char *name, char *file, int number, char *description)
 {
 	TPlugin *plugin;
 
@@ -243,23 +243,8 @@ BOOL MakePlugin(int category, char *name, char *file, char *nsffile, int number,
 	{
 		if (!IsValidPlugin(file))
 		{
-			if(nsffile == NULL)
-			{
-				free(plugin);
-				return FALSE;
-			}
-			else
-			{
-				if(!IsValidPlugin(nsffile))
-				{
-					free(plugin);
-					return FALSE;
-				}
-				else
-				{
-					plugin->file = strdup(nsffile);
-				}
-			}
+			free(plugin);
+			return FALSE;
 		}
 		else
 		{
@@ -270,15 +255,6 @@ BOOL MakePlugin(int category, char *name, char *file, char *nsffile, int number,
 		plugin->file = strdup(file);
 
 	plugin->name = strdup(name);
-	if(nsffile != NULL)
-	{
-		if(IsValidPlugin(nsffile))
-			plugin->nsffile = strdup(nsffile);
-		else
-			plugin->nsffile = NULL;
-	}
-	else
-		plugin->nsffile = NULL;
 	plugin->num = number;
 	plugin->desc = strdup(description);
 
@@ -342,7 +318,7 @@ BOOL	Startup	(void)
 		}
 		else
 		{
-			MakePlugin(numcats,C1,C2,NULL,atoi(C3),C4);
+			MakePlugin(numcats,C1,C2,atoi(C3),C4);
 		}
 	}
 
@@ -352,17 +328,6 @@ BOOL	Startup	(void)
 	free(C3);
 	free(C4);
 	free(Data);
-
-	// RAMCART - create new category for upload plugins
-	MakeCategory("RAM/Flash cartridge programmer",PLUG_UPLOAD);
-	MakePlugin(numcats,	"NRAM",					"ram.bin",		"ram.bin",			0,	"NROM cart with 32K PRG RAM and 8K CHR RAM");
-	MakePlugin(numcats,	"CNRAM",				"cnram.bin",	"cnram.bin",		1,	"CNROM cart with 32K PRG RAM and 32KB CHR RAM");
-	MakePlugin(numcats,	"UfROM",				"uxram.bin",	"uxram.bin",		2,	"Membler's flash cart for UNROM");
-	MakePlugin(numcats,	"PowerPak Lite",		"pplite.bin",	"pplite.bin",		3,	"PowerPak Lite RAM Cart Loader");
-	MakePlugin(numcats,	"PowerPak Boot",		"pp.bin",		NULL,				4,	"PowerPak Boot Flasher");
-	MakePlugin(numcats,	"Glider Flasher",		"glider.bin",	"glidernsf.bin",	5,	"Glider House Flasher");
-	MakePlugin(numcats,	"URROM512 Flasher",		"unrom512.bin",	"unrom512nsf.bin",	6,	"Sealie Computing UNROM512 Flasher");
-	// END RAMCART
 
 	if (!OpenPort(ParPort, ParAddr, ParECP))
 	{
@@ -392,7 +357,6 @@ void	Shutdown (void)
 			{
 				if(Plugins[i]->list[j]->desc) free(Plugins[i]->list[j]->desc);
 				if(Plugins[i]->list[j]->file) free(Plugins[i]->list[j]->file);
-				if(Plugins[i]->list[j]->nsffile) free(Plugins[i]->list[j]->nsffile);
 				if(Plugins[i]->list[j]->name) free(Plugins[i]->list[j]->name);
 				if(Plugins[i]->list[j]) free(Plugins[i]->list[j]);
 			}

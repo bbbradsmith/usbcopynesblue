@@ -19,10 +19,10 @@ BOOL IsPowerOfTwo(int num)
 }
 
 
-BOOL AssertPRG(int min, int max)
+BOOL AssertPRG(int min, int max, BOOL poweroftwo)
 {
 
-	if((PRG >= min) && (PRG <= max) && IsPowerOfTwo(PRG))
+	if((PRG >= min) && (PRG <= max) && (IsPowerOfTwo(PRG) || !poweroftwo))
 	{
 		StatusText("%iKB PRG ROM data located...",PRG*16);
 		return TRUE;
@@ -68,12 +68,11 @@ BOOL AssertMapper(int *mappers, int count)
 
 BOOL LoadPPlugin(PPlugin plugin)
 {
-	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 	InitPort();
 	StatusText("Resetting CopyNES...");
 	ResetNES(RESET_COPYMODE);
 	StatusText("Loading plugin...");
-	if (!LoadPlugin(pluginfile))
+	if (!LoadPlugin(plugin->file))
 	{
 		StatusText("Plugin load failed!");
 		return FALSE;
@@ -112,7 +111,7 @@ BOOL	NRAMcart (PPlugin plugin, char* filedata)
 	char* data;
 	int mappers[] = {0};
 
-	if(!AssertPRG(1,2)) return FALSE;
+	if(!AssertPRG(1,2,TRUE)) return FALSE;
 
 	PRGamt = PRG-1;
 	PRGsize = PRG*16384;
@@ -120,7 +119,7 @@ BOOL	NRAMcart (PPlugin plugin, char* filedata)
 	if(AssertCHR(1)) return FALSE;
 	if(!plugin->load_nsf)
 	{
-		if(!AssertMapper(mappers,sizeof(mappers)))
+		if(!AssertMapper(mappers,sizeof(mappers)/sizeof(int)))
 			return FALSE;
 
 		if (header[6] & 1)
@@ -161,9 +160,8 @@ BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 	int maxchr = 4;
 	int mappers[] = { 0, 3 };
 	char* data;
-	char *pluginfile = (plugin->load_nsf?plugin->nsffile:plugin->file);
 
-	if(!AssertPRG(1,2))
+	if(!AssertPRG(1,2,TRUE))
 		return FALSE;
 
 	if (mapper == 0)
@@ -174,7 +172,7 @@ BOOL	CNRAMcart (PPlugin plugin, char* filedata)
 
 	if(!plugin->load_nsf)
 	{
-		if(!AssertMapper(mappers,sizeof(mappers)))
+		if(!AssertMapper(mappers,sizeof(mappers)/sizeof(int)))
 			return FALSE;
 		if (header[6] & 1)
 			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
@@ -221,12 +219,12 @@ BOOL	UFROMcart (PPlugin plugin, char* filedata)
 	char* data;
 	int mappers[] = { 2 };
 	
-	if(!AssertPRG(1,16)) return FALSE;
+	if(!AssertPRG(1,16,TRUE)) return FALSE;
 	if(!AssertCHR(0)) return FALSE;
 
 	if(!plugin->load_nsf)
 	{
-		if(!AssertMapper(mappers,sizeof(mappers))) return FALSE;
+		if(!AssertMapper(mappers,sizeof(mappers)/sizeof(int))) return FALSE;
 		if (header[6] & 1)
 			MessageBox(topHWnd,"Please set your cartridge to VERTICAL mirroring.",MSGBOX_TITLE,MB_OK);
 		else	MessageBox(topHWnd,"Please set your cartridge to HORIZONTAL mirroring.",MSGBOX_TITLE,MB_OK);
@@ -288,7 +286,7 @@ BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 
 	if(plugin->load_nsf != 1)
 	{
-		if(!AssertMapper(mappers,sizeof(mappers)))
+		if(!AssertMapper(mappers,sizeof(mappers)/sizeof(int)))
 			return FALSE;
 	}
 
@@ -346,7 +344,7 @@ BOOL	PowerPakLitecart (PPlugin plugin, char* filedata)
 		break;
 	}
 
-	if(!AssertPRG(1,maxprg)) return FALSE;
+	if(!AssertPRG(1,maxprg,TRUE)) return FALSE;
 	if(!AssertCHR(maxchr)) return FALSE;
 	if(!LoadPPlugin(plugin)) return FALSE;
 	
@@ -407,11 +405,11 @@ BOOL	PowerPakcart (PPlugin plugin, char* filedata)
 	char* data;
 	int mappers[] = {2};
 
-	if(!AssertPRG(4,4))
+	if(!AssertPRG(4,4,TRUE))
 		return FALSE;
 	AssertCHR(0);
 
-	if(!AssertMapper(mappers,sizeof(mappers)))
+	if(!AssertMapper(mappers,sizeof(mappers)/sizeof(int)))
 		return FALSE;
 
 	if(!LoadPPlugin(plugin))
@@ -472,11 +470,11 @@ BOOL	Glidercart (PPlugin plugin, char* filedata)
 	int mappers[] = { 13, 29 };	//13 is the mapper number on the upgrade files present on retrozone.
 								//29 is the mapper number assigned to glider, at the time it was dumped.
 
-	if(!AssertPRG(1,8))
+	if(!AssertPRG(1,8,FALSE))
 		return FALSE;
 	AssertCHR(0);
 	if(plugin->load_nsf != 1)
-		if(!AssertMapper(mappers,sizeof(mappers)))
+		if(!AssertMapper(mappers,sizeof(mappers)/sizeof(int)))
 			return FALSE;
 
 	banks = header[4];
@@ -530,14 +528,14 @@ BOOL	UNROM512cart (PPlugin plugin, char* filedata)
 	char* data;
 	int mappers[] = { 2, 30 };
 
-	if(!AssertPRG(1,32))
+	if(!AssertPRG(1,32,TRUE))
 		return FALSE;
 	AssertCHR(0);
 
 
 	if(!plugin->load_nsf)
 	{
-		if(!AssertMapper(mappers,sizeof(mappers)))
+		if(!AssertMapper(mappers,sizeof(mappers)/sizeof(int)))
 			return FALSE;
 
 		if (header[6] & 8)
@@ -634,7 +632,8 @@ BOOL	CMD_RAMCART (void)
 	plugin = PromptPlugin(PLUG_UPLOAD);
 	if (plugin == NULL)
 		return FALSE;
-	plugin->load_nsf = 0;
+
+	plugin->load_nsf = FALSE;
 
 	// select NES file
 	if (!PromptFile(topHWnd,"iNES ROM images (*.NES)\0*.nes\0\0",filenes,NULL,Path_NES,"Select an iNES ROM...","nes",FALSE))
@@ -746,16 +745,11 @@ BOOL	RAMCartLoad (char* filedata, long int filesize, int load_type)
 	BOOL result;
 
 	// select board name
-	plugin = PromptPlugin(PLUG_UPLOAD);
+	plugin = PromptPlugin(load_type);
 	if (plugin == NULL)
 		return FALSE;
 
-	if((load_type == 1) && (plugin->nsffile == NULL))
-	{
-		StatusText("Selected plugin does not support loading NSF!");
-		return FALSE;
-	}
-	plugin->load_nsf = (load_type == 1);
+	plugin->load_nsf = (load_type == PLUG_NSF);
 	
 	if (filesize < 16)
 	{
