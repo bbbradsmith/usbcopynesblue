@@ -60,9 +60,6 @@
     <ClCompile Include="c_reconnect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="c_regplay.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="c_runplug.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -371,18 +371,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\c_regplay.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\c_runplug.c"
 				>
 				<FileConfiguration

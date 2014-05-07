@@ -75,7 +75,7 @@ BOOL    CMD_NESINFO (void);
 BOOL    CMD_PLAYCART (void);
 BOOL    CMD_RAMCART (void);
 BOOL    CMD_PLAYNSF (void);
-BOOL    CMD_REGPLAY (void);
+BOOL    CMD_PLAYLOG (void);
 
 BOOL    CMD_DUMPCART (void);
 BOOL    CMD_WRITEWRAM (void);
@@ -86,8 +86,6 @@ BOOL    CMD_BANKWATCH (void);
 BOOL    CMD_MICROBUG (void);
 BOOL    CMD_VRC7REGS (void);
 BOOL    CMD_RECONNECT (void);
-
-BOOL    CMD_PLAYLOG (void);
 
 void EnableMenus (HWND hDlg)
 {
@@ -106,7 +104,7 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYCART),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RAMCART),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYNSF),FALSE);
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_REGPLAY),FALSE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),FALSE);
 
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_DUMPCART),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_WRITEWRAM),FALSE);
@@ -116,17 +114,9 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_BANKWATCH),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),FALSE);
-
-		if(ParPort == 0)
-		{
-			EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),FALSE);
-		}	//Only disable this option when we are in full offline mode, and not just disconnected from selected interface.
-		else
-		{
-			EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
-		}
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),ParPort); //Only disable this option when we are in full offline mode,
+																	//and not just disconnected from selected interface.
 		
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),FALSE);
 		// disable all "online" options
 	}
 	else if (HWVer == 1)
@@ -144,7 +134,7 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYCART),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RAMCART),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYNSF),TRUE);
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_REGPLAY),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),TRUE);
 
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_DUMPCART),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_WRITEWRAM),TRUE);
@@ -155,8 +145,6 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
-
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),TRUE);
 	}
 	else
 	{	// enable everything
@@ -173,7 +161,7 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYCART),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RAMCART),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYNSF),TRUE);
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_REGPLAY),TRUE);
+		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),TRUE);
 
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_DUMPCART),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_WRITEWRAM),TRUE);
@@ -184,8 +172,6 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),TRUE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
-
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),TRUE);
 
 		if ((ParPort != -1) && (HWVer > 3))
 			MessageBox(topHWnd,"Unrecognized CopyNES BIOS version detected!\nPlease check for an updated version of the client software!", "CopyNES Blue", MB_OK | MB_ICONERROR);
@@ -254,9 +240,9 @@ LRESULT CALLBACK CopyNES_Menu(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 			InitPort();
 			success = CMD_PLAYNSF();
 			break;
-		case IDC_MAIN_REGPLAY:
+		case IDC_MAIN_PLAYLOG:
 			InitPort();
-			success = CMD_REGPLAY();
+			success = CMD_PLAYLOG();
 			break;
 
 		case IDC_MAIN_DUMPCART:
@@ -291,11 +277,6 @@ LRESULT CALLBACK CopyNES_Menu(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 		case IDC_MAIN_RECONNECT:
 			success = CMD_RECONNECT();
 			EnableMenus(hDlg);
-			break;
-
-		case IDC_MAIN_PLAYLOG:
-			InitPort();
-			success = CMD_PLAYLOG();
 			break;
 		}
 		if (!success)
