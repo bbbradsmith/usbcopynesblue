@@ -150,13 +150,23 @@ int	FindVersion (void)
 		StatusOK();
 		return 0;	// write failed, device not present
 	}
-	StatusText("Waiting for reply... (If it takes some time, try hitting reset)");
+	if (ParPort != -1)	//After sending the byte, if this is first poweron of copynes in a while, the command may not have
+		InitPort();		//actually been received where it should have been. Reset the copynes, then resend the command.
+	ResetNES(RESET_COPYMODE);
+	if (!WriteByteEx(0xA2,3,FALSE))
+	{
+		StatusText("Failed to send version request!");
+		StatusText("Make sure your CopyNES is plugged in and turned on!");
+		StatusOK();
+		return 0;	// write failed, device not present
+	}
+	StatusText("Waiting for reply...");
 	if (!ReadByteEx(&i,3,FALSE))
 	{
 		if (ParPort == -1)
 		{
 			StatusText("Version reply not received!");
-		    StatusText("Make sure your CopyNES is plugged in and turned on!");
+			StatusText("Make sure your CopyNES is plugged in and turned on!");
 			StatusOK();
 			return 0;	// write failed, device not present
 		}
@@ -178,43 +188,6 @@ int	FindVersion (void)
 		return 0;	// read failed, device not present
 	}
 	StatusText("CopyNES identified as version %i.",i);
-	if(i == 0xFF)
-	{
-		StatusText("Requerying CopyNES BIOS version...");
-		Sleep(SLEEP_LONG);
-		if (ParPort != -1)
-			InitPort();
-		ResetNES(RESET_COPYMODE);
-		
-		if (!WriteByteEx(0xA2,3,FALSE))
-		{
-			StatusText("Failed to send version request!");
-			StatusText("Make sure your CopyNES is plugged in and turned on!");
-			StatusOK();
-			return 0;	// write failed, device not present
-		}
-		StatusText("Waiting for reply...");
-		if (!ReadByteEx(&i,3,FALSE))
-		{
-			if (ParPort == -1)
-			{
-				StatusText("Version reply not received!");
-				StatusText("Make sure your CopyNES is plugged in and turned on!");
-				StatusOK();
-				return 0;	// write failed, device not present
-			}
-			else
-			{
-				StatusText("Version reply not received! Assuming version 1 BIOS.");
-				Sleep(SLEEP_LONG);
-				CloseStatus();
-				InitPort();
-				ResetNES(RESET_COPYMODE);
-				return 1;
-			}
-		}
-		StatusText("CopyNES identified as version %i.",i);
-	}
 	Sleep(SLEEP_LONG);
 	CloseStatus();
 	// technically, these shouldn't be needed
