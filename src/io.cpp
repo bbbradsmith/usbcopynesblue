@@ -187,7 +187,7 @@ extern "C" BOOL	ReadByteEx (BYTE *data, int timeout, BOOL warn)
 	if (ParPort == -1)
 	{
 		DWORD BytesReceived = 0;
-		FT_SetTimeouts(ftHandleA,10000,0);
+		FT_SetTimeouts(ftHandleA,timeout*1000,0);
 		ftStatus = FT_Read(ftHandleA,RxBuffer,1,&BytesReceived);
 		if (ftStatus == FT_OK)
 		{
@@ -244,7 +244,7 @@ extern "C" BOOL	WriteByteEx (BYTE data, int timeout, BOOL warn)
 	if (ParPort == -1)
 	{
 		DWORD BytesWritten = 0;
-		FT_SetTimeouts(ftHandleA,10000,0);
+		FT_SetTimeouts(ftHandleA,timeout*1000,0);
 		TxBuffer[0] = data;
 		ftStatus = FT_Write(ftHandleA,TxBuffer,1,&BytesWritten);
 		if (ftStatus == FT_OK)

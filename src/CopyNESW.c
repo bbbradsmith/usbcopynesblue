@@ -191,7 +191,7 @@ void EnableMenus (HWND hDlg)
 			MessageBox(topHWnd,"Unrecognized CopyNES BIOS version detected!\nPlease check for an updated version of the client software!", "CopyNES Blue", MB_OK | MB_ICONERROR);
 		if ((ParPort == -1) && (HWVer < 4))
 			MessageBox(topHWnd,"Unrecognized USB CopyNES BIOS version detected!\nPlease check for an updated version of the client software!", "CopyNES Blue", MB_OK | MB_ICONERROR);
-		if(HWVer == 255)			//And if we get HWver == 255, well, FindVersion() tried twice, so there is definitely a problem.
+		if(HWVer == 255)
 			MessageBox(topHWnd,"USB CopyNES connect failed!  Try reconnecting.", "CopyNES Blue", MB_OK | MB_ICONERROR);
 	}
 }
