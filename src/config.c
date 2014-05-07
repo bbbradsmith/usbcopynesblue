@@ -127,6 +127,11 @@ void	WriteConfig (void)
 	WritePrivateProfileString("USB CopyNES","PluginPath",_relpath(strcpy(tmpdir,Path_PLUG),Path_MAIN),Config);
 	sprintf(tmpstr,"%i",ParPort);
 	WritePrivateProfileString("USB CopyNES","ParPort",tmpstr,Config);
+	if(ParPort == -1)	//Force consistent settings when in USB mode.
+	{
+		ParAddr = 0;
+		ParECP = 0;
+	}
 	sprintf(tmpstr,"%X",ParAddr);
 	WritePrivateProfileString("USB CopyNES","ParAddr",tmpstr,Config);
 	sprintf(tmpstr,"%X",ParECP);
