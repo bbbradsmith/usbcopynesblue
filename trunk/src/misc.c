@@ -55,7 +55,7 @@ void	WriteUNIF (char *basename, char *board, int battery, int mirror, int foursc
 		year = mytime->tm_year + 1900;
 		dumpinfo[102] = (year & 0x00FF);
 		dumpinfo[103] = (year & 0xFF00) >> 8;
-		sprintf(&dumpinfo[104],"%sCopyNES Blue v5.0.3", (ParPort == -1) ? "USB " : "");
+		sprintf(&dumpinfo[104],"%sCopyNES Blue v5.0.4", (ParPort == -1) ? "USB " : "");
 		UNIFchunk(UNIF,"DINF",dumpinfo,204);
 	}
 
@@ -209,7 +209,7 @@ void	WriteNES (char *basename, int mapper, int battery, int mirror, int fourscrn
 
 	if (battery)	// 'battery' merely indicates the possibility - need to confirm
 		battery = (MessageBox(topHWnd,"Really has battery?","NES",MB_YESNO | MB_ICONQUESTION) == IDYES);
-
+	
 	NES = fopen(strjoin3(filename,Path_NES,basename,".nes"),"wb");
 	if(!NES)
 	{
