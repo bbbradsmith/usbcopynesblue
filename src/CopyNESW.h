@@ -61,6 +61,7 @@ extern	char	Path_MAIN[MAX_PATH], Path_PRG[MAX_PATH], Path_CHR[MAX_PATH], Path_WR
 	Path_NES[MAX_PATH], Path_CRC[MAX_PATH], Path_NSF[MAX_PATH], Path_PLUG[MAX_PATH];
 char *	addSlash (char *path);
 void	WriteConfig (void);
+int	FindVersion (void); // defined in config.c
 
 
 /* I/O routines */

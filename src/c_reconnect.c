@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #define	CMD_NAME	"USB Reconnect"
 
-int	FindVersion (void); // defined in config.c
-
 BOOL	CMD_RECONNECT (void)
 {
 	//char Version[256];
@@ -24,6 +22,6 @@ BOOL	CMD_RECONNECT (void)
 	{
 		//StatusOK();      
 		HWVer = 0;
-		return FALSE;
+		return TRUE;	//Its obvious that there was a failure by the previous dialogs.
 	}
 }

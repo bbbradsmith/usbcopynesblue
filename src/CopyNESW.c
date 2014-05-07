@@ -116,7 +116,15 @@ void EnableMenus (HWND hDlg)
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_BANKWATCH),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_MICROBUG),FALSE);
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_VRC7REGS),FALSE);
-		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),FALSE);
+
+		if(ParPort == 0)
+		{
+			EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),FALSE);
+		}	//Only disable this option when we are in full offline mode, and not just disconnected from selected interface.
+		else
+		{
+			EnableWindow(GetDlgItem(hDlg,IDC_MAIN_RECONNECT),TRUE);
+		}
 		
 		EnableWindow(GetDlgItem(hDlg,IDC_MAIN_PLAYLOG),FALSE);
 		// disable all "online" options
@@ -183,8 +191,8 @@ void EnableMenus (HWND hDlg)
 			MessageBox(topHWnd,"Unrecognized CopyNES BIOS version detected!\nPlease check for an updated version of the client software!", "CopyNES Blue", MB_OK | MB_ICONERROR);
 		if ((ParPort == -1) && (HWVer < 4))
 			MessageBox(topHWnd,"Unrecognized USB CopyNES BIOS version detected!\nPlease check for an updated version of the client software!", "CopyNES Blue", MB_OK | MB_ICONERROR);
-		if (HWVer == 255)
-			MessageBox(topHWnd,"USB CopyNES connect failed!  Try reconnecting.", "CopyNES Blue", MB_OK | MB_ICONERROR);          
+		if(HWVer == 255)			//And if we get HWver == 255, well, FindVersion() tried twice, so there is definitely a problem.
+			MessageBox(topHWnd,"USB CopyNES connect failed!  Try reconnecting.", "CopyNES Blue", MB_OK | MB_ICONERROR);
 	}
 }
 
