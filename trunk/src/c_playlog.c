@@ -21,7 +21,9 @@ BOOL    LogPlay (char *filename)
 	unsigned int log_pos;
 	unsigned int loop_start=0;
 	unsigned int dpcm=0;
+	unsigned int n163=0;
 	unsigned int reset=0;
+	int i;
 	FILE *f;
 
 	OpenStatus(topHWnd);
@@ -57,21 +59,25 @@ BOOL    LogPlay (char *filename)
 		if(!strncmp(line, "BEGIN", 5))
 		{
 			dpcm = 0;
-			StatusText("Resetting USB CopyNES...");
-			ResetNES(RESET_COPYMODE);
-			StatusText("Loading plugin...");
-			if (!LoadPlugin("playlog.bin"))
+			n163 = 0;
+			if(!reset)
 			{
-				StatusText("Could not load playlog.bin.");
-				StatusOK();
-				return FALSE;
+				StatusText("Resetting USB CopyNES...");
+				ResetNES(RESET_COPYMODE);
+				StatusText("Loading plugin...");
+				if (!LoadPlugin("playlog.bin"))
+				{
+					StatusText("Could not load playlog.bin.");
+					StatusOK();
+					return FALSE;
+				}
+				StatusText("Initializing plugin...");
+				RunCode();
+				Sleep(SLEEP_SHORT);
+				reset=1;
 			}
-			StatusText("Initializing plugin...");
-			RunCode();
-			Sleep(SLEEP_SHORT);
 			StatusText("Playing...");
 			StatusText(line+5);
-			reset=1;
 			log_pos = ftell(f);
 		}
 		else if (!strncmp(line, "END", 3))
@@ -88,6 +94,15 @@ BOOL    LogPlay (char *filename)
 			if(StatusButtonPressed())
 				break;
 		}
+		else if (!strncmp(line, "INIT", 4)) //Init the APU to default state
+		{
+			for(i=0;i<0x15;i++)
+			{
+				WriteByte(0x40);WriteByte(i&0xFF);WriteByte(0x00);
+			}
+			WriteByte(0x40);WriteByte(i&0xFF);WriteByte(0x0F);
+			WriteByte(0x01);	//Wait delay a frame.
+		}
 		else if (!strncmp(line, "LOOPSTART",9)) //Loop Start Point
 		{
 			loop_start = ftell(f);
@@ -103,9 +118,20 @@ BOOL    LogPlay (char *filename)
 			sscanf(line,"WRITE(%04X,%02X)",&adr,&val);
 			if(reset)
 			{
-				WriteByte((adr>>8)&0xFF);
-				WriteByte(adr&0xFF);
-				WriteByte(val);
+				if(adr != 0x4800)
+				{
+					WriteByte((adr>>8)&0xFF);
+					WriteByte(adr&0xFF);
+					WriteByte(val);
+				}	//0x4800 conflicts with the copynes, register wise.
+				else
+				{
+					if(!n163)
+					{
+						n163 = 1;
+						StatusText("Warning: This track uses n163, which conflicts with copynes.");
+					}
+				}
 				if((adr == 0x4010) && (val & 0xCF))
 					dpcm |= 1;
 				if((adr == 0x4011) && (val & 0x7F))
