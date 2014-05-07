@@ -59,7 +59,6 @@ BOOL    LogPlay (char *filename)
 		if(!strncmp(line, "BEGIN", 5))
 		{
 			dpcm = 0;
-			n163 = 0;
 			if(!reset)
 			{
 				StatusText("Resetting USB CopyNES...");
@@ -118,7 +117,7 @@ BOOL    LogPlay (char *filename)
 			sscanf(line,"WRITE(%04X,%02X)",&adr,&val);
 			if(reset)
 			{
-				if(adr != 0x4800)
+				if((adr & 0xF800) != 0x4800)
 				{
 					WriteByte((adr>>8)&0xFF);
 					WriteByte(adr&0xFF);
@@ -126,11 +125,9 @@ BOOL    LogPlay (char *filename)
 				}	//0x4800 conflicts with the copynes, register wise.
 				else
 				{
-					if(!n163)
-					{
-						n163 = 1;
-						StatusText("Warning: This track uses n163, which conflicts with copynes.");
-					}
+					WriteByte(0x48);
+					WriteByte(0x0A);
+					WriteByte(val);	//Use the R6522AP Shift register as the one to write to. (Its a mirror location of the n163 Data register)
 				}
 				if((adr == 0x4010) && (val & 0xCF))
 					dpcm |= 1;
