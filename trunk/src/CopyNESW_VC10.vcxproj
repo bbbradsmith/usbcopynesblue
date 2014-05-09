@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>CopyNESW</ProjectName>
+    <ProjectName>USBCopyNESBlue</ProjectName>
     <ProjectGuid>{1A3E9F4E-FEC2-440A-AF27-4F4CEFBD1C4A}</ProjectGuid>
     <RootNamespace>CopyNESW</RootNamespace>
   </PropertyGroup>

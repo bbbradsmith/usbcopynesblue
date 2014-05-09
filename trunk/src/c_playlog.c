@@ -23,6 +23,8 @@ BOOL    LogPlay (char *filename)
 	unsigned int dpcm=0;
 	unsigned int n163=0;
 	unsigned int reset=0;
+	unsigned int adr,val;
+	unsigned int vrc7adr=0xC0;
 	int i;
 	FILE *f;
 
@@ -111,23 +113,75 @@ BOOL    LogPlay (char *filename)
 			if(loop_start)
 				fseek(f,loop_start,SEEK_SET);
 		}
-		else if (!strncmp(line, "WRITE", 5))
+		else if (!strncmp(line, "DWRITE",6)) //Direct Write. 
 		{
-			unsigned int adr, val;
 			sscanf(line,"WRITE(%04X,%02X)",&adr,&val);
 			if(reset)
 			{
-				if((adr & 0xF800) != 0x4800)
+				WriteByte(0x02);
+				WriteByte((adr>>8)&0xFF);
+				WriteByte(adr&0xFF);
+				WriteByte(val);
+			}
+		}
+		else if (!strncmp(line, "WRITE", 5))
+		{
+			sscanf(line,"WRITE(%04X,%02X)",&adr,&val);
+			if(reset)
+			{
+				if(adr == 0x9010)
+				{
+					vrc7adr = val & 0x3F;
+					vrc7adr |= 0xC0;
+				}
+				else if (adr == 0x9030)
+				{
+					WriteByte(vrc7adr);
+					WriteByte(val);
+				}
+				else if ((adr >= 0x4000) && (adr <= 0x4017))
+				{
+					adr&=0x1F;
+					adr+=0xA8;
+					WriteByte(adr);
+					WriteByte(val);
+				}
+				else if ((adr >= 0xB000) && (adr <= 0xB002))
+				{
+					adr&=0x03;
+					adr+=0xA5;
+					WriteByte(adr);
+					WriteByte(val);
+				}
+				else if ((adr >= 0xA000) && (adr <= 0xA002))
+				{
+					adr&=0x03;
+					adr+=0xA2;
+					WriteByte(adr);
+					WriteByte(val);
+				}
+				else if ((adr >= 0x9000) && (adr <= 0x9003))
+				{
+					adr&=0x03;
+					adr+=0x9E;
+					WriteByte(adr);
+					WriteByte(val);
+				}
+				else if ((adr & 0xF800) == 0xF800)
+				{
+					WriteByte(0x9D);
+					WriteByte(val);
+				}
+				else if((adr & 0xF800) == 0x4800)
+				{
+					WriteByte(0x9C);
+					WriteByte(val);
+				}	
+				else
 				{
 					WriteByte((adr>>8)&0xFF);
 					WriteByte(adr&0xFF);
 					WriteByte(val);
-				}	//0x4800 conflicts with the copynes, register wise.
-				else
-				{
-					WriteByte(0x48);
-					WriteByte(0x0A);
-					WriteByte(val);	//Use the R6522AP Shift register as the one to write to. (Its a mirror location of the n163 Data register)
 				}
 				if((adr == 0x4010) && (val & 0xCF))
 					dpcm |= 1;
@@ -145,18 +199,6 @@ BOOL    LogPlay (char *filename)
 					StatusText("Warning: This track uses DPCM");
 					dpcm |= 0x20;
 				}
-
-
-				//It is true that VRC7 requires delay. however, the delay is more than achieved
-				//by the amount of time it takes for the copynes to receive the next 3 bytes.
-				//a single jsr read_byte, takes at least 52 cycles to complete.  The delay loop
-				//required is at least 42 cycles, and the one used by lagrangepoint takes 61 cyles.
-				//The total effective time for the next address/value pair to be written is at least
-				//168 cycles.
-				//if(adr == 0x9030)
-				//{
-				//	WriteByte(0x02);
-				//}
 			}
 		}
 
