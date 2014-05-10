@@ -2,6 +2,7 @@
 #define	CMD_NAME	"Play NSF LOG"
 
 #define MAX_LOG_LEN     1024 * 1024 * 10
+unsigned int song_end=0;
 
 unsigned int get_percent(FILE *f, unsigned int start)
 {
@@ -10,9 +11,16 @@ unsigned int get_percent(FILE *f, unsigned int start)
 	fseek(f,0,SEEK_END);
 	log_end = ftell(f);
 	fseek(f,log_pos,SEEK_SET);
-	if((log_end-start)==0)
-		return 0;
-	return ((log_pos - start)*100) / (log_end-start);
+	if(!song_end)
+	{
+		if((log_end-start)==0)
+			return 0;
+		return ((log_pos - start)*100) / (log_end-start);
+	}
+	else
+	{
+		return (start*100)/song_end;
+	}
 }
 
 BOOL    LogPlay (char *filename)
@@ -25,6 +33,7 @@ BOOL    LogPlay (char *filename)
 	unsigned int reset=0;
 	unsigned int adr,val;
 	unsigned int vrc7adr=0xC0;
+	unsigned int frames;
 	int i;
 	FILE *f;
 
@@ -47,6 +56,7 @@ BOOL    LogPlay (char *filename)
 		fgets(line,sizeof(line),f);
 		if(feof(f))
 		{
+			song_end = 0;
 			log_pos = ftell(f);
 			StatusPercent(get_percent(f,log_pos));
 			if(reset)
@@ -80,6 +90,24 @@ BOOL    LogPlay (char *filename)
 			StatusText("Playing...");
 			StatusText(line+5);
 			log_pos = ftell(f);
+			song_end = 0;
+			frames=0;
+			do
+			{
+				fgets(line,sizeof(line),f);
+				if(!strncmp(line,"END",3))
+					song_end = frames;
+				if(!strncmp(line,"BEGIN",5))
+					song_end = frames;
+				if(!strncmp(line,"LOOPEND",7))
+					song_end = frames;
+				if(!strncmp(line,"PLAY",4))
+					frames++;
+				if(feof(f))
+					break;
+			} while (!song_end);
+			frames=0;
+			fseek(f,log_pos,SEEK_SET);
 		}
 		else if (!strncmp(line, "END", 3))
 		{
@@ -88,7 +116,10 @@ BOOL    LogPlay (char *filename)
 		}
 		else if (!strncmp(line, "PLAY", 4)) // advance frame
 		{
-			StatusPercent(get_percent(f,log_pos));
+			if(!song_end)
+				StatusPercent(get_percent(f,log_pos));
+			else
+				StatusPercent(get_percent(f,++frames));
 			if(reset)
 				WriteByte(0x01);
 			DoEvents();
