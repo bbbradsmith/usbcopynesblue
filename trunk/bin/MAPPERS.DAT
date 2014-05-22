@@ -78,7 +78,7 @@ NES-UNROM                  unrom.bin       2    LS32/LS161, Max 128K PRG, VRAM, 
 NES-UOROM                  uorom.bin       2    LS32/LS161, Max 256K PRG, VRAM, 16K pages  (bus conflicts)               
 351908                     sxrom.bin       1    MMC1, Max 128K PRG, Max 128K CHR (Uses LS32 for CHR ROM enabling, Konami)
 351320                     unrom.bin       2    LS32/LS161, max 128K PRG, VRAM, 16K pages (UNROM, Konami)                
-NES-EVENT                  nwc.bin         132  Nintendo World Championship Cart                                         
+NES-EVENT                  nwc.bin         105  Nintendo World Championship Cart                                         
 *                                          0    WRAM Readers (for reading saved games from carts)                        
 NES-SXROM                  sxromw.bin      9999 SxROM MMC1 WRAM reader                                                   
 NES-TXROM                  txromw.bin      9999 TxROM MMC3 WRAM reader                                                   
