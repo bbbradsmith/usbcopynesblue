@@ -1,0 +1,101 @@
+                Making a RAM Cart for Use on USB CopyNES
+                  ------------------------------------
+
+10/08/05
+KH
+--
+
+
+This is pretty simple if you know what you're doing. 
+
+What you need:
+
+1 NROM cart (SMB, duck hunt, etc.  doesn't matter... just make
+             sure it has all the pins on the cart edge!)
+
+1 8K SRAM chip.. i.e. 6164, 6264, etc.  28 pin .6" wide DIP package.
+
+1 32K SRAM chip.. i.e. 61256, 62256, etc.  28 pin, .6" wide DIP package.
+
+
+
+1) Remove the two ROM chips from the board, being VERY careful not to
+   destroy the plated through holes.  i.e. use a desoldering tool 
+   (braid usually doesn't work on this).  Or you can use the cheap method
+   which is this:  using a very small pair of wire cutters, carefully cut
+   through each pin.  Remove the body of the dead ROM, and then put a 
+   small amount of fresh solder on the bottom of each pin sticking out.
+   Heat 1 pin with the soldering iron and while holding the board with the
+   top half of the pin pointing down, sharply hit the table with your hand
+   (holding the board) JUST after heating the solder... The idea being
+   the solder will still be molten when you hit the table with your hand
+   (holding the board). This should cause the pin and most of the solder
+   to shoot out and hit the table.  Repeat for all 56 pins.  Now that
+   all the pins are gone, you can use a solder sucker or solder braid
+   to now clean the holes.  Sometimes a straight pin or needle can work-
+   heat the hole (carefully!) with the iron and poke through it fast. 
+   Whatever you do, DO NOT DAMAGE THE HOLES.  If a metal "circle" comes
+   out from the hole, you pulled the through hole out and caused a big
+   problem.  So don't do that.
+
+2) bend pin 27 up on the 8K RAM chip.  Bend pins 1, 20, 22, and 27 up
+   on the 32K RAM chip. 
+
+3) Solder the 8K RAM chip next to the lockout chip, and the 32K RAM chip
+   in the remaining location.  Be sure to observe pin 1 orientation!!
+   The board has a little outline on it to show which way the notch
+   goes.  If you screw it up, you'll be in a world of hurt.  So, don't
+   screw it up :-)
+
+4) You will now have to solder a small piece of wire on the bottom of the
+   board across pins 26 and 27 of the 8K RAM chip.  This will connect +CE
+   to VCC.
+
+5) Now the fun begins.  Get some small solid copper wire with insulation...
+   i.e. phone wire (around 24-26 gauge).  You will need to solder 4 wires
+   on to complete the job.
+
+6) Solder a wire from pin 27 of the 8K RAM chip to pin 56 of the cart
+   connector.  Looking at the bottom of the board with the connector 
+   pointing down, this pin is to the left of the two connected together.
+   Scrape off the green crap at the end and solder the wire there.  I
+   looped the wire around the board from the top to the bottom on the edge
+   opposite of the connector.  Be sure the wire comes off straight from
+   the solder point on the cart connector.  This will be important later.
+
+7) Solder a wire from pin 27 of the 32K RAM chip to pin 14 of the cart
+   connector.  Scrape the green gunk off the end of the connection and
+   solder it there. Be sure the wire comes off straight from the solder 
+   point on the cart connector, as far back as possible.  This will be
+   important later.
+
+8) Solder a wire from pin 22 of the 32K RAM chip to the bottom of pin 14
+   of the same chip.  This will ground /OE.  I soldered the wire to the 
+   pin "backwards" and ran the wire over the back edge of the board.
+
+9) Solder a wire from pin 20 of the 32K RAM chip to pin 22 of the board
+   under said 32K RAM chip.  This will connect /OE on the board to /CE
+   on the RAM.
+
+10) Almost done.  Now, this is why making those wires come out straight
+    was important.  Put the board back in the cart case and notice that
+    the two pins soldered to the cart edge hit the case.  Get a marker
+    and put a dot above the case halves where it hits.  Take it apart and
+    cut those places with the wire cutters into a "V" shape so that when
+    the cart is put back together, the wires clear through the middle of the
+    V you cut.
+
+11) (optional)  You can do 1 of 2 things.  Either make 2 of these carts, or
+    put a toggle switch on your cart to select mirroring mode.  Personally,
+    my mirroring is fixed to "H" type which seems to be good enough for
+    alot of things.  If you wish to put a switch on yours though, find a
+    small SPDT toggle switch (radio shack, off of a dead modem, etc) and
+    find a place on the end of the cart where you can put it so that it
+    won't hit when you install the cart into the NES.  Wire it up so that
+    the middle connection of the switch connects to the common on the H and V
+    pads (near pin 28 of the 8K RAM chip) and the other 2 pins connect to
+    the other pads on H and V.  Toggling the switch will then change
+    mirroring on the fly.  It is safe to flip the switch while the NES is
+    running.
+
+   

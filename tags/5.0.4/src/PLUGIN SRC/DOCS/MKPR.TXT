@@ -1,0 +1,70 @@
+   
+   ------------------------------------------------------------------------
+
+1.25.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation 
+for the UNIF format.  If you must use ines, use mapper #57.  (that's 
+57 decimal)
+
+
+This multi has an interesting thing on it.  There are 4 solder pads on the
+cart board.  Shorting them out in different patterns results in a differing
+# of games on the menu.
+
+
+OOOO - 168 
+OOOS - 1500
+OOSO - 2000
+OOSS - 168
+OSOO - 1200
+OSOS - 80000
+OSSO - 5000 
+OSSS - 1200
+SOOO - 400
+SOOS - 20000
+SOSO - 3000
+SOSS - 400
+SSOO - 800
+SSOS - 500
+SSSO - 1000000
+SSSS - 800 
+
+
+
+---
+
+
+The hardware:
+
+1 gloptopped 128K PRG ROM, 1 gloptopped 64K CHR ROM.  One glopped 74LS161.
+
+
+-
+
+The cart has a single register.  Write anywhere in 8000h-FFFFh.  A0-2 are
+used.
+
+
+-
+
+Bank Select Register:
+
+
+It uses A0, A1, and A2.  This means the address written to matters, while
+the actual data written does not.  
+
+PRG ROM is broken up into 4 32K banks.  A0 and A1 control the bank.
+A0 = LSB, A1 = MSB.
+
+CHR ROM is broken up into 8 8K banks.  A0,A1, and A2 control the bank.
+A0 = LSB. A2 = MSB.
+
+
+That's it.
+

@@ -1,0 +1,64 @@
+               15 in 1 Multicart, Mapper: BMC-Generic15in1
+               -------------------------------------------
+
+2.17.2001
+Version 1.0
+
+Mapper info by The Mad Dumper
+---
+
+
+This mapper has been assigned the designation BMC-Generic15in1 for the UNIF 
+format.  iNES format on new dumps is no longer supported.
+
+Whee, another multi.  About as generic as they come.
+
+---
+
+
+The hardware:
+
+3 128K ROMs, 74161, 74257, 7402, 7432, and 8 330 ohm resistors.
+
+-
+
+This multi so far is unique.  It has those resistors on there which
+isolate the ROM from the data bus when the bank address is written to.
+So, the byte that is in the ROM at the written to address is actually loaded
+into the bank select register, rather than the byte written!
+
+
+-
+
+Bank Select Register:
+
+
+It uses D0-D3 of the ROM contents.
+
+bit:
+3210
+----
+BBBB
+
+The 4 bits directly select an 8K CHR ROM page from the CHR ROM.
+
+The PRG switching is really, really weird.
+
+-
+
+If the bank is 00h or 01h:
+
+In this case, the first 32K is selected.  
+
+-
+
+If the bank is anything else:
+
+The first 16K of the PRG space is fixed to the LAST 16K of the PRG ROM.
+The last 16K is selected via the bank bits.
+
+-
+
+Mirroring is fixed to vertical.
+
+That's it.

@@ -1,0 +1,110 @@
+                   Gamestation / Rumblestation Mapper Info 
+                   ---------------------------------------
+
+
+
+K.Horton
+11/07/2000
+V1.0
+
+
+
+
+--------------------------
+
+I have assigned this mapper #46 (that's 46 decimal)
+
+
+What is it:
+
+The Gamestation (or is that Rumblestation?) is a clear blue hand-held Thing
+in the shape of a Dreamcast controller.  In fact, it appears they just used
+the shell from a Dreamcast controller and plopped an NES on a Chip(tm) and 
+integral multicart into it.  The RF modulator is inside the battery 
+compartment!  
+
+Unlike most of the "NES in a controller" dealies, this one is actually legal
+and is loaded with 15 of the hottest Colordreams games. :-)  Also, unlike
+most of the others, it is cheap.  A mere $25 at your local JC Penny's store.
+
+There seems to be some confusion as to what to call it- the box is marked
+"Gamestation" while the unit and the menu are marked "Rumble Station".  The
+unit is of course NTSC, and has handy A/V jacks out the back along with the
+RF modulator situated in the battery compartment.  It also has a very odd
+"feature" on it that I can't figure out.  Since it is the body of a Dreamcast
+controller, it has a place for a "rumble motor" in it.  The motor is mounted,
+and every time you hit the A or B button, the motor runs, causing the whole
+works to vibrate!  Not soon after I took it out of the box, it came apart and
+I cut the damn wire to the motor!!
+
+--------------------------
+
+The guts:
+
+Internally, there are 2 circuit boards; one board has the pads for all the
+buttons and the 7805 5V regulator; while the other board is the actual NES
+gut.  On the NES gut, there is a glop-topped NES on a Chip(tm) mounted to
+the board, 4 TTL chips (LS377, LS161*2, LS20), and 2 glop-topped ROMs on
+little carrier boards which are surface-mounted.
+
+I had *fun* reading those damn ROMs in there too.  Used a hot-air gun to
+desolder them from the board; attached some split up ribbon cable to the
+"pins" which was attached to a 32 pin DIP plug.  I tried reading them in
+the EPROM programmer, but the ROMs were too slow, so I read them 256K at
+a time through CopyNES, plugged into a socketed VRC6 board.
+
+
+--------------------------
+
+How to work it good:
+
+
+Like the last couple mappers I have RE'd, this one is two cascaded mappers.
+Since these are Colordreams games, it has the usual Colordreams mapper for
+each game:
+
+
+Writing anywhere to 08000h-0FFFFh sets the bankswitch register.
+
+
+7  bit 0
+--------
+xCCCxxxP
+
+
+The "C" bits select an 8K CHR ROM page, and the "P" bits select a 32K PRG ROM
+page.  Each game has 64K of CHR ROM space and 64K of PRG ROM space. "x" bits 
+are not used and can be ignored.  The value of this register at powerup is
+random.  Also, the ROM is not disabled during writes so there can be bus
+conflicts.
+
+
+---------
+
+In conjunction with the above mapper, there is a "game select" register which
+selects which 64K PRG / 64K CHR bank that the NES will "see".
+
+You access this by writing to 06000h-07FFFh.  Since nothing is mapped here,
+there are no bus conflicts.
+
+7  bit 0
+--------
+AAAABBBB
+
+The "A" bits control which 64K CHR ROM page is in use, and the "B" bits 
+control which 64K PRG ROM page is in use.  There are a total of 16 64K/64K
+blocks for a total ROM size of 1Mbyte PRG and 1Mbyte CHR.  Upon powerup
+or reset, this register is CLEARED, so the first 64K page of each PRG and
+CHR is used (which holds the menu, of course).
+
+
+---------
+
+
+Mirroring is fixed and is set to vertical for all games.
+
+
+
+
+
+
