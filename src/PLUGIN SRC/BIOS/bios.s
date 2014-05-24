@@ -216,10 +216,15 @@ p2006hi		:=port+$0e   ;use bits 0-6 (2006 high)
 start:
 	sei
 	cld
-	ldx #$f8
+	ldx #$fb
 	txs
 .ifdef PARALLELPORT
+	lda char_ctr
+	sta $1fe	;do not trash the reset ram anymore than we have to.
+
 	jsr set_in	;input mode
+	
+
 
 	ldx #$00
 	stx type_4016
@@ -235,7 +240,7 @@ start:
 .endif
 	jsr init_port
 	lda port+$00
-	sta temp_byte
+	sta $1ff
 .ifdef PARALLELPORT
 	jsr init_lcd
 	jsr load_chars
@@ -246,35 +251,34 @@ start:
 .else
 	jsr init_ppu
 .endif
-
-	ldx #7
-	:
-		lda ram_dat,x
-		sta $1f8,x
-		dex
-	bpl :-
-
 	lda port+$00
 	and #$40
-	beq :+
+	beq :++
+
 .ifdef PARALLELPORT
 		lda #3		;message 3: "Playing Game"
 		jsr sho_msg
+		lda $1fe
+		sta char_ctr	;restore uninitialized value.
 .endif
+		ldx #7
+		:
+			lda ram_dat,x
+			sta $1f8,x
+			dex
+		bpl :-
 		jmp $1f8
 	:
+
+.ifdef PARALLELPORT
+	lda char_ctr
+	sta $1fe	;stash char_ctr in temp location
+.endif
 	
-	ldx #$fb
-	txs
 	ldx #0
 	txa
 	:
-		cmp #<(temp_byte)	;don't clobber temp_byte
-		beq :+
-		cmp #<(char_ctr)	;don't clobber char_ctr
-		beq :+
-			sta 0, x
-		:
+		sta 0, x
 	.BYTE	$9D, $FC, $00	;absolute write
 		sta $200, x
 		sta $300, x
@@ -283,7 +287,14 @@ start:
 		sta $600, x
 		sta $700, x
 		dex
-	bne :--
+	bne :-
+	
+	lda $1ff
+	sta temp_byte	
+.ifdef PARALLELPORT
+	lda $1fe
+	sta char_ctr
+.endif
 
 
 	ldx #0
