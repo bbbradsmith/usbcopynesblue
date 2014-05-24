@@ -44,6 +44,7 @@ void	OpenStatus (HWND hWnd)
 
 void	__cdecl	StatusText (char *text, ...)
 {
+	DWORD l,r;
 	static char txt[1024];
 	va_list marker;
 
@@ -53,8 +54,16 @@ void	__cdecl	StatusText (char *text, ...)
 	_vsnprintf(txt,1024,text,marker);
 	va_end(marker);
 
-	SendDlgItemMessage(DlgStatus,IDC_STATUS_TEXT,LB_ADDSTRING,0,(LPARAM)(LPCTSTR)txt);
-	SendDlgItemMessage(DlgStatus,IDC_STATUS_TEXT,LB_SETTOPINDEX,SendDlgItemMessage(DlgStatus,IDC_STATUS_TEXT,LB_GETCOUNT,0,0) - 1,0);
+	//SendMessage(DlgStatus,EM_GETSEL,(WPARAM)&l,(LPARAM)&r);
+	//SendMessage(DlgStatus, EM_SETSEL, -1, -1);
+	//SendMessage(DlgStatus, EM_REPLACESEL,0,(LPARAM)txt);
+	SendDlgItemMessage(DlgStatus,IDC_STATUS_EDIT,EM_SETSEL,-1,-1);
+	SendDlgItemMessage(DlgStatus,IDC_STATUS_EDIT,EM_REPLACESEL,0,(LPARAM)(LPCTSTR)txt);
+	SendDlgItemMessage(DlgStatus,IDC_STATUS_EDIT,EM_SETSEL,-1,-1);
+	SendDlgItemMessage(DlgStatus,IDC_STATUS_EDIT,EM_REPLACESEL,0,(LPARAM)(LPCTSTR)"\n");
+
+	//SendDlgItemMessage(DlgStatus,IDC_STATUS_TEXT,LB_ADDSTRING,0,(LPARAM)(LPCTSTR)txt);
+	//SendDlgItemMessage(DlgStatus,IDC_STATUS_TEXT,LB_SETTOPINDEX,SendDlgItemMessage(DlgStatus,IDC_STATUS_TEXT,LB_GETCOUNT,0,0) - 1,0);
 	UpdateWindow(DlgStatus);
 
 	// for debugging
