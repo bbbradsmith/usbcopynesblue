@@ -42,6 +42,7 @@ BOOL	CMD_NESINFO (void)
 			break;
 	}
 	StatusText(Version);
+
 	StatusOK();
 	return TRUE;
 }

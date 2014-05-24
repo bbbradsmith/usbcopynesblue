@@ -192,6 +192,8 @@
 #define IDC_CONFIG_ECP                  1172
 #define IDC_CONFIG_MAKEUNIF             1173
 #define IDC_MAIN_RECONNECT              1174
+#define IDC_EDIT1                       1175
+#define IDC_STATUS_EDIT                 1175
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -200,7 +202,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        113
 #define _APS_NEXT_COMMAND_VALUE         32768
-#define _APS_NEXT_CONTROL_VALUE         1175
+#define _APS_NEXT_CONTROL_VALUE         1176
 #define _APS_NEXT_SYMED_VALUE           114
 #endif
 #endif
