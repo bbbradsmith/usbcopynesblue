@@ -3036,10 +3036,10 @@ crc_tab3:
 footer_start:
 .ifdef PARALLELPORT
 COPYNESVER	:= $03
-	.byte "Parallel Port CopyNES BIOS V3.01 (c) Kevin Horton    Built on 04.27.2014"
+	.byte "Parallel Port CopyNES BIOS V3.02 (c) Kevin Horton    Built on 05.23.2014"
 .else
 COPYNESVER	:= $04
-	.byte "USB CopyNES BIOS V4.01 (c) Kevin Horton & Brian Parker    Built on 04.27.2014"
+	.byte "USB CopyNES BIOS V4.02 (c) Kevin Horton & Brian Parker    Built on 05.23.2014"
 .endif
 	.asciiz " - Modified for CopyNES Blue"
 footer_end:
