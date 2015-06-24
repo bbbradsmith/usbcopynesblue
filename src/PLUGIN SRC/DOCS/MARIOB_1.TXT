@@ -1,0 +1,81 @@
+                  Pirate game "Mario Baby" Mapper #42 Info
+                  ----------------------------------------
+
+
+05.29.2000
+
+Mapper info by The Mad Dumper
+
+Thanks to Thomas Steen for testing help.
+---
+
+This game is really "Bio Miracle Boukette Upa"; a Konami FDS game
+that was turned into a cartridge by some enterprising pirates and
+rebadged "Mario Baby".  The label on the cartridge is actually the
+artwork for the original game.  There is only a small paper label
+glued to the top of the cart which says "Mario Baby".  If you like
+the original game, this is for you since only the opening screen
+was slightly modified.  The sprites, etc. are all intact.
+
+The cart proper is a regulation famicom cart case, however inside
+there is a whopping 11 chips- 9 TTL/CMOS, 1 8K RAM, and 1 128K ROM.
+The back of the cart has the usual funny inscription: 
+
+"The unique manufacturer adopting high class IC and processed by not
+ oxidized gold plate on the apparatus, to protect protect your IPU."
+
+I couldn't have said it better myself.
+
+---
+
+This mapper has been assigned the number 42.  (that's 42 decimal)
+
+The ROM is mapped in from 6000-FFFF.  It is broken up into 16 8K banks.
+
+Bank #0 is 0000-1FFF of the ROM, bank #1 is 2000-3FFF of the ROM, etc.
+
+
+Reads:
+6000-7FFF: Selectable
+8000-9FFF: bank #0Ch
+A000-BFFF: bank #0Dh
+C000-DFFF: bank #0Eh
+E000-FFFF: bank #0Fh
+
+Writes:
+E000     : Select bank
+E001     : Select mirroring
+E002     : IRQ Control
+E003     : --not used--
+
+These writes are mirrored from E000-FFFF, every 4 bytes.  E000 is the same
+as E004, E008, E00C, etc.
+
+---
+
+Writes to the ROM area control the bankswitching and other features of
+this cart.  When writing to the ROM area, it is disabled to prevent
+bus contention.
+
+Writing to E000 selects the desired 8K bank that will appear at 6000-7FFF.
+Only the lower 4 bits of the written value are used.
+
+Writing to E001 selects mirroring like so:
+
+(x = not used)
+
+xxxx 0xxx = V mirroring
+xxxx 1xxx = H mirroring 
+
+Writing to E002 turns the IRQ counter on/off.
+
+xxxx xx0x = Counter turned off and reset back to 0000h
+xxxx xx1x = Counter enabled
+
+This counter is very simple.  It counts M2 clock ticks.  After 24576 M2 
+ticks, an /IRQ is fired off. This is about 215 or so scanlines.  It is
+most likely used to split the screen for the status bar. 
+
+
+
+
