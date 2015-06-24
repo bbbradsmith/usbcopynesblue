@@ -1,5 +1,5 @@
 USBCopyNESBlue v5.0.4
-Released by Brad Smith, ?????
+Released by Brad Smith, CaitSith2
 
 This is a fork of the USBCopyNES client originally released by
 Brian Parker (RetroUSB). This was in turn based on CopyNESW by
@@ -9,10 +9,10 @@ http://www.retrousb.com/product_info.php?products_id=36
 http://www.qmtpro.com/~nes/copynes/
 http://kevtris.org/Projects/copynes/index.html
 
-This project is publicly maintained on Google Code. The latest version,
+This project is publicly maintained on GitHub. The latest version,
 as well as source code is available at:
 
-http://code.google.com/p/usbcopynesblue/
+https://github.com/bbbradsmith/usbcopynesblue/
 
 
 Known Bugs:
@@ -23,16 +23,21 @@ Known Bugs:
 
 Changes:
 
-v5.0.4 - ?????
+v5.0.4 - 5/22/2014
  - Glider cart now usable as an NSF cart.
  - Parallel port support added. (there may still be bugs with that.)
- - Mapper.dat format updated. (Now easier to add a plugin.)
+ - Mappers.dat format updated. (Now easier to add a plugin.)
+ - All plugin data, including the ram cart plugins now live in MAPPERS.DAT
+ - Removed a redundant log player that was less capable than the one that was added a while back.
+ - NSF log file selection now doesn't include All files (*.*) by default
+ - NSF log player progress bar now shows progress of current song, for logs that happen to contain multiple songs recorded.
+ - Corrected the mapper number that is given to NES-EVENT related dumps. (MAPPERS.DAT had it at 132 right from day one. It should have been 105.)
 
-v5.0.3 - 4/30/2013
+v5.0.3 - 4/30/2014
  - Fixed bugs with Glider flasher
  - Created RET-CUFROM plugin (dumps Glider)
 
-v5.0.2 - 4/29/2013
+v5.0.2 - 4/29/2014
  - Lots of bug fixes
  - Added NES 2.0 support
  - Updated U5ROM plugin to handle carts that do more than oversized UxROM, like flash saving, etc... (Mapper 30
