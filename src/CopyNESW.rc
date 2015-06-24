@@ -1,6 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+#include "version.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +30,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDD_MAINMENU DIALOGEX 0, 0, 284, 129
 STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "CopyNES Blue v5.0.4"
+CAPTION LONGVERSION
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     CTEXT           "CopyNES Win32 client - Select a command",IDC_STATIC,13,4,263,8,SS_CENTERIMAGE
@@ -741,7 +742,7 @@ IDR_DRIVER              BIN                     "hwinterface.sys"
 
 STRINGTABLE
 BEGIN
-    IDS_APP_TITLE           "USB CopyNES Blue Win32 Client v5.0.4"
+    IDS_APP_TITLE           APPTITLE
 END
 
 #endif    // English (United States) resources

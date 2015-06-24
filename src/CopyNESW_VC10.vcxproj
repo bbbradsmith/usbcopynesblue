@@ -216,6 +216,7 @@
     <ClInclude Include="CopyNESW.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CopyNESW.rc">

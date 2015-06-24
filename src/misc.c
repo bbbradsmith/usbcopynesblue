@@ -55,7 +55,7 @@ void	WriteUNIF (char *basename, char *board, int battery, int mirror, int foursc
 		year = mytime->tm_year + 1900;
 		dumpinfo[102] = (year & 0x00FF);
 		dumpinfo[103] = (year & 0xFF00) >> 8;
-		sprintf(&dumpinfo[104],"%sCopyNES Blue v5.0.4", (ParPort == -1) ? "USB " : "");
+		sprintf(&dumpinfo[104],"%s%s", (ParPort == -1) ? "USB " : "",LONGVERSION);
 		UNIFchunk(UNIF,"DINF",dumpinfo,204);
 	}
 

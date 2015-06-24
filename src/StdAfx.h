@@ -31,6 +31,7 @@
 #include "resource.h"
 #include "ftd2xx.h"
 #include "inpout32.h"
+#include "version.h"
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
