@@ -1,0 +1,9 @@
+src/tmp/
+src/ipch/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.pdb
+*.ilk
+bin/USBCopyNESBlueD.exe

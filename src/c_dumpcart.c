@@ -130,7 +130,8 @@ BOOL	CMD_DUMPCART (void)
 		DATA = fopen(strjoin3(fnamebuf,path,filename,ext),"w+b");
 		if (DATA == NULL)
 		{
-			StatusText("Unable to open output file!");
+			StatusText("Unable to open output file:");
+			StatusText(fnamebuf);
 			StatusOK();
 			return FALSE;
 		}
@@ -146,6 +147,8 @@ BOOL	CMD_DUMPCART (void)
 					return FALSE;
 				}
 				fwrite(&n,1,1,DATA);
+				// HACK
+				//StatusText("%06X: %02X",(a+(s*1024)),n);
 			}
 			if (rbyte)
 			{
