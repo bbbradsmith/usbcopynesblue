@@ -147,8 +147,6 @@ BOOL	CMD_DUMPCART (void)
 					return FALSE;
 				}
 				fwrite(&n,1,1,DATA);
-				// HACK
-				//StatusText("%06X: %02X",(a+(s*1024)),n);
 			}
 			if (rbyte)
 			{

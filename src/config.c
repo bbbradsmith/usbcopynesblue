@@ -14,7 +14,13 @@ char *	_relpath (char *abspath, char *basepath)
 	char tmp[MAX_PATH];
 	tmp[0] = 0;
 	i = 0;
-	
+
+	// this relative path finder can't deal with ..\ or .\, don't mangle the string in this case
+	if (strstr(basepath,".\\") != NULL || strstr(abspath,".\\") != NULL)
+	{
+		return abspath;
+	}
+
 	while ((tolower(abspath[i]) == tolower(basepath[i])) && (basepath[i] != 0))
 		i++;
 	if (basepath[i])
@@ -362,8 +368,6 @@ void	Shutdown (void)
 {
 	int i, j;
 	
-	WriteConfig();
-	
 	if (Plugins)
 	{
 		for (i = 0; i <= numcats; i++)
@@ -380,6 +384,6 @@ void	Shutdown (void)
 		}
 		free(Plugins);
 	}
-    ResetNES(RESET_PLAYMODE);
+	ResetNES(RESET_PLAYMODE);
 	ClosePort();
 }
