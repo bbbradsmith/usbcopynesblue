@@ -282,11 +282,14 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 
 		SendDlgItemMessage(hDlg,IDC_PLUGIN_CATEGORY,LB_SETCURSEL,curcat,0);
 
-		for (i = 0; i <= category->listlen; i++)
+		for (i = 0; i < category->listlen; i++)
 			SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_ADDSTRING,0,(LPARAM)(LPCTSTR)category->list[i]->name);
 
 		SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_SETCURSEL,curplug,0);
-		sprintf(desc, "%s (%i)", category->list[curplug]->desc, category->list[curplug]->num);
+		if (curplug < category->listlen)
+			sprintf(desc, "%s (%i)", category->list[curplug]->desc, category->list[curplug]->num);
+		else
+			sprintf(desc, "-- plugin not found --");
 		SetDlgItemText(hDlg,IDC_PLUGIN_DESC,desc);
 
 		return TRUE;			break;
@@ -311,16 +314,22 @@ LRESULT CALLBACK DLG_SelectPlugin(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 				SendDlgItemMessage(hDlg,IDC_PLUGIN_CATEGORY,LB_SETCURSEL,curcat,0);	// update selection, in case it changed
 				SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_RESETCONTENT,0,0);
 				category = Plugins[curcat];
-				for (i = 0; i <= category->listlen; i++)
+				for (i = 0; i < category->listlen; i++)
 					SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_ADDSTRING,0,(LPARAM)(LPCTSTR)category->list[i]->name);
 				SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_SETCURSEL,curplug,0);
-				sprintf(desc, "%s (%i)", category->list[curplug]->desc, category->list[curplug]->num);
+				if (curplug < category->listlen)
+					sprintf(desc, "%s (%i)", category->list[curplug]->desc, category->list[curplug]->num);
+				else
+					sprintf(desc, "-- plugin not found --");
 				SetDlgItemText(hDlg,IDC_PLUGIN_DESC,desc);
 			}
 			else if (LOWORD(wParam) == IDC_PLUGIN_LIST)
 			{
 				curplug = SendDlgItemMessage(hDlg,IDC_PLUGIN_LIST,LB_GETCURSEL,0,0);
-				sprintf(desc, "%s (%i)", category->list[curplug]->desc, category->list[curplug]->num);
+				if (curplug < category->listlen)
+					sprintf(desc, "%s (%i)", category->list[curplug]->desc, category->list[curplug]->num);
+				else
+					sprintf(desc, "-- plugin not found --");
 				SetDlgItemText(hDlg,IDC_PLUGIN_DESC,desc);
 			}
 		}

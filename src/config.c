@@ -243,7 +243,8 @@ BOOL MakeCategory(char *description, int type)
 		Plugins = (PCategory*)malloc(sizeof(PCategory));
 	
 	Plugins[numcats] = (PCategory)malloc(sizeof(TCategory));
-	Plugins[numcats]->listlen = -1;
+	Plugins[numcats]->list = (PPlugin*)malloc(0);
+	Plugins[numcats]->listlen = 0;
 	Plugins[numcats]->type = type;
 	Plugins[numcats]->desc = strdup(description);
 	
@@ -279,12 +280,9 @@ BOOL MakePlugin(int category, char *name, char *file, int number, char *descript
 	plugin->num = number;
 	plugin->desc = strdup(description);
 
-	Plugins[category]->listlen++;
-	if(Plugins[category]->listlen)
-		Plugins[category]->list = (PPlugin*)realloc(Plugins[category]->list, (Plugins[category]->listlen+1) * sizeof(TPlugin));
-	else
-		Plugins[category]->list = (PPlugin*)malloc(sizeof(TPlugin));
+	Plugins[category]->list = (PPlugin*)realloc(Plugins[category]->list, (Plugins[category]->listlen+1) * sizeof(TPlugin));
 	Plugins[category]->list[Plugins[category]->listlen] = plugin;
+	Plugins[category]->listlen++;
 
 	return TRUE;
 }
@@ -372,7 +370,7 @@ void	Shutdown (void)
 	{
 		for (i = 0; i <= numcats; i++)
 		{
-			for (j = 0; j <= Plugins[i]->listlen; j++)
+			for (j = 0; j < Plugins[i]->listlen; j++)
 			{
 				if(Plugins[i]->list[j]->desc) free(Plugins[i]->list[j]->desc);
 				if(Plugins[i]->list[j]->file) free(Plugins[i]->list[j]->file);
