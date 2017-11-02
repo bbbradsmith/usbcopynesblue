@@ -1,0 +1,1 @@
+NES files will be split into PRG and CHR. CHR will appear in this folder.
