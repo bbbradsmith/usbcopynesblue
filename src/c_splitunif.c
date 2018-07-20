@@ -9,7 +9,7 @@ BOOL	CMD_SPLITUNIF (void)
 	DWORD len;
 	int i;
 	
-	PromptFile(topHWnd,"UNIF Files (*.UNIF,*.UNF)\0*.unif,*.unf\0\0",filename,basename,NULL,"Select a ROM","unif",FALSE);
+	PromptFile(topHWnd,"UNIF Files (*.UNIF;*.UNF;*.NES)\0*.unif;*.unf;*.nes\0\0",filename,basename,NULL,"Select a ROM","unif",FALSE);
 	if (!basename[0])
 		return FALSE;
 	i = strlen(basename);
