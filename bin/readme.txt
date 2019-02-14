@@ -1,4 +1,4 @@
-USBCopyNESBlue v5.0.4
+USBCopyNESBlue v5.0.6
 Released by Brad Smith, CaitSith2
 
 This is a fork of the USBCopyNES client originally released by
