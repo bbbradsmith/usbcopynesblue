@@ -1,6 +1,9 @@
 src/tmp/
 src/ipch/
 src/.vs/
+src/PLUGIN SRC/cmd.exe.lnk
+src/PLUGIN SRC/DONE/*.lst
+src/PLUGIN SRC/DONE/*.bin
 *.user
 *.suo
 *.sdf

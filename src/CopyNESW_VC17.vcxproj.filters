@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{991ac252-a77b-4f6f-b504-a77c88fe78ea}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{ff81ff06-473f-4a48-bdf1-2841cc118154}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{119879c0-36ae-4b22-8d92-18d9b2f696e8}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="c_bankwatch.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_breakbank.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_disasm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_dumpcart.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_fixgar.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_makenes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_makeunif.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_microbug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_nesinfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_options.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_playcart.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_playlog.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_playnsf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_ramcart.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_reconnect.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_runplug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_splitnes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_splitunif.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_vrc7regs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_writewram.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CopyNESW.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="misc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscdialogs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CopyNESW.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CopyNESW.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="usbcopynes.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="hwinterface.sys" />
+  </ItemGroup>
+</Project>
