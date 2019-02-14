@@ -526,7 +526,7 @@ BOOL	UNROM512cart (PPlugin plugin, char* filedata)
 	BYTE bank, banks;
 	char string[256];
 	char* data;
-	int mappers[] = { 2, 30 };
+	int mappers[] = { 2, 30, 111 };
 
 	if(!AssertPRG(1,32,TRUE))
 		return FALSE;

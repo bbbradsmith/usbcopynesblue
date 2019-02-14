@@ -221,6 +221,7 @@ PowerPak Lite              pplite.bin      3    PowerPak Lite RAM Cart Loader
 PowerPak Boot              pp.bin          4    PowerPak Boot Flasher                                                    
 Glider Flasher             glider.bin      5    Glider House Flasher                                                     
 UNROM512 Flasher           unrom512.bin    6    Sealie Computing UNROM512 Flasher                                        
+GTROM Flasher              gtrom.bin       6    Membler Industries GTROM Flasher                                         
 *                                          4    RAM/Flash cartridge NSF uploader                                         
 NRAM                       ram.bin         0    NROM cart with 32K PRG RAM and 8K CHR RAM                                
 CNRAM                      cnram.bin       1    CNROM cart with 32K PRG RAM and 32K CHR RAM                              
