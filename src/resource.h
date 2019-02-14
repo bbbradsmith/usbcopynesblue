@@ -194,6 +194,7 @@
 #define IDC_MAIN_RECONNECT              1174
 #define IDC_EDIT1                       1175
 #define IDC_STATUS_EDIT                 1175
+#define IDC_VRC7_PHASELOCK              1176
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

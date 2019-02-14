@@ -6,6 +6,7 @@ static	BYTE	instdata[16][8];
 static	CHAR	filename[MAX_PATH];
 static	BYTE	inst, oct;
 static	BOOL	changed;
+static	BOOL	phaselock;
 static	FILE	*data;
 static	HWND	dialog;
 static	HHOOK	keyhook;
@@ -13,6 +14,12 @@ static	HHOOK	keyhook;
 static void PlayNote(BYTE oct_)
 {
 	int i;
+	if (phaselock)
+	{
+		// reset chip command (resets phase)
+		WriteByte(0x44);
+		WriteByte(0xBB);
+	}
 	WriteByte(0x55);
 	WriteByte(0xAA);
 	for (i = 0; i < 8; i++)
@@ -263,6 +270,9 @@ LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 		CheckDlgButton(hDlg, IDC_VRC7_BUILTIN, (oct & 0x40) ? BST_CHECKED : BST_UNCHECKED);
 		changed = FALSE;
 
+		phaselock = FALSE;
+		CheckDlgButton(hDlg, IDC_VRC7_PHASELOCK, phaselock ? BST_CHECKED : BST_UNCHECKED);
+
 		return TRUE;
 		break;
 
@@ -295,6 +305,10 @@ LRESULT CALLBACK DLG_VRC7Tuner(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			changed = TRUE;
 			EnableWindow(GetDlgItem(hDlg,IDC_VRC7_SAVE), TRUE);
 			UpdateInstrument(hDlg);
+			break;
+
+		case IDC_VRC7_PHASELOCK:
+			phaselock = IsDlgButtonChecked(hDlg, IDC_VRC7_PHASELOCK);
 			break;
 
 		case IDC_VRC7_PLAY:

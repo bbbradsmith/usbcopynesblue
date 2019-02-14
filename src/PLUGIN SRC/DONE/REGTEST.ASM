@@ -5,6 +5,9 @@
 ;Written by KH
 ;Version 1.2
 ;modded to test VRC7 registers
+;
+;02/14/2019
+;BS added chip reset / phase lock option
              
              ;vectors for standard system calls
 
@@ -61,16 +64,20 @@ port:        .equ 04a00h
 
              lda #001h
              sta temp2_lo
+             jsr reset_vrc7
 
 main:        jsr set_in
-        
+             ; 55,AA = play note
+             ; 44,BB = reset chip (also resets LFO phase)
              jsr read_byte
              cmp #055h
+             beq main55
+             cmp #044h
              bne main
-             jsr read_byte
+             jmp phaselock
+main55:      jsr read_byte
              cmp #0aah
              bne main
-             
              
              lda #000h
              sta 09010h
@@ -194,7 +201,7 @@ writewait:   nop
              nop
              nop
              sta 09030h
-             nop
+wait60:      nop
              nop
              nop
              nop
@@ -219,13 +226,25 @@ writewait:   nop
              nop
              nop
              rts
-
 
              
 set_in:      lda #00h
              sta port+03h
              rts
-             
-             .fill 0800h-*,0ffh
 
+phaselock:   jsr read_byte
+             cmp #0bbh
+             bne plock_skip
+             jsr reset_vrc7
+plock_skip:  jmp main
+
+reset_vrc7:  lda #040h
+             sta 0E000h
+             jsr wait60
+             lda #000h
+             sta 0E000h
+             jsr wait60
+             rts
+
+             .fill 0800h-*,0ffh
              .end
