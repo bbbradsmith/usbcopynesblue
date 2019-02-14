@@ -23,6 +23,20 @@ Known Bugs:
 
 Changes:
 
+v5.0.6 - 2/14/2019
+ - VS2017 solution.
+ - VRC7 tuner added phase lock capability, added more VRC7 patch sets.
+ - GTROM flasher.
+ - Fixed Split UNIF dialog.
+
+v5.0.5 - 11/01/2017
+ - B5ROM.BIN: Dumper plugin for 512k oversized BxROM.
+ - Plugin not found no longer crashes.
+ - Config now only saves on OK, not on Exit. No longer mangles relative paths.
+ - Better error message when Dump Cart fails.
+ - CHEAPO.BIN: Dumper plugin for GTROM/Cheapocabra
+ - BIOS: Fewer RAM bytes initialized before play mode.
+
 v5.0.4 - 5/22/2014
  - Glider cart now usable as an NSF cart.
  - Parallel port support added. (there may still be bugs with that.)
