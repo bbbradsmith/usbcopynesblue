@@ -199,7 +199,7 @@ void	DumpBs (void)
 	}
 }
 
-extern enum ADDRMODE { IMP, ACC, IMM, ADR, ABS, IND, REL, ABX, ABY, ZPG, ZPX, ZPY, INX, INY, ERR, NUM_ADDR_MODES };
+enum ADDRMODE { IMP, ACC, IMM, ADR, ABS, IND, REL, ABX, ABY, ZPG, ZPX, ZPY, INX, INY, ERR, NUM_ADDR_MODES };
 extern enum ADDRMODE TraceAddrMode[256];
 extern unsigned char TraceAddrBytes[NUM_ADDR_MODES];
 extern char TraceArr[256][5];
