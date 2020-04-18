@@ -1,1 +1,0 @@
-svn cp https://usbcopynesblue.googlecode.com/svn/trunk/ https://usbcopynesblue.googlecode.com/svn/tags/%1/ --message "Tagging %1"

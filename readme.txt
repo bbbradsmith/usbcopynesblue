@@ -8,6 +8,9 @@ src/     - source files for program
 src/tmp/ - intermediate files created during compilation
 bin/     - output executable, and data files used for program
 
+Automated preview build:
+https://ci.appveyor.com/project/bbbradsmith/usbcopynesblue/build/artifacts
+
 Notes:
 
 MAPPERS.DAT format
