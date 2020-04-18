@@ -2,7 +2,8 @@ USB CopyNES Blue
 
 This code is a fork of USB CopyNES from retrousb.com. Original source, and USB CopyNES device are available at: http://www.retrousb.com/product_info.php?products_id=36
 
-Compilation requires Visual Studio 2008 or Visual Studio 2010.
+Compilation target is Visual Studio 2017.
+Older VS 2008 and 2010 solutions are present but unmaintained.
 
 src/     - source files for program
 src/tmp/ - intermediate files created during compilation
