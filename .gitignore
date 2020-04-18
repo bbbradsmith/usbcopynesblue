@@ -11,3 +11,4 @@ src/PLUGIN SRC/DONE/*.bin
 *.pdb
 *.ilk
 bin/USBCopyNESBlueD.exe
+bin/USBCopyNESBlue.exe
