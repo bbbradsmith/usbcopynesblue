@@ -54,7 +54,7 @@ NES-JLROM                  fme7.bin        69   JLROM, uses FME-07
 NES-MHROM                  mhrom.bin       66   gloptops, LS161, 64K PRG, 16K CHR (SMB/DH)                               
 NES-NROM-128               nrom.bin        0    16K PRG, 8K CHR                                                          
 NES-NROM-256               nrom.bin        0    32K PRG, 8K CHR                                                          
-NES-PNROM                  pxrom.bin       2    MMC2, Punch Out!!                                                        
+NES-PNROM                  pxrom.bin       9    MMC2, Punch Out!!                                                        
 NES-SAROM                  sxrom.bin       1    MMC1, Max 128K PRG, Max 64K CHR, 8K WRAM                                 
 NES-SBROM                  sxrom.bin       1    MMC1, Max 128K PRG, Max 64K CHR                                          
 NES-SCROM                  sxrom.bin       1    MMC1, Max 128K PRG, Max 128K CHR                                         
