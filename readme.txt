@@ -10,7 +10,7 @@ src/tmp/ - intermediate files created during compilation
 bin/     - output executable, and data files used for program
 
 Automated preview build:
-https://ci.appveyor.com/project/bbbradsmith/usbcopynesblue/build/artifacts
+https://nightly.link/bbbradsmith/usbcopynesblue/workflows/build/master
 
 Notes:
 

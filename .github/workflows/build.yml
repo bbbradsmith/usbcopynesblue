@@ -1,0 +1,30 @@
+name: USB CopyNES Blue Builds
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-win32:
+    name: USB CopyNES Blue Windows 32-bit
+    runs-on: windows-2017
+    steps:
+      - name: Checkout Files
+        uses: actions/checkout@v4
+      - name: Setup MSVC
+        uses: microsoft/setup-msbuild@v2
+      - name: Build
+        run: msbuild src/CopyNESW_VC17.sln -t:rebuild -property:Configuration=Release -property:Platform=Win32
+      - name: Prepare Artifacts
+        shell: pwsh
+        run: echo "BUILD_TAG=$(git log -1 --format="%ad--%h" --date=format-local:"%Y-%m-%d-%H%M%S")" >> $env:GITHUB_ENV
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: USBCopyNESBlue-unstable--${{ env.BUILD_TAG }}
+          path: bin/
